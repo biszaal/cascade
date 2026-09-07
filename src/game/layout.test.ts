@@ -12,6 +12,36 @@ describe('row wrapping', () => {
   });
 });
 
+describe('choosing an arrangement', () => {
+  it('wraps to two rows on a portrait phone, where width is the scarce axis', () => {
+    const g = computeGeometry(11, 5, 402, 620);
+    expect(g.rows).toBe(2);
+  });
+
+  it('uses a single row on a landscape tablet, where height is the scarce axis', () => {
+    // Eleven lanes across an iPad in landscape fit comfortably side by side, and doing so
+    // gives far bigger tokens than stacking two short rows.
+    const g = computeGeometry(11, 5, 1100, 500, 84);
+    expect(g.rows).toBe(1);
+  });
+
+  it('never picks an arrangement that draws smaller tokens than the alternative', () => {
+    for (const [w, h] of [[402, 620], [1100, 500], [834, 900], [744, 400], [320, 500]]) {
+      const chosen = computeGeometry(11, 5, w!, h!, 84);
+      const oneRow = computeGeometry(11, 5, w!, h!, 84);
+      expect(chosen.tokenSize).toBeGreaterThanOrEqual(oneRow.tokenSize);
+    }
+  });
+
+  it('keeps the board inside the window in every arrangement', () => {
+    for (const [w, h] of [[402, 620], [1194, 500], [834, 900], [320, 480]]) {
+      const g = computeGeometry(11, 5, w!, h!, 84);
+      expect(g.boardWidth).toBeLessThanOrEqual(w!);
+      expect(g.boardHeight).toBeLessThanOrEqual(h!);
+    }
+  });
+});
+
 describe('geometry', () => {
   it('fits the widest supported board inside a small phone without overflowing', () => {
     // 11 lanes of 5 on a 320pt-wide screen is the tightest case the game can produce.

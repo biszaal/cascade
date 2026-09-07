@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { Modal, StyleSheet, Text, View } from 'react-native';
+import { Modal, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
@@ -11,6 +11,7 @@ import Animated, {
 import Svg, { Path } from 'react-native-svg';
 import { radius, space, spring, surface, type } from '@/design/tokens';
 import { Button } from './Button';
+import { metricsFor } from '@/game/responsive';
 
 interface WinSheetProps {
   visible: boolean;
@@ -64,13 +65,17 @@ export function WinSheet({
   onReplay,
   onExit,
 }: WinSheetProps) {
+  const { width, height } = useWindowDimensions();
+  const metrics = metricsFor(width, height);
   const verdict =
     stars === 3 ? 'Par or better' : stars === 2 ? `${moves - par} over par` : `${moves - par} over par`;
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onExit}>
       <View style={styles.scrim}>
-        <View style={styles.sheet}>
+        {/* Capped and centred: a sheet stretched across an iPad puts its buttons at the
+            far edges of a screen the player is holding in two hands. */}
+        <View style={[styles.sheet, { maxWidth: metrics.contentWidth + 64 }]}>
           <View style={styles.stars}>
             {[0, 1, 2].map((i) => (
               <StampedStar key={i} filled={i < stars} index={i} />
@@ -106,8 +111,9 @@ export function WinSheet({
 }
 
 const styles = StyleSheet.create({
-  scrim: { flex: 1, backgroundColor: surface.scrim, justifyContent: 'flex-end' },
+  scrim: { flex: 1, backgroundColor: surface.scrim, justifyContent: 'flex-end', alignItems: 'center' },
   sheet: {
+    width: '100%',
     backgroundColor: surface.chalk,
     borderTopLeftRadius: radius.sheet,
     borderTopRightRadius: radius.sheet,

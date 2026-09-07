@@ -14,7 +14,9 @@ import { JetBrainsMono_500Medium, JetBrainsMono_700Bold } from '@expo-google-fon
 import { surface } from '@/design/tokens';
 import { useProgress } from '@/state/progress';
 import { setHapticsEnabled } from '@/game/haptics';
+import { setSoundEnabled, release as releaseSound } from '@/game/sound';
 import { ensureSession } from '@/supabase/auth';
+import { flushPending, pullRemote } from '@/data/sync';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -31,17 +33,34 @@ export default function RootLayout() {
   const hydrate = useProgress((s) => s.hydrate);
   const loaded = useProgress((s) => s.loaded);
   const hapticsEnabled = useProgress((s) => s.hapticsEnabled);
+  const soundEnabled = useProgress((s) => s.soundEnabled);
 
   useEffect(() => {
-    hydrate();
-    // Anonymous sign-in happens quietly in the background. It must never block play, so
-    // a failure here is deliberately ignored - the game is offline-first.
-    ensureSession().catch(() => {});
+    // Sign in anonymously, then reconcile with the cloud - all in the background. None of
+    // this may block play, so every step swallows its own failure: the game is
+    // offline-first and a player on a train should never notice this ran at all.
+    void (async () => {
+      await hydrate();
+      const userId = await ensureSession().catch(() => null);
+      if (!userId) return;
+      // Upload anything finished while offline, then pull results from other devices.
+      // Without this, offline progress sat on the device until someone found the manual
+      // sync button in Settings.
+      await flushPending().catch(() => {});
+      await pullRemote().catch(() => {});
+    })();
   }, [hydrate]);
 
   useEffect(() => {
     setHapticsEnabled(hapticsEnabled);
   }, [hapticsEnabled]);
+
+  useEffect(() => {
+    setSoundEnabled(soundEnabled);
+    // Hand the native players back when the player turns sound off, rather than holding
+    // an audio session open for something they have said they do not want.
+    if (!soundEnabled) releaseSound();
+  }, [soundEnabled]);
 
   useEffect(() => {
     if (fontsLoaded && loaded) SplashScreen.hideAsync().catch(() => {});

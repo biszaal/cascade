@@ -29,34 +29,88 @@ export const MIN_TOKEN = 22;
 /** Above this the board stops reading as a board and starts reading as buttons. */
 export const MAX_TOKEN = 54;
 
-/** Lanes wrap into at most two rows; more than that and the board reads as a spreadsheet. */
-export function rowsFor(laneCount: number): { rows: number; perRow: number } {
-  if (laneCount <= 5) return { rows: 1, perRow: laneCount };
-  const perRow = Math.ceil(laneCount / 2);
-  return { rows: 2, perRow };
+/** How lanes wrap for a given number of rows. At most two - more reads as a spreadsheet. */
+export function rowsFor(laneCount: number, rows = laneCount <= 5 ? 1 : 2): { rows: number; perRow: number } {
+  if (rows <= 1) return { rows: 1, perRow: laneCount };
+  return { rows: 2, perRow: Math.ceil(laneCount / 2) };
 }
 
+/**
+ * Pick the arrangement that draws the biggest tokens.
+ *
+ * Wrapping to two rows is right on a portrait phone, where width is scarce, and wrong in
+ * landscape on a tablet, where height is scarce and a single row of eleven lanes fits
+ * comfortably. Rather than branching on orientation, lay the board out both ways and keep
+ * whichever wins - the geometry then adapts to any window, including an iPad split view,
+ * with no special cases to get wrong.
+ */
 export function computeGeometry(
   laneCount: number,
   capacity: number,
   availableWidth: number,
   availableHeight: number,
+  /** Largest a token may be drawn. Tablets pass a bigger cap than phones. */
+  maxToken: number = MAX_TOKEN,
 ): Geometry {
-  const { rows, perRow } = rowsFor(laneCount);
+  const options = laneCount <= 5 ? [1] : [1, 2];
+  const candidates = options.map((rowCount) =>
+    arrange(laneCount, capacity, availableWidth, availableHeight, maxToken, rowCount),
+  );
 
-  const slotGap = 3;
-  const lanePadding = 6;
-  const columnGap = 10;
-  const rowGap = 20;
+  const fits = (g: Geometry) => g.boardWidth <= availableWidth && g.boardHeight <= availableHeight;
 
-  // Widest token that lets a row fit side by side.
-  const widthBudget = (availableWidth - columnGap * (perRow - 1)) / perRow - lanePadding * 2;
+  // Prefer the biggest tokens among arrangements that actually fit. Both can hit the
+  // minimum token size in a very small window - a narrow split view, say - and there the
+  // larger-token test cannot separate them, so an arrangement that overflows must never
+  // win on a tie.
+  const usable = candidates.filter(fits);
+  if (usable.length > 0) {
+    return usable.reduce((best, g) => (g.tokenSize > best.tokenSize ? g : best));
+  }
 
-  // Tallest token that lets every row stack vertically.
-  const heightBudget =
-    (availableHeight - rowGap * (rows - 1)) / rows / capacity - slotGap - (lanePadding * 2) / capacity;
+  // Nothing fits: take the narrowest, which clips least.
+  return candidates.reduce((best, g) => (g.boardWidth < best.boardWidth ? g : best));
+}
 
-  const tokenSize = Math.max(MIN_TOKEN, Math.min(MAX_TOKEN, Math.floor(Math.min(widthBudget, heightBudget))));
+function arrange(
+  laneCount: number,
+  capacity: number,
+  availableWidth: number,
+  availableHeight: number,
+  maxToken: number,
+  rowCount: number,
+): Geometry {
+  const { rows, perRow } = rowsFor(laneCount, rowCount);
+
+  // Spacing grows with the token, so a big board does not look like a small one zoomed.
+  // The gaps depend on the token size and the token size depends on the gaps, so solve it
+  // twice: once with the cap as a guess, then again using what actually fit. Deriving the
+  // gaps from the CAP alone would pad a cramped board as generously as a roomy one.
+  const gapsFor = (token: number) => {
+    const scale = Math.max(1, token / MAX_TOKEN);
+    return {
+      slotGap: Math.round(3 * scale),
+      lanePadding: Math.round(6 * scale),
+      columnGap: Math.round(10 * scale),
+      rowGap: Math.round(20 * scale),
+    };
+  };
+
+  const solve = (gaps: ReturnType<typeof gapsFor>) => {
+    // Widest token that lets a row fit side by side.
+    const widthBudget =
+      (availableWidth - gaps.columnGap * (perRow - 1)) / perRow - gaps.lanePadding * 2;
+    // Tallest token that lets every row stack vertically.
+    const heightBudget =
+      (availableHeight - gaps.rowGap * (rows - 1)) / rows / capacity -
+      gaps.slotGap -
+      (gaps.lanePadding * 2) / capacity;
+    return Math.max(MIN_TOKEN, Math.min(maxToken, Math.floor(Math.min(widthBudget, heightBudget))));
+  };
+
+  const provisional = solve(gapsFor(maxToken));
+  const { slotGap, lanePadding, columnGap, rowGap } = gapsFor(provisional);
+  const tokenSize = solve({ slotGap, lanePadding, columnGap, rowGap });
 
   const laneWidth = tokenSize + lanePadding * 2;
   const laneHeight = capacity * tokenSize + (capacity - 1) * slotGap + lanePadding * 2;

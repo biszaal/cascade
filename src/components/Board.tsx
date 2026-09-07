@@ -4,6 +4,8 @@ import { Lane } from './Lane';
 import { Token } from './Token';
 import { computeGeometry, lanePosition, slotPosition } from '@/game/layout';
 import { isLaneComplete, topRun } from '@/engine/rules';
+import { describeLane, describeLaneAction } from '@/game/describe';
+import { useReducedMotion } from '@/game/useReducedMotion';
 import type { GameState } from '@/engine/types';
 
 interface BoardProps {
@@ -16,6 +18,8 @@ interface BoardProps {
   hintLane: number | null;
   width: number;
   height: number;
+  /** Largest a token may be drawn; supplied by the screen from its size class. */
+  maxToken?: number;
   onLanePress: (index: number) => void;
 }
 
@@ -28,13 +32,15 @@ export function Board({
   hintLane,
   width,
   height,
+  maxToken,
   onLanePress,
 }: BoardProps) {
   const laneCount = state.lanes.length;
+  const calm = useReducedMotion();
 
   const geometry = useMemo(
-    () => computeGeometry(laneCount, state.capacity, width, height),
-    [laneCount, state.capacity, width, height],
+    () => computeGeometry(laneCount, state.capacity, width, height, maxToken),
+    [laneCount, state.capacity, width, height, maxToken],
   );
 
   // The tokens that would travel if the held lane poured right now - they float clear of
@@ -88,6 +94,11 @@ export function Board({
             completeColor={complete ? lane.tokens[0]! : null}
             selected={selected === index || hintLane === index}
             rejectNonce={rejected?.lane === index ? rejected.nonce : null}
+            calm={calm}
+            // The whole mechanic is colour, which a screen reader cannot show - so the
+            // lane has to say what it holds and what tapping it would do.
+            label={describeLane(lane, index, state.capacity)}
+            hint={describeLaneAction(state, index, selected)}
             onPress={() => onLanePress(index)}
           />
         );
@@ -105,6 +116,7 @@ export function Board({
             y={token.y}
             lifted={token.lifted}
             celebrate={token.celebrate}
+            calm={calm}
           />
         ))}
       </View>

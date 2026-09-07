@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeInDown } from 'react-native-reanimated';
@@ -9,9 +9,12 @@ import { useProgress } from '@/state/progress';
 import { chapters, getLevel, totalLevels } from '@/data/levels';
 import { chapterColors } from '@/design/tokens';
 import { StarRow } from '@/components/StarRow';
+import { metricsFor } from '@/game/responsive';
 
 export default function Home() {
   const router = useRouter();
+  const { width, height } = useWindowDimensions();
+  const metrics = metricsFor(width, height);
   const results = useProgress((s) => s.results);
   const totalStars = useProgress((s) => s.totalStars());
 
@@ -24,12 +27,23 @@ export default function Home() {
 
   return (
     <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
-      <View style={styles.content}>
+      <View
+        style={[
+          styles.content,
+          { maxWidth: metrics.contentWidth },
+          // A phone wants the actions pinned to the bottom edge; a tall tablet wants the
+          // whole column gathered in the middle, or the screen reads as two islands with
+          // a void between them.
+          metrics.isTablet && styles.contentCentred,
+        ]}
+      >
         {/* Left-aligned rather than centred - a centred hero is the default that makes
             everything look the same. */}
         <Animated.View entering={FadeInDown.duration(400)} style={styles.header}>
           <Logo size={52} />
-          <Text style={styles.wordmark}>Goti</Text>
+          <Text style={[styles.wordmark, { fontSize: type.hero.fontSize * metrics.displayScale }]}>
+            Goti
+          </Text>
           <Text style={styles.tagline}>
             Sort the board. The fewer moves it takes, the better you played.
           </Text>
@@ -41,7 +55,7 @@ export default function Home() {
           <Stat label="STARS" value={`${totalStars}`} suffix={`/${totalLevels * 3}`} />
         </Animated.View>
 
-        <View style={styles.spacer} />
+        <View style={metrics.isTablet ? styles.spacerFixed : styles.spacer} />
 
         {/* The middle of a tall phone should carry information, not emptiness. This is
             what the primary button will actually open. */}
@@ -66,7 +80,7 @@ export default function Home() {
           </Animated.View>
         ) : null}
 
-        <View style={styles.spacer} />
+        <View style={metrics.isTablet ? styles.spacerFixed : styles.spacer} />
 
         <Animated.View entering={FadeInDown.delay(160).duration(400)} style={styles.actions}>
           <Button
@@ -97,7 +111,9 @@ function Stat({ label, value, suffix }: { label: string; value: string; suffix: 
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: surface.board },
-  content: { flex: 1, paddingHorizontal: space.lg, paddingBottom: space.lg },
+  // Centred and capped: a full-bleed column of buttons across an iPad is a worse target,
+  // not a bigger one.
+  content: { flex: 1, width: '100%', alignSelf: 'center', paddingHorizontal: space.lg, paddingBottom: space.lg },
 
   header: { paddingTop: space.xl, gap: space.md },
   wordmark: { ...type.hero, color: surface.ink },
@@ -110,7 +126,9 @@ const styles = StyleSheet.create({
   statValue: { ...type.numeralLarge, color: surface.ink },
   statSuffix: { ...type.numeral, color: surface.graphite },
 
+  contentCentred: { justifyContent: 'center' },
   spacer: { flex: 1, minHeight: space.base },
+  spacerFixed: { height: space.xl },
 
   upNext: {
     flexDirection: 'row',

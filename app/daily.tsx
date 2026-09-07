@@ -11,6 +11,7 @@ import { useSession, sessionIsStuck } from '@/state/session';
 import { starsFor } from '@/game/scoring';
 import { buildDailyLevel, fetchLeaderboard, submitDailyResult, todayKey, type LeaderboardRow } from '@/data/daily';
 import { isSupabaseConfigured } from '@/supabase/client';
+import { metricsFor } from '@/game/responsive';
 
 export default function Daily() {
   const router = useRouter();
@@ -18,6 +19,7 @@ export default function Daily() {
 
   // The seed comes from the UTC date, so this is the same board for everyone, generated
   // on the device - it works with no network at all.
+  const metrics = metricsFor(width, height);
   const level = useMemo(() => buildDailyLevel(), []);
   const session = useSession();
   const [board, setBoard] = useState<LeaderboardRow[]>([]);
@@ -66,7 +68,10 @@ export default function Daily() {
     <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
       <Header onBack={() => router.back()} />
 
-      <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        contentContainerStyle={[styles.scroll, { maxWidth: metrics.contentWidth }]}
+        showsVerticalScrollIndicator={false}
+      >
         <View style={styles.summary}>
           <Text style={styles.date}>{todayKey()}</Text>
           <Text style={styles.headline}>One board. Everyone plays the same one.</Text>
@@ -93,7 +98,8 @@ export default function Daily() {
               rejected={session.rejected}
               justCompleted={session.justCompleted}
               hintLane={null}
-              width={Math.min(width - space.base * 2, 460)}
+              maxToken={metrics.maxToken}
+              width={metrics.boardWidth}
               height={Math.max(220, height * 0.42)}
               onLanePress={session.tapLane}
             />
@@ -153,7 +159,13 @@ export default function Daily() {
 function Header({ onBack }: { onBack: () => void }) {
   return (
     <View style={styles.header}>
-      <Pressable onPress={onBack} hitSlop={12} style={styles.back}>
+      <Pressable
+        onPress={onBack}
+        hitSlop={12}
+        style={styles.back}
+        accessibilityRole="button"
+        accessibilityLabel="Back"
+      >
         <BackIcon />
       </Pressable>
       <Text style={styles.title}>Daily challenge</Text>
@@ -176,7 +188,7 @@ const styles = StyleSheet.create({
   back: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
   title: { ...type.title, color: surface.ink },
 
-  scroll: { padding: space.base, gap: space.lg, paddingBottom: space.xxl },
+  scroll: { padding: space.base, gap: space.lg, paddingBottom: space.xxl, alignSelf: 'center', width: '100%' },
   summary: { gap: space.xs },
   date: { ...type.numeral, fontSize: 12, color: surface.graphite, letterSpacing: 1 },
   headline: { ...type.heading, color: surface.ink, maxWidth: 300 },

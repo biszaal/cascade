@@ -34,14 +34,10 @@ create table if not exists public.level_results (
 
 create index if not exists level_results_user_idx on public.level_results (user_id);
 
--- The daily board is derived from the date on the device, so this table is a record of
--- what was played rather than the source of the puzzle.
-create table if not exists public.daily_challenges (
-  date   date primary key,
-  seed   bigint not null,
-  config jsonb  not null,
-  par    int    not null
-);
+-- There is deliberately no daily_challenges table. The day's board is derived from the
+-- UTC date by the same seed function on every device, so the puzzle needs no server round
+-- trip and works offline. Storing it here would be a second source of truth for something
+-- already deterministic.
 
 create table if not exists public.daily_results (
   date      date        not null,
@@ -65,7 +61,6 @@ alter table public.profiles        enable row level security;
 alter table public.progress        enable row level security;
 alter table public.level_results   enable row level security;
 alter table public.daily_results   enable row level security;
-alter table public.daily_challenges enable row level security;
 
 create policy "own profile read"   on public.profiles      for select using (auth.uid() = id);
 create policy "own profile write"  on public.profiles      for insert with check (auth.uid() = id);
@@ -82,10 +77,6 @@ create policy "own results update" on public.level_results for update using (aut
 create policy "own daily read"   on public.daily_results   for select using (auth.uid() = user_id);
 create policy "own daily write"  on public.daily_results   for insert with check (auth.uid() = user_id);
 create policy "own daily update" on public.daily_results   for update using (auth.uid() = user_id) with check (auth.uid() = user_id);
-
--- The daily puzzle definition is not secret; anyone signed in may read it.
-create policy "daily challenges readable" on public.daily_challenges
-  for select using (auth.role() = 'authenticated');
 
 -- Give every new user a profile row so the leaderboard always has a name to show.
 create or replace function public.handle_new_user()

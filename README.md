@@ -33,6 +33,19 @@ The top of a lane can never be face-down, so removing a token necessarily flips 
 one up. A lane that becomes full and single-coloured reveals itself, so a player can never
 complete a lane blind and not be told.
 
+## Phones and tablets
+
+Layout is chosen from the **window**, not the device, so an iPad in a narrow split view
+correctly gets the compact layout. The threshold is 600pt on the shorter edge.
+
+The board is laid out both one-row and two-row, and whichever draws bigger tokens wins,
+with overflowing arrangements rejected. That single rule gives two rows on a portrait
+phone and one wide row on a tablet in landscape, and handles split views and rotation with
+no orientation branching anywhere.
+
+iPhone stays portrait; iPad rotates freely. That is set per-idiom in the Info.plist rather
+than at runtime.
+
 ## Layout
 
 ```
@@ -54,6 +67,7 @@ runtime, so par is exact and a level is identical on every device forever.
 
 ```
 npm run levels      # regenerate every pack (~5 minutes)
+npm run sounds      # regenerate the sound set
 ```
 
 Generation deals a shuffled board, solves it with IDA*, and scores difficulty mostly from
@@ -68,10 +82,28 @@ impossible. So every chapter deals with two free lanes, and difficulty comes fro
 count, lane capacity and face-down tokens. `reverseBoard` (walk backwards from the finished
 position, solvable by construction) exists for tighter boards.
 
+## Sound and feel
+
+Sound effects are synthesised by `scripts/generate-sounds.mjs` rather than sourced: short
+struck-wood knocks, licence-free and about 130KB in total. Haptics and sound fire from one
+call per game event so they cannot drift apart. The audio session respects the ringer
+switch and mixes with other audio rather than interrupting it.
+
+## Accessibility
+
+Colour is the entire mechanic, which a screen reader cannot convey, so every lane
+describes what it holds and what a tap would do. Those descriptions live in
+`src/game/describe.ts` as pure functions and are unit tested. Reduced motion is honoured:
+the pour still travels, it just stops being lobbed.
+
+The nine token colours come from the Okabe-Ito colourblind-safe set. Sky and Cyan, the
+closest pair, are separated by lightness rather than hue, because a lightness gap survives
+a colour vision deficiency and a hue gap does not.
+
 ## Tests
 
 ```
-npm test            # 91 tests
+npm test            # 126 tests
 npm run typecheck
 ```
 
@@ -111,4 +143,5 @@ picks one from the Expo SDK version that ships an older Xcode.
 ## Deferred
 
 Light theme · colourblind glyph mode · wild tokens · locked lanes · drag-to-pour · ads and
-IAP · friends and social · server-side score validation · upgrading an anonymous account.
+IAP · friends and social · server-side score validation · upgrading an anonymous account ·
+a landscape-specific play layout that puts the HUD beside the board.

@@ -40,6 +40,9 @@ export function Button({ label, onPress, variant = 'primary', disabled, icon, st
         onPressIn={down}
         onPressOut={up}
         disabled={disabled}
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        accessibilityState={{ disabled: !!disabled }}
         style={[
           styles.button,
           { backgroundColor: palette.bg, borderColor: palette.border, opacity: disabled ? 0.4 : 1 },

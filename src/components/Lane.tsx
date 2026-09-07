@@ -19,6 +19,9 @@ interface LaneProps {
   selected: boolean;
   /** Changes to trigger a refusal shake. */
   rejectNonce: number | null;
+  calm: boolean;
+  label: string;
+  hint: string;
   onPress: () => void;
 }
 
@@ -28,19 +31,20 @@ interface LaneProps {
  * Draws no tokens itself - they live in a layer above the whole board so they can travel
  * between lanes. This is purely the well, its baseline, and the tap target.
  */
-function LaneView({ x, y, width, height, complete, completeColor, selected, rejectNonce, onPress }: LaneProps) {
+function LaneView({ x, y, width, height, complete, completeColor, selected, rejectNonce, calm, label, hint, onPress }: LaneProps) {
   const shake = useSharedValue(0);
   const press = useSharedValue(0);
 
   useEffect(() => {
     if (rejectNonce === null) return;
+    if (calm) return;
     shake.value = withSequence(
       withTiming(-1, { duration: 55 }),
       withTiming(1, { duration: 55 }),
       withTiming(-0.6, { duration: 55 }),
       withSpring(0, spring.snappy),
     );
-  }, [rejectNonce, shake]);
+  }, [rejectNonce, shake, calm]);
 
   useEffect(() => {
     press.value = withSpring(selected ? 1 : 0, spring.snappy);
@@ -56,6 +60,10 @@ function LaneView({ x, y, width, height, complete, completeColor, selected, reje
     <Animated.View style={[styles.wrap, { left: x, top: y, width, height }, animatedStyle]}>
       <Pressable
         onPress={onPress}
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        accessibilityHint={hint}
+        accessibilityState={{ selected }}
         // The drawn lane is narrow, so the tap target is deliberately wider than it looks.
         // A near-miss on a puzzle board reads as the game being broken.
         hitSlop={{ top: 12, bottom: 16, left: 8, right: 8 }}

@@ -81,12 +81,43 @@ so the eye skips them and reads the revealed pieces first.
 ## 5. Layout Principles
 
 - The board is the hero and is vertically centred in the remaining space after the HUD.
-- Lanes are laid out in rows of at most 5, sized to fit the narrowest supported viewport
-  without scrolling. **The board never scrolls.**
+- Lanes wrap into at most two rows, sized to fit the narrowest supported viewport without
+  scrolling. **The board never scrolls.**
+
+### Size classes
+
+Layout is decided by the **window**, never the device. An iPad handed a narrow split view
+genuinely is a compact layout, and treating it as a tablet because of the hardware is how
+a two-column grid ends up crammed into 320 points. The threshold is 600pt on the shorter
+edge - an iPad mini is 744pt wide in portrait, the largest iPhone is 440pt.
+
+- **Compact** (phone, narrow split view): content fills the width minus 16pt gutters.
+  Tokens up to 54pt. Level trail three across.
+- **Regular** (tablet): content is capped at 620pt and centred - a 1000pt-wide button is a
+  worse target, not a better one. Tokens up to 84pt. Level trail five across. Display type
+  scales by 1.2; **body text does not scale**, because iOS itself does not scale it either.
+
+### Choosing the board arrangement
+
+The board is laid out both ways - one row and two - and whichever draws the **bigger
+tokens** wins, with any arrangement that overflows the window rejected outright. Two rows
+is right on a portrait phone where width is scarce; one row is right on a tablet in
+landscape where height is scarce. Deriving it from the measurement rather than branching
+on orientation means split views and rotation are handled with no special cases.
+
+### Orientation
+
+iPhone is portrait only - a landscape phone board is cramped. iPad rotates freely, because
+people prop tablets in stands and expect that to work. This is set per-idiom in the
+Info.plist rather than at runtime.
 - Level select is a **winding trail**, not a grid — nodes follow a serpentine path that
   echoes a Ludo track.
 - Every interactive element is at least 44px. Lanes get an expanded hit area beyond their
   drawn bounds, because a near-miss tap on a puzzle board feels broken.
+- **Every lane describes itself aloud.** The entire mechanic is colour, which a screen
+  reader cannot show, so each lane states what it holds and what tapping it would do -
+  "Lane 2, Emerald on top, 2 in a row, 3 of 4, 1 face down". Those strings are pure
+  functions and they are tested.
 - Safe-area insets respected on every screen; nothing sits under the notch or home bar.
 
 ## 6. Motion & Interaction

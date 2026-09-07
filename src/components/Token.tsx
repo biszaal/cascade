@@ -21,6 +21,8 @@ interface TokenProps {
   lifted: boolean;
   /** Bounce in celebration; the value is the token's position in the stagger. */
   celebrate: number | null;
+  /** The player has asked the system to reduce motion. */
+  calm: boolean;
 }
 
 const LIFT = 16;
@@ -33,7 +35,7 @@ const ARC = 46;
  * whole board rather than nested inside a lane. That is what lets a pour actually travel
  * between lanes instead of disappearing from one and popping up in the other.
  */
-function TokenView({ colorId, faceDown, size, x, y, lifted, celebrate }: TokenProps) {
+function TokenView({ colorId, faceDown, size, x, y, lifted, celebrate, calm }: TokenProps) {
   const progress = useSharedValue(1);
   const fromX = useSharedValue(x);
   const fromY = useSharedValue(y);
@@ -61,17 +63,22 @@ function TokenView({ colorId, faceDown, size, x, y, lifted, celebrate }: TokenPr
     toY.value = y;
     // Only arc when actually changing lanes. A token settling within its own lane just
     // slides, because an arc there would look like a twitch.
-    arc.value = Math.abs(x - fromX.value) > 1 ? ARC : 0;
+    // Reduced motion keeps the travel but drops the lob, which is the part that reads as
+    // movement through space rather than a change of position.
+    arc.value = calm ? 0 : Math.abs(x - fromX.value) > 1 ? ARC : 0;
     progress.value = 0;
-    progress.value = withTiming(1, { duration: 280, easing: Easing.inOut(Easing.cubic) });
-  }, [x, y, arc, fromX, fromY, progress, toX, toY]);
+    progress.value = withTiming(1, {
+      duration: calm ? 130 : 280,
+      easing: Easing.inOut(Easing.cubic),
+    });
+  }, [x, y, arc, fromX, fromY, progress, toX, toY, calm]);
 
   useEffect(() => {
     lift.value = withSpring(lifted ? 1 : 0, spring.snappy);
   }, [lifted, lift]);
 
   useEffect(() => {
-    if (celebrate === null) return;
+    if (celebrate === null || calm) return;
     hop.value = withDelay(
       celebrate * 45,
       withSequence(
@@ -79,7 +86,7 @@ function TokenView({ colorId, faceDown, size, x, y, lifted, celebrate }: TokenPr
         withSpring(0, spring.snappy),
       ),
     );
-  }, [celebrate, hop]);
+  }, [celebrate, hop, calm]);
 
   const animatedStyle = useAnimatedStyle(() => {
     const p = progress.value;

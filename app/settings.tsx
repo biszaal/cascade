@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Switch, Text, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, Switch, Text, View, useWindowDimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { radius, space, surface, type } from '@/design/tokens';
@@ -7,9 +7,12 @@ import { useProgress } from '@/state/progress';
 import { BackIcon } from '@/components/Icons';
 import { isSupabaseConfigured } from '@/supabase/client';
 import { flushPending, pullRemote } from '@/data/sync';
+import { metricsFor } from '@/game/responsive';
 
 export default function Settings() {
   const router = useRouter();
+  const { width, height } = useWindowDimensions();
+  const metrics = metricsFor(width, height);
   const haptics = useProgress((s) => s.hapticsEnabled);
   const sound = useProgress((s) => s.soundEnabled);
   const setHaptics = useProgress((s) => s.setHaptics);
@@ -21,13 +24,19 @@ export default function Settings() {
   return (
     <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()} hitSlop={12} style={styles.back}>
+        <Pressable
+          onPress={() => router.back()}
+          hitSlop={12}
+          style={styles.back}
+          accessibilityRole="button"
+          accessibilityLabel="Back"
+        >
           <BackIcon />
         </Pressable>
         <Text style={styles.title}>Settings</Text>
       </View>
 
-      <ScrollView contentContainerStyle={styles.list}>
+      <ScrollView contentContainerStyle={[styles.list, { maxWidth: metrics.contentWidth }]}>
         <Section title="Feel">
           <Row label="Haptics" description="Vibration on lift, place and completion">
             <Switch
@@ -135,7 +144,7 @@ const styles = StyleSheet.create({
   back: { width: 36, height: 36, alignItems: 'center', justifyContent: 'center' },
   title: { ...type.title, color: surface.ink },
 
-  list: { padding: space.base, gap: space.lg, paddingBottom: space.xxl },
+  list: { padding: space.base, gap: space.lg, paddingBottom: space.xxl, width: '100%', alignSelf: 'center' },
   section: { gap: space.sm },
   sectionTitle: { ...type.label, fontSize: 10, letterSpacing: 1.4, color: surface.graphite, marginLeft: space.xs },
   card: {

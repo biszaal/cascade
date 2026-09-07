@@ -10,6 +10,7 @@ import { getLevel, totalLevels } from '@/data/levels';
 import { useSession, sessionIsStuck } from '@/state/session';
 import { useProgress } from '@/state/progress';
 import { starsFor } from '@/game/scoring';
+import { metricsFor } from '@/game/responsive';
 import { queueResultSync } from '@/data/sync';
 
 const HUD_HEIGHT = 210;
@@ -27,6 +28,7 @@ export default function Play() {
   const spendHint = useProgress((s) => s.spendHint);
   const hintsRemaining = useProgress((s) => s.hintsRemaining);
   const existing = useProgress((s) => s.results[id]);
+  const hasPlayedBefore = useProgress((s) => Object.keys(s.results).length > 0);
 
   const [isBest, setIsBest] = useState(false);
   const recorded = useRef<number | null>(null);
@@ -63,15 +65,22 @@ export default function Play() {
     );
   }
 
-  const boardWidth = Math.min(width - space.base * 2, 480);
-  const boardHeight = Math.max(240, height - HUD_HEIGHT - space.xxl);
+  const metrics = metricsFor(width, height);
+  const boardWidth = metrics.boardWidth;
+  const boardHeight = Math.max(
+    240,
+    height - HUD_HEIGHT - (metrics.isTablet ? space.huge * 2 : space.xxl),
+  );
   const stuck = sessionIsStuck(session.state);
+  // Only on the very first level, only before the first move, and only for someone who
+  // has never finished anything. After that the levels teach by constraint.
+  const showFirstRunHint = level.id === 1 && session.moves === 0 && !hasPlayedBefore;
   const nextId = level.id + 1;
   const hasNext = nextId <= totalLevels;
 
   return (
     <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
-      <View style={styles.hud}>
+      <View style={[styles.hud, { width: metrics.contentWidth }]}>
         <HUD
           levelLabel={`Level ${level.id}`}
           moves={session.moves}
@@ -90,6 +99,7 @@ export default function Play() {
 
       <View style={styles.boardArea}>
         <Board
+          maxToken={metrics.maxToken}
           state={session.state}
           ids={session.ids}
           selected={session.selected}
@@ -102,10 +112,14 @@ export default function Play() {
         />
       </View>
 
-      {/* A dead end is stated plainly and inline. No modal, because undo is right there. */}
+      {/* One shared slot for the footer line, so showing or hiding it never shifts the
+          board. A dead end is stated inline rather than in a modal, because undo is
+          already right there. */}
       <View style={styles.footer}>
         {stuck ? (
           <Text style={styles.stuck}>No moves left — undo, or restart the board.</Text>
+        ) : showFirstRunHint ? (
+          <Text style={styles.coach}>Tap a lane to lift its top piece, then tap another to pour.</Text>
         ) : (
           <Text style={styles.stuckPlaceholder} />
         )}
@@ -128,10 +142,13 @@ export default function Play() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: surface.board },
-  hud: { paddingHorizontal: space.base, paddingTop: space.sm },
+  // The HUD is capped and centred so it stays a readable cluster on a tablet instead of
+  // flinging the back button and the hint button to opposite edges of the screen.
+  hud: { paddingTop: space.sm, alignSelf: 'center' },
   boardArea: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: space.base },
   footer: { minHeight: 30, alignItems: 'center', justifyContent: 'center', paddingBottom: space.sm },
   stuck: { ...type.label, color: surface.accent },
+  coach: { ...type.label, color: surface.graphite },
   stuckPlaceholder: { height: 18 },
   missing: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   missingText: { ...type.body, color: surface.graphite },

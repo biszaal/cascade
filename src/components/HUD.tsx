@@ -2,6 +2,7 @@ import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { radius, space, surface, type } from '@/design/tokens';
 import { movesUntilStarLost } from '@/game/scoring';
+import { describeProgress } from '@/game/describe';
 import { BackIcon, HintIcon, RestartIcon, UndoIcon } from './Icons';
 
 interface HUDProps {
@@ -37,14 +38,20 @@ export function HUD({
   return (
     <View style={styles.wrap}>
       <View style={styles.top}>
-        <Pressable onPress={onBack} hitSlop={12} style={styles.back}>
+        <Pressable
+          onPress={onBack}
+          hitSlop={12}
+          style={styles.back}
+          accessibilityRole="button"
+          accessibilityLabel="Back"
+        >
           <BackIcon />
         </Pressable>
         <Text style={styles.level}>{levelLabel}</Text>
         <View style={styles.back} />
       </View>
 
-      <View style={styles.scoreRow}>
+      <View style={styles.scoreRow} accessible accessibilityLabel={describeProgress(moves, par)}>
         <View style={styles.scoreBlock}>
           <Text style={styles.scoreLabel}>MOVES</Text>
           <Text style={[styles.scoreValue, overPar && styles.scoreValueOver]}>{moves}</Text>
@@ -95,6 +102,9 @@ function Control({
       onPress={onPress}
       disabled={disabled}
       hitSlop={8}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled: !!disabled }}
       style={[styles.control, disabled && styles.controlDisabled]}
     >
       {children}
