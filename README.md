@@ -140,6 +140,30 @@ replays a submitted move list and rejects anything that does not reach a solved 
 uploads not built with the iOS 26 SDK (`ITMS-90725`), and without an explicit image EAS
 picks one from the Expo SDK version that ships an older Xcode.
 
+### Known blocker on Xcode 27 (not on Xcode 26)
+
+Apple is retiring the single-window `UIApplicationDelegate` life cycle. Expo prebuild still
+emits an AppDelegate-with-window template and declares no `UIApplicationSceneManifest`, so:
+
+- **Xcode 26 / iOS 26 SDK — fine.** Missing UIScene adoption is a *warning*; the app
+  launches normally. This is what `eas.json` pins, so shipping is unaffected today.
+- **Xcode 27 / iOS 27 SDK — the app will not launch.** UIKit turns the warning into an
+  assert that fires before any AppDelegate method:
+  `Application failed to launch: UIScene life cycle is required for apps built with this SDK`.
+
+This was reproduced here on an iOS 27 simulator. It is an upstream Expo issue
+([expo#46663](https://github.com/expo/expo/issues/46663),
+[expo#46664](https://github.com/expo/expo/issues/46664)) affecting the prebuild template,
+not anything in this app's code.
+
+**Do not paper over it** by adding a bare `UIApplicationSceneManifest` to `app.json`. That
+satisfies the assert but leaves the React Native window unattached to any scene, so the app
+launches to a blank screen - worse than the clean failure. The real fix needs a
+`UIWindowSceneDelegate` that hosts the RN root view, which belongs upstream in Expo's
+template or in a config plugin once the upstream approach settles.
+
+Until then, build and test locally against an iOS 26 or earlier simulator runtime.
+
 ## Deferred
 
 Light theme · colourblind glyph mode · wild tokens · locked lanes · drag-to-pour · ads and
