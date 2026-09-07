@@ -1,0 +1,46 @@
+{
+  "chapters": [
+    {
+      "chapter": 1,
+      "name": "Saffron Path",
+      "color": 0,
+      "levels": 30,
+      "parTotal": 350
+    },
+    {
+      "chapter": 2,
+      "name": "Emerald Path",
+      "color": 1,
+      "levels": 30,
+      "parTotal": 535
+    },
+    {
+      "chapter": 3,
+      "name": "Vermilion Path",
+      "color": 2,
+      "levels": 30,
+      "parTotal": 738
+    },
+    {
+      "chapter": 4,
+      "name": "Indigo Path",
+      "color": 3,
+      "levels": 30,
+      "parTotal": 857
+    },
+    {
+      "chapter": 5,
+      "name": "Magenta Path",
+      "color": 4,
+      "levels": 30,
+      "parTotal": 1103
+    },
+    {
+      "chapter": 6,
+      "name": "Slate Path",
+      "color": 5,
+      "levels": 30,
+      "parTotal": 1462
+    }
+  ]
+}

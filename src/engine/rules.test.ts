@@ -1,0 +1,226 @@
+import { describe, it, expect } from 'vitest';
+import {
+  createState,
+  topColor,
+  topRun,
+  isLaneComplete,
+  canMove,
+  legalMoves,
+  applyMove,
+  applyMoveInPlace,
+  undoMoveInPlace,
+  isSolved,
+  cloneState,
+  moveFor,
+} from './rules';
+import type { GameState } from './types';
+
+/** Terse board builder. `lanes` are bottom-first; `hidden` defaults to all-revealed. */
+function board(capacity: number, lanes: number[][], hidden?: number[]): GameState {
+  const colors = new Set(lanes.flat());
+  return createState({
+    capacity,
+    colorCount: colors.size,
+    lanes: lanes.map((l) => [...l]),
+    hidden: hidden ?? lanes.map(() => 0),
+  });
+}
+
+describe('lane inspection', () => {
+  it('reads the top colour, which is the last element', () => {
+    expect(topColor({ tokens: [0, 1, 2], hidden: 0 })).toBe(2);
+  });
+
+  it('reports null for an empty lane', () => {
+    expect(topColor({ tokens: [], hidden: 0 })).toBeNull();
+  });
+
+  it('counts a run of consecutive same-coloured tokens at the top', () => {
+    expect(topRun({ tokens: [1, 0, 0, 0], hidden: 0 })).toBe(3);
+  });
+
+  it('stops a run at the first face-down token, because the player cannot see through it', () => {
+    // Bottom two are face-down. Even though index 1 is also colour 0, the run cannot
+    // include it - the player has no way of knowing it matches.
+    expect(topRun({ tokens: [0, 0, 0, 0], hidden: 2 })).toBe(2);
+  });
+
+  it('treats a lane as complete only when it is full and single-coloured', () => {
+    expect(isLaneComplete({ tokens: [1, 1, 1, 1], hidden: 0 }, 4)).toBe(true);
+    expect(isLaneComplete({ tokens: [1, 1, 1], hidden: 0 }, 4)).toBe(false);
+    expect(isLaneComplete({ tokens: [1, 1, 1, 2], hidden: 0 }, 4)).toBe(false);
+    expect(isLaneComplete({ tokens: [], hidden: 0 }, 4)).toBe(false);
+  });
+});
+
+describe('move legality', () => {
+  it('allows a pour onto a matching top', () => {
+    expect(canMove(board(4, [[0], [0]]), 0, 1)).toBe(true);
+  });
+
+  it('allows a pour into an empty lane', () => {
+    // Source must be mixed, or the no-op rule below correctly refuses it.
+    expect(canMove(board(4, [[1, 0], []]), 0, 1)).toBe(true);
+  });
+
+  it('rejects a pour onto a different colour', () => {
+    expect(canMove(board(4, [[0], [1]]), 0, 1)).toBe(false);
+  });
+
+  it('rejects a pour from an empty lane', () => {
+    expect(canMove(board(4, [[], [0]]), 0, 1)).toBe(false);
+  });
+
+  it('rejects a pour into a full lane', () => {
+    expect(canMove(board(4, [[0], [0, 1, 1, 0]]), 0, 1)).toBe(false);
+  });
+
+  it('rejects a lane pouring into itself', () => {
+    expect(canMove(board(4, [[0]]), 0, 0)).toBe(false);
+  });
+
+  it('rejects breaking up a completed lane, which is never progress', () => {
+    expect(canMove(board(4, [[1, 1, 1, 1], []]), 0, 1)).toBe(false);
+  });
+
+  it('rejects emptying a uniform lane into an empty one, which just wastes a move', () => {
+    // Moving [0,0] wholesale into an empty lane reaches an identical position.
+    expect(canMove(board(4, [[0, 0], []]), 0, 1)).toBe(false);
+  });
+
+  it('enumerates every legal move and nothing else', () => {
+    const moves = legalMoves(board(4, [[0, 1], [1], []]));
+    const pairs = moves.map((m) => `${m.from}->${m.to}`).sort();
+    // 0->1 and 1->0 both pour a 1 onto a 1; 0->2 pours into the empty lane.
+    // 1->2 is absent on purpose: lane 1 is uniform and fully revealed, so tipping it
+    // into an empty lane reaches an identical position and is a wasted move.
+    expect(pairs).toEqual(['0->1', '0->2', '1->0']);
+  });
+});
+
+describe('applying moves', () => {
+  it('pours the whole run when there is room, as a single move', () => {
+    const next = applyMove(board(4, [[1, 0, 0], [0]]), moveFor(board(4, [[1, 0, 0], [0]]), 0, 1));
+    expect(next.lanes[0]!.tokens).toEqual([1]);
+    expect(next.lanes[1]!.tokens).toEqual([0, 0, 0]);
+  });
+
+  it('pours only as many as fit when the destination is nearly full', () => {
+    const state = board(4, [[0, 0, 0], [1, 1, 0]]);
+    const next = applyMove(state, moveFor(state, 0, 1));
+    expect(next.lanes[0]!.tokens).toEqual([0, 0]);
+    expect(next.lanes[1]!.tokens).toEqual([1, 1, 0, 0]);
+  });
+
+  it('does not mutate the state it was given', () => {
+    const state = board(4, [[0], []]);
+    applyMove(state, moveFor(state, 0, 1));
+    expect(state.lanes[0]!.tokens).toEqual([0]);
+    expect(state.lanes[1]!.tokens).toEqual([]);
+  });
+
+  it('flips the next token face-up when the one above it leaves', () => {
+    // Three face-down under one revealed token.
+    const state = board(4, [[3, 2, 1, 0], []], [3, 0]);
+    const next = applyMove(state, moveFor(state, 0, 1));
+    // One token left, so two remain hidden and the new top (index 2) is revealed.
+    expect(next.lanes[0]!.tokens).toEqual([3, 2, 1]);
+    expect(next.lanes[0]!.hidden).toBe(2);
+  });
+
+  it('never leaves a face-down token on top of a lane', () => {
+    let state = board(4, [[3, 2, 1, 0], [0]], [3, 0]);
+    state = applyMove(state, moveFor(state, 0, 1));
+    state = applyMove(state, moveFor(state, 0, 2 - 1));
+    for (const lane of state.lanes) {
+      if (lane.tokens.length > 0) expect(lane.hidden).toBeLessThanOrEqual(lane.tokens.length - 1);
+    }
+  });
+
+  it('resets hidden to zero when a lane empties', () => {
+    const state = board(4, [[0], []], [0, 0]);
+    const next = applyMove(state, moveFor(state, 0, 1));
+    expect(next.lanes[0]!.tokens).toEqual([]);
+    expect(next.lanes[0]!.hidden).toBe(0);
+  });
+
+  it('reveals a whole lane the moment it becomes full and uniform', () => {
+    // Lane 0 holds three face-down colour-1 tokens; dropping a fourth completes it.
+    const state = board(4, [[1, 1, 1], [1]], [2, 0]);
+    const next = applyMove(state, moveFor(state, 1, 0));
+    expect(next.lanes[0]!.tokens).toEqual([1, 1, 1, 1]);
+    // The player could not have known - so the completion reveals itself.
+    expect(next.lanes[0]!.hidden).toBe(0);
+    expect(isLaneComplete(next.lanes[0]!, 4)).toBe(true);
+  });
+});
+
+describe('in-place move and undo, which the solver relies on', () => {
+  it('restores the exact prior state, hidden counts included', () => {
+    const state = board(4, [[3, 2, 1, 0], [0], []], [3, 0, 0]);
+    const before = JSON.stringify(state);
+    const undo = applyMoveInPlace(state, moveFor(state, 0, 1));
+    expect(JSON.stringify(state)).not.toBe(before);
+    undoMoveInPlace(state, undo);
+    expect(JSON.stringify(state)).toBe(before);
+  });
+
+  it('restores a reveal caused by completing a lane', () => {
+    const state = board(4, [[1, 1, 1], [1]], [2, 0]);
+    const before = JSON.stringify(state);
+    const undo = applyMoveInPlace(state, moveFor(state, 1, 0));
+    undoMoveInPlace(state, undo);
+    expect(JSON.stringify(state)).toBe(before);
+  });
+
+  it('agrees with the immutable path over a long random walk', () => {
+    let immutable = board(4, [[0, 1, 2, 0], [1, 2, 0, 1], [2, 0, 1, 2], [], []]);
+    const mutable = cloneState(immutable);
+    for (let step = 0; step < 40; step++) {
+      const moves = legalMoves(mutable);
+      if (moves.length === 0) break;
+      const move = moves[step % moves.length]!;
+      applyMoveInPlace(mutable, move);
+      immutable = applyMove(immutable, move);
+      expect(JSON.stringify(mutable)).toBe(JSON.stringify(immutable));
+    }
+  });
+});
+
+describe('win detection', () => {
+  it('accepts a board of full single-coloured lanes plus empties', () => {
+    expect(isSolved(board(4, [[0, 0, 0, 0], [1, 1, 1, 1], []]))).toBe(true);
+  });
+
+  it('rejects a board with a mixed lane', () => {
+    expect(isSolved(board(4, [[0, 0, 0, 1], [1, 1, 1, 0], []]))).toBe(false);
+  });
+
+  it('rejects a board with a uniform but under-filled lane', () => {
+    expect(isSolved(board(4, [[0, 0, 0], [0], []]))).toBe(false);
+  });
+
+  it('is reachable by playing a trivial level to completion', () => {
+    let state = board(4, [[0, 1], [1, 0], [], []]);
+    state = applyMove(state, moveFor(state, 0, 2)); // 1 -> empty
+    state = applyMove(state, moveFor(state, 1, 3)); // 0 -> empty
+    state = applyMove(state, moveFor(state, 1, 2)); // 1 onto 1
+    state = applyMove(state, moveFor(state, 0, 3)); // 0 onto 0
+    expect(state.lanes[2]!.tokens).toEqual([1, 1]);
+    expect(state.lanes[3]!.tokens).toEqual([0, 0]);
+  });
+});
+
+describe('state construction', () => {
+  it('clamps a hidden count that would leave the top face-down', () => {
+    const state = board(4, [[0, 1, 2]], [3]);
+    expect(state.lanes[0]!.hidden).toBe(2);
+  });
+
+  it('deep-clones, so mutating the copy leaves the original alone', () => {
+    const state = board(4, [[0, 1], []]);
+    const copy = cloneState(state);
+    copy.lanes[0]!.tokens.push(2);
+    expect(state.lanes[0]!.tokens).toEqual([0, 1]);
+  });
+});
