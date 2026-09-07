@@ -69,7 +69,10 @@ export default function Daily() {
       <Header onBack={() => router.back()} />
 
       <ScrollView
-        contentContainerStyle={[styles.scroll, { maxWidth: metrics.contentWidth }]}
+        contentContainerStyle={[
+          styles.scroll,
+          { maxWidth: Math.max(metrics.contentWidth, metrics.boardWidth) },
+        ]}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.summary}>
@@ -191,7 +194,7 @@ const styles = StyleSheet.create({
   scroll: { padding: space.base, gap: space.lg, paddingBottom: space.xxl, alignSelf: 'center', width: '100%' },
   summary: { gap: space.xs },
   date: { ...type.numeral, fontSize: 12, color: surface.graphite, letterSpacing: 1 },
-  headline: { ...type.heading, color: surface.ink, maxWidth: 300 },
+  headline: { ...type.heading, color: surface.ink, maxWidth: 320 },
   counters: { flexDirection: 'row', alignItems: 'center', gap: space.lg, marginTop: space.sm },
   counter: { minWidth: 58 },
   counterDivider: { width: 1, height: 28, backgroundColor: surface.hairline },
@@ -245,5 +248,7 @@ const styles = StyleSheet.create({
   skeletonRow: { height: 44, borderRadius: radius.sm, backgroundColor: surface.skeleton },
 
   empty: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: space.lg },
-  emptyText: { ...type.label, color: surface.graphite, textAlign: 'center', lineHeight: 19 },
+  // Left-aligned so it shares the left edge with the board and the section label above
+  // it, rather than floating in the middle of a wide tablet column.
+  emptyText: { ...type.label, color: surface.graphite, lineHeight: 19, maxWidth: 420 },
 });

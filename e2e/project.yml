@@ -1,0 +1,25 @@
+name: GotiUITests
+options:
+  bundleIdPrefix: com.biszaal
+  deploymentTarget:
+    iOS: "16.4"
+targets:
+  GotiUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: [GotiUITests]
+    settings:
+      base:
+        # No host app: the tests drive the already-installed Goti build by bundle id,
+        # so this bundle can be built and run independently of Expo's generated project.
+        TEST_TARGET_NAME: ""
+        PRODUCT_BUNDLE_IDENTIFIER: com.biszaal.GotiUITests
+        GENERATE_INFOPLIST_FILE: YES
+        SWIFT_VERSION: "5.0"
+schemes:
+  GotiUITests:
+    build:
+      targets:
+        GotiUITests: [test]
+    test:
+      targets: [GotiUITests]

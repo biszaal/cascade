@@ -103,14 +103,24 @@ a colour vision deficiency and a hue gap does not.
 ## Tests
 
 ```
-npm test            # 126 tests
+npm test            # 126 unit tests (engine, solver, generator, layout, a11y strings)
 npm run typecheck
+npm run e2e         # 5 UI tests on a booted simulator
 ```
 
 The most valuable one is `scripts/levels.test.ts`. The packs are generated once and
 committed, so a later change to the pour rules or the solver would fail no unit test - it
 would silently invalidate the par of all 180 levels. That test re-solves every shipped
 level against the current rules and catches it.
+
+`npm run e2e` runs XCUITests against a real simulator, covering the two things neither a
+unit test nor a browser preview can reach: **taps on a device** and **rotation**. The
+sharpest of them is `testE_orientationContract`, which asserts the opposite outcome per
+idiom - an iPad must rotate to landscape, an iPhone must refuse - which is the only way to
+prove the per-idiom `Info.plist` keys actually work. See `e2e/README.md`.
+
+Those tests locate lanes through the accessibility labels the app already exposes, so the
+automation and the accessibility work verify each other.
 
 ## Supabase (optional)
 

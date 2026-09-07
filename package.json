@@ -12,7 +12,8 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "levels": "tsx scripts/generate-levels.ts",
-    "sounds": "node scripts/generate-sounds.mjs"
+    "sounds": "node scripts/generate-sounds.mjs",
+    "e2e": "./e2e/run.sh"
   },
   "dependencies": {
     "@expo-google-fonts/jetbrains-mono": "^0.4.1",
