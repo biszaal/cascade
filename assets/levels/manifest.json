@@ -2,45 +2,38 @@
   "chapters": [
     {
       "chapter": 1,
-      "name": "Saffron Path",
+      "name": "Spring",
       "color": 0,
-      "levels": 30,
-      "parTotal": 350
+      "levels": 10,
+      "parTotal": 111
     },
     {
       "chapter": 2,
-      "name": "Emerald Path",
+      "name": "Brook",
       "color": 1,
-      "levels": 30,
-      "parTotal": 535
+      "levels": 10,
+      "parTotal": 221
     },
     {
       "chapter": 3,
-      "name": "Vermilion Path",
+      "name": "Rapids",
       "color": 2,
-      "levels": 30,
-      "parTotal": 738
+      "levels": 10,
+      "parTotal": 274
     },
     {
       "chapter": 4,
-      "name": "Indigo Path",
+      "name": "Undertow",
       "color": 3,
-      "levels": 30,
-      "parTotal": 857
+      "levels": 10,
+      "parTotal": 265
     },
     {
       "chapter": 5,
-      "name": "Magenta Path",
+      "name": "Deep",
       "color": 4,
-      "levels": 30,
-      "parTotal": 1103
-    },
-    {
-      "chapter": 6,
-      "name": "Slate Path",
-      "color": 5,
-      "levels": 30,
-      "parTotal": 1462
+      "levels": 10,
+      "parTotal": 396
     }
   ]
 }

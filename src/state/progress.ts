@@ -6,7 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
  * no account; Supabase sync merges into this, never the other way round.
  */
 
-const STORAGE_KEY = 'goti.progress.v1';
+const STORAGE_KEY = 'cascade.progress.v1';
 const DAILY_HINT_ALLOWANCE = 5;
 
 export interface LevelResult {

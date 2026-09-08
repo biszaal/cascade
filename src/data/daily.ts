@@ -53,6 +53,9 @@ export function buildDailyLevel(date = todayKey()): Level | null {
         par: candidate.par,
         solution: candidate.solution,
         difficulty: candidate.difficulty,
+        beat: 'daily',
+        intensity: 0.5,
+        note: "Today's board.",
       };
     }
   }

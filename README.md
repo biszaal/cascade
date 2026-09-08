@@ -1,8 +1,7 @@
-# Goti
+# Cascade
 
-A colour-sort puzzle game for iOS and Android. A *goti* is the piece you move around a
-Ludo board, which is what this game is made of: flat carrom-style discs on dark felt,
-not glossy spheres in glass test tubes.
+A colour-sort puzzle game for iOS and Android. Tokens fall one at a time from lane to
+lane - flat carrom-style discs on dark felt, not glossy spheres in glass test tubes.
 
 ## What makes it not a clone
 
@@ -16,12 +15,13 @@ not glossy spheres in glass test tubes.
 
 ## Rules
 
-Pour the top of one lane onto a matching top, or into an empty lane. A lane is finished
-when it holds one colour and is full.
+Move the top token of one lane onto a matching top, or into an empty lane. A lane is
+finished when it holds one colour and is full.
 
-**A pour moves every consecutive same-coloured token at once and counts as one move.**
-This is the rule everything else depends on - the solver models pours identically, and if
-it ever stopped doing so every par in the game would be wrong.
+**Exactly one token moves per move.** A run of three same-coloured tokens costs three
+moves to relocate, not one. This is the rule everything else depends on - the solver
+models it identically, and if it ever stopped doing so every par in the game would be
+wrong.
 
 Face-down tokens are one line, in `applyMoveInPlace`:
 
@@ -62,25 +62,43 @@ supabase/migrations/    schema and row level security
 
 ## Levels
 
-180 levels across six chapters, generated offline and committed. Never generated at
-runtime, so par is exact and a level is identical on every device forever.
+50 levels across five chapters, generated offline and committed. Never generated at
+runtime, so par is exact and a level is identical on every device forever. More chapters
+can be added by extending the plan; the pipeline does not change.
+
+**The curve is authored by hand** in `scripts/level-plan.ts`, one spec per level. An
+earlier version ramped a single spec across a whole chapter, and thirty levels ended up
+feeling like one level thirty times - the boards differed but the shape of the problem
+never did. Now difficulty is a sawtooth: it rises overall, drops into a rest every few
+levels, and each new mechanic is taught on an easy board before it is tested on a hard
+one. Lane depth (3, 4 or 5) varies alongside colour count, because depth changes how a
+board feels more than another colour does.
+
+One measured result shaped it: a board with **one free lane tops out around eight moves**
+however hard it is tangled, because its reachable state space is genuinely shallow. Those
+boards are therefore short and tight rather than hard, and the plan labels them `tight`
+instead of pretending they are difficulty peaks.
 
 ```
-npm run levels      # regenerate every pack (~5 minutes)
+npm run levels      # regenerate every pack (~1 minute)
+npm run browse      # render every level to level-browser.html for review
 npm run sounds      # regenerate the sound set
 ```
+
+`npm run browse` writes a single page showing all 50 boards with their pacing chart,
+board shape and design note. It is how the curve gets reviewed: a table of numbers cannot
+tell you whether fifty levels feel different from one another, and fifty boards side by
+side can.
 
 Generation deals a shuffled board, solves it with IDA*, and scores difficulty mostly from
 **nodes expanded** - search effort predicts human difficulty far better than solution
 length, because a long forced solution is easy while a short one with many plausible wrong
-turns is not. Candidates are ranked in a pool and picked by percentile, so the ramp inside
-a chapter calibrates itself instead of anyone guessing absolute scores.
+turns is not. Each planned level gets its own pool of candidates, and the one matching its
+intended intensity is shipped.
 
-One measured constraint shaped the whole curve: **with only one free lane, a randomly
-dealt board is genuinely unsolvable about 92% of the time** - not slow to solve, actually
-impossible. So every chapter deals with two free lanes, and difficulty comes from colour
-count, lane capacity and face-down tokens. `reverseBoard` (walk backwards from the finished
-position, solvable by construction) exists for tighter boards.
+**With only one free lane, a randomly dealt board is unsolvable about 92% of the time** -
+not slow to solve, actually impossible. Those boards are therefore built by `reverseBoard`,
+which walks backwards from the finished position and is solvable by construction.
 
 ## Sound and feel
 
@@ -103,15 +121,17 @@ a colour vision deficiency and a hue gap does not.
 ## Tests
 
 ```
-npm test            # 126 unit tests (engine, solver, generator, layout, a11y strings)
+npm test            # 133 unit tests (engine, solver, generator, layout, a11y, curve)
 npm run typecheck
 npm run e2e         # 5 UI tests on a booted simulator
 ```
 
 The most valuable one is `scripts/levels.test.ts`. The packs are generated once and
 committed, so a later change to the pour rules or the solver would fail no unit test - it
-would silently invalidate the par of all 180 levels. That test re-solves every shipped
-level against the current rules and catches it.
+would silently invalidate the par of every level. That test re-solves each shipped level
+against the current rules and catches it. It also encodes the authored pacing - that each
+chapter ends on its hardest board, that every rest is genuinely easier than what came
+before, and that the game does not ship the same board fifty times.
 
 `npm run e2e` runs XCUITests against a real simulator, covering the two things neither a
 unit test nor a browser preview can reach: **taps on a device** and **rotation**. The

@@ -57,8 +57,9 @@ describe('describing what a tap will do', () => {
     expect(describeLaneAction(board(4, [[0, 1], []]), 0, null)).toBe('Lift Sky');
   });
 
-  it('says how many will lift when there is a run', () => {
-    expect(describeLaneAction(board(4, [[0, 1, 1], []]), 0, null)).toBe('Lift 2 Sky');
+  it('offers to lift a single token even when a run sits on top', () => {
+    // One token moves per move, so the hint must not promise to lift the whole run.
+    expect(describeLaneAction(board(4, [[0, 1, 1], []]), 0, null)).toBe('Lift Sky');
   });
 
   it('offers to put back the lane already held', () => {

@@ -64,8 +64,8 @@ export function describeLaneAction(
   if (selected === null) {
     if (lane.tokens.length === 0) return 'Empty, nothing to lift';
     if (isLaneComplete(lane, state.capacity)) return 'Already complete';
-    const run = topRun(lane);
-    return run > 1 ? `Lift ${run} ${colorName(topColor(lane)!)}` : `Lift ${colorName(topColor(lane)!)}`;
+    // One token per move, so never promise to lift a run.
+    return `Lift ${colorName(topColor(lane)!)}`;
   }
 
   if (selected === index) return 'Put back';

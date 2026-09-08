@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, Text } from 'react-native';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -9,7 +9,7 @@ import Animated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
-import { hiddenToken, spring, tokenColors } from '@/design/tokens';
+import { font, hiddenToken, spring, tokenColors } from '@/design/tokens';
 
 interface TokenProps {
   colorId: number;
@@ -125,7 +125,12 @@ function TokenView({ colorId, faceDown, size, x, y, lifted, celebrate, calm }: T
       pointerEvents="none"
     >
       {faceDown ? (
-        <View style={[styles.unknown, { width: size * 0.2, height: size * 0.2, borderRadius: size }]} />
+        <Text
+          style={[styles.unknown, { fontSize: size * 0.5, lineHeight: size * 0.62 }]}
+          allowFontScaling={false}
+        >
+          ?
+        </Text>
       ) : null}
     </Animated.View>
   );
@@ -141,8 +146,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  // A question mark states "unknown" outright, which a bare dot only implied. Kept in the
+  // muted mark colour so a face-down piece still recedes behind the coloured ones.
   unknown: {
-    backgroundColor: hiddenToken.mark,
+    color: hiddenToken.mark,
+    fontFamily: font.monoBold,
+    textAlign: 'center',
+    includeFontPadding: false,
   },
 });
 

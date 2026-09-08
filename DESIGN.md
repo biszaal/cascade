@@ -1,7 +1,7 @@
-# Design System: Goti
+# Design System: Cascade
 
-> A *goti* is the piece you move around a Ludo board. This game is a board, not a
-> chemistry set. Every decision below follows from that.
+> Tokens fall one at a time from lane to lane. This game is a board, not a chemistry set.
+> Every decision below follows from that.
 
 ## 1. Visual Theme & Atmosphere
 
@@ -123,9 +123,11 @@ Info.plist rather than at runtime.
 ## 6. Motion & Interaction
 
 - **Spring physics everywhere:** `damping 20, stiffness 100`. No linear easing.
-- **The pour is an arc, not a tween.** Lift the token clear of its lane, travel along a
+- **The fall is an arc, not a tween.** Lift the token clear of its lane, travel along a
   quadratic bezier whose control point sits above both lanes, then drop with a brief squash
   on landing. A straight-line slide is the single biggest tell of a cheap sorting game.
+- **One token lifts, because one token moves.** Raising a whole same-coloured run would
+  promise a pour the rules do not deliver.
 - **Completion** — tokens bounce in a bottom-up stagger, then a star stamps in over the
   lane head with a slight overshoot.
 - **Perpetual micro-motion** — the lifted token holds a slow 2px float while it waits for a

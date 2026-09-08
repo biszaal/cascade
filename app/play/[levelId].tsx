@@ -119,7 +119,7 @@ export default function Play() {
         {stuck ? (
           <Text style={styles.stuck}>No moves left — undo, or restart the board.</Text>
         ) : showFirstRunHint ? (
-          <Text style={styles.coach}>Tap a lane to lift its top piece, then tap another to pour.</Text>
+          <Text style={styles.coach}>Tap a lane to lift its top piece, then tap another to drop it.</Text>
         ) : (
           <Text style={styles.stuckPlaceholder} />
         )}

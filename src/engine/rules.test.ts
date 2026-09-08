@@ -83,33 +83,43 @@ describe('move legality', () => {
     expect(canMove(board(4, [[1, 1, 1, 1], []]), 0, 1)).toBe(false);
   });
 
-  it('rejects emptying a uniform lane into an empty one, which just wastes a move', () => {
-    // Moving [0,0] wholesale into an empty lane reaches an identical position.
-    expect(canMove(board(4, [[0, 0], []]), 0, 1)).toBe(false);
+  it('rejects moving a lane\'s last token into an empty lane, which is a no-op', () => {
+    // The two lanes simply swap roles - provably the same position, one move later.
+    expect(canMove(board(4, [[0], []]), 0, 1)).toBe(false);
+  });
+
+  it('allows relocating a taller uniform stack into an empty lane one token at a time', () => {
+    // Emptying a lane to free it up is a legitimate plan, so this is NOT a no-op.
+    expect(canMove(board(4, [[0, 0], []]), 0, 1)).toBe(true);
   });
 
   it('enumerates every legal move and nothing else', () => {
     const moves = legalMoves(board(4, [[0, 1], [1], []]));
     const pairs = moves.map((m) => `${m.from}->${m.to}`).sort();
-    // 0->1 and 1->0 both pour a 1 onto a 1; 0->2 pours into the empty lane.
-    // 1->2 is absent on purpose: lane 1 is uniform and fully revealed, so tipping it
-    // into an empty lane reaches an identical position and is a wasted move.
+    // 0->1 and 1->0 both move a 1 onto a 1; 0->2 moves one token into the empty lane.
+    // 1->2 is absent on purpose: lane 1 holds a single token, so moving it to the empty
+    // lane just swaps two interchangeable lanes.
     expect(pairs).toEqual(['0->1', '0->2', '1->0']);
   });
 });
 
 describe('applying moves', () => {
-  it('pours the whole run when there is room, as a single move', () => {
-    const next = applyMove(board(4, [[1, 0, 0], [0]]), moveFor(board(4, [[1, 0, 0], [0]]), 0, 1));
-    expect(next.lanes[0]!.tokens).toEqual([1]);
-    expect(next.lanes[1]!.tokens).toEqual([0, 0, 0]);
+  it('moves exactly one token, even when a whole run could fit', () => {
+    // A run of two same-coloured tokens costs two moves to relocate, not one. This is
+    // the rule the entire scoring model rests on.
+    const state = board(4, [[1, 0, 0], [0]]);
+    const move = moveFor(state, 0, 1);
+    expect(move.count).toBe(1);
+    const next = applyMove(state, move);
+    expect(next.lanes[0]!.tokens).toEqual([1, 0]);
+    expect(next.lanes[1]!.tokens).toEqual([0, 0]);
   });
 
-  it('pours only as many as fit when the destination is nearly full', () => {
-    const state = board(4, [[0, 0, 0], [1, 1, 0]]);
-    const next = applyMove(state, moveFor(state, 0, 1));
-    expect(next.lanes[0]!.tokens).toEqual([0, 0]);
-    expect(next.lanes[1]!.tokens).toEqual([1, 1, 0, 0]);
+  it('takes three moves to relocate three tokens', () => {
+    let state = board(4, [[1, 0, 0, 0], [0], []]);
+    for (let i = 0; i < 3; i++) state = applyMove(state, moveFor(state, 0, 1));
+    expect(state.lanes[0]!.tokens).toEqual([1]);
+    expect(state.lanes[1]!.tokens).toEqual([0, 0, 0, 0]);
   });
 
   it('does not mutate the state it was given', () => {
@@ -200,7 +210,7 @@ describe('win detection', () => {
     expect(isSolved(board(4, [[0, 0, 0], [0], []]))).toBe(false);
   });
 
-  it('is reachable by playing a trivial level to completion', () => {
+  it('is reachable by playing a trivial level to completion, one token at a time', () => {
     let state = board(4, [[0, 1], [1, 0], [], []]);
     state = applyMove(state, moveFor(state, 0, 2)); // 1 -> empty
     state = applyMove(state, moveFor(state, 1, 3)); // 0 -> empty
@@ -208,6 +218,7 @@ describe('win detection', () => {
     state = applyMove(state, moveFor(state, 0, 3)); // 0 onto 0
     expect(state.lanes[2]!.tokens).toEqual([1, 1]);
     expect(state.lanes[3]!.tokens).toEqual([0, 0]);
+    expect(isSolved(state)).toBe(false); // capacity 4, so two-token lanes are not full
   });
 });
 

@@ -1,11 +1,11 @@
 {
   "expo": {
-    "name": "Goti",
-    "slug": "goti",
+    "name": "Cascade",
+    "slug": "cascade",
     "version": "0.1.0",
     "orientation": "default",
     "icon": "./assets/icon.png",
-    "scheme": "goti",
+    "scheme": "cascade",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "splash": {
@@ -15,7 +15,7 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.biszaal.goti",
+      "bundleIdentifier": "com.biszaal.cascade",
       "infoPlist": {
         "UISupportedInterfaceOrientations": [
           "UIInterfaceOrientationPortrait"
@@ -36,8 +36,14 @@
         "backgroundColor": "#17161A"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.biszaal.goti",
-      "resizeableActivity": true
+      "package": "com.biszaal.cascade",
+      "resizeableActivity": true,
+      "permissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS",
+        "android.permission.FOREGROUND_SERVICE",
+        "android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -51,6 +57,12 @@
     ],
     "experiments": {
       "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "5ca83500-d5e8-44a7-bc12-64afb6429b1f"
+      }
     }
   }
 }

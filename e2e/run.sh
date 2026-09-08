@@ -5,7 +5,7 @@
 #   ./e2e/run.sh <simulator-udid>      # a specific one
 #   ./e2e/run.sh <udid> testE_orientationContract   # a single test
 #
-# Requires: the Goti dev build installed on the target simulator (npm run ios) and
+# Requires: the Cascade dev build installed on the target simulator (npm run ios) and
 # Metro running (npm start), because the debug build fetches its JS bundle at launch.
 set -e
 cd "$(dirname "$0")"
@@ -16,7 +16,7 @@ UDID="${1:-$(xcrun simctl list devices | grep '(Booted)' | head -1 | sed -E 's/.
 [ -n "$UDID" ] || { echo "No booted simulator. Boot one first."; exit 1; }
 
 ONLY=""
-[ -n "$2" ] && ONLY="-only-testing:GotiUITests/GotiUITests/$2"
+[ -n "$2" ] && ONLY="-only-testing:CascadeUITests/CascadeUITests/$2"
 
 curl -s -o /dev/null http://localhost:8081/status || echo "warning: Metro does not look reachable on :8081"
 
@@ -24,8 +24,8 @@ xcodegen generate --quiet
 # xcodebuild refuses to overwrite an existing result bundle.
 rm -rf ./result.xcresult
 xcodebuild test \
-  -project GotiUITests.xcodeproj \
-  -scheme GotiUITests \
+  -project CascadeUITests.xcodeproj \
+  -scheme CascadeUITests \
   -destination "platform=iOS Simulator,id=$UDID" \
   $ONLY \
   -resultBundlePath ./result.xcresult \

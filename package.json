@@ -1,5 +1,5 @@
 {
-  "name": "goti",
+  "name": "cascade",
   "version": "0.1.0",
   "main": "expo-router/entry",
   "private": true,
@@ -13,7 +13,8 @@
     "typecheck": "tsc --noEmit",
     "levels": "tsx scripts/generate-levels.ts",
     "sounds": "node scripts/generate-sounds.mjs",
-    "e2e": "./e2e/run.sh"
+    "e2e": "./e2e/run.sh",
+    "browse": "tsx scripts/level-browser.ts"
   },
   "dependencies": {
     "@expo-google-fonts/jetbrains-mono": "^0.4.1",

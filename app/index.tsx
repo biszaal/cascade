@@ -42,10 +42,10 @@ export default function Home() {
         <Animated.View entering={FadeInDown.duration(400)} style={styles.header}>
           <Logo size={52} />
           <Text style={[styles.wordmark, { fontSize: type.hero.fontSize * metrics.displayScale }]}>
-            Goti
+            Cascade
           </Text>
           <Text style={styles.tagline}>
-            Sort the board. The fewer moves it takes, the better you played.
+            One token at a time. The fewer moves it takes, the better you played.
           </Text>
         </Animated.View>
 

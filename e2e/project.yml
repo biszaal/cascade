@@ -1,25 +1,25 @@
-name: GotiUITests
+name: CascadeUITests
 options:
   bundleIdPrefix: com.biszaal
   deploymentTarget:
     iOS: "16.4"
 targets:
-  GotiUITests:
+  CascadeUITests:
     type: bundle.ui-testing
     platform: iOS
-    sources: [GotiUITests]
+    sources: [CascadeUITests]
     settings:
       base:
-        # No host app: the tests drive the already-installed Goti build by bundle id,
+        # No host app: the tests drive the already-installed Cascade build by bundle id,
         # so this bundle can be built and run independently of Expo's generated project.
         TEST_TARGET_NAME: ""
-        PRODUCT_BUNDLE_IDENTIFIER: com.biszaal.GotiUITests
+        PRODUCT_BUNDLE_IDENTIFIER: com.biszaal.CascadeUITests
         GENERATE_INFOPLIST_FILE: YES
         SWIFT_VERSION: "5.0"
 schemes:
-  GotiUITests:
+  CascadeUITests:
     build:
       targets:
-        GotiUITests: [test]
+        CascadeUITests: [test]
     test:
-      targets: [GotiUITests]
+      targets: [CascadeUITests]

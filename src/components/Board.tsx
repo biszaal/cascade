@@ -3,7 +3,7 @@ import { StyleSheet, View } from 'react-native';
 import { Lane } from './Lane';
 import { Token } from './Token';
 import { computeGeometry, lanePosition, slotPosition } from '@/game/layout';
-import { isLaneComplete, topRun } from '@/engine/rules';
+import { isLaneComplete } from '@/engine/rules';
 import { describeLane, describeLaneAction } from '@/game/describe';
 import { useReducedMotion } from '@/game/useReducedMotion';
 import type { GameState } from '@/engine/types';
@@ -43,9 +43,9 @@ export function Board({
     [laneCount, state.capacity, width, height, maxToken],
   );
 
-  // The tokens that would travel if the held lane poured right now - they float clear of
-  // the stack so the player can see exactly what they picked up.
-  const liftedCount = selected === null ? 0 : topRun(state.lanes[selected]!);
+  // Exactly one token moves per move, so exactly one token lifts. Raising the whole
+  // same-coloured run promised a pour the rules no longer deliver.
+  const liftedCount = selected === null || state.lanes[selected]!.tokens.length === 0 ? 0 : 1;
 
   const tokens = useMemo(() => {
     const out: Array<{

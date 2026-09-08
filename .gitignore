@@ -25,3 +25,6 @@ android/
 e2e/*.xcodeproj/
 e2e/result.xcresult/
 e2e/shots/
+
+# Generated review page
+level-browser.html

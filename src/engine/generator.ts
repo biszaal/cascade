@@ -115,47 +115,58 @@ export function reverseBoard(seed: number, spec: GenerationSpec): LevelConfig {
   const rng = mulberry32(seed);
   const steps = spec.reverseSteps ?? spec.colorCount * 6;
 
-  const lanes: number[][] = [];
+  let lanes: number[][] = [];
   for (let color = 0; color < spec.colorCount; color++) {
     lanes.push(new Array<number>(spec.capacity).fill(color));
   }
   for (let i = 0; i < spec.emptyLanes; i++) lanes.push([]);
 
-  for (let step = 0; step < steps; step++) {
-    const options: Array<{ from: number; to: number; count: number }> = [];
+  // The last arrangement seen that still had the planned number of free lanes.
+  let lastValid: number[][] | null = null;
 
+  for (let step = 0; step < steps; step++) {
+    const options: Array<{ from: number; to: number }> = [];
+
+    // A reverse move lifts ONE token off a lane and drops it on another, and is only
+    // taken when the forward move that undoes it would be legal. That keeps the finished
+    // board solvable by construction - no search, no luck with a shuffle.
     for (let from = 0; from < lanes.length; from++) {
       const source = lanes[from]!;
       if (source.length === 0) continue;
       const color = source[source.length - 1]!;
+      const below = source.length >= 2 ? source[source.length - 2]! : null;
 
-      let run = 0;
-      for (let i = source.length - 1; i >= 0 && source[i] === color; i--) run++;
+      // Forward, the token returns to this lane, so the lane must be able to accept it:
+      // either it empties out, or what is left on top matches.
+      if (below !== null && below !== color) continue;
 
       for (let to = 0; to < lanes.length; to++) {
         if (to === from) continue;
         const dest = lanes[to]!;
-        const space = spec.capacity - dest.length;
-        if (space === 0) continue;
-        // Land on a different colour, so the tokens we place are exactly the top run of
-        // the destination and the forward move puts back precisely what we took.
-        if (dest.length > 0 && dest[dest.length - 1] === color) continue;
-
-        for (let count = 1; count <= Math.min(run, space); count++) {
-          // The forward move needs the source to accept the tokens back: either we
-          // emptied it, or we left some of the same colour on top.
-          const leaves = source.length - count;
-          const legal = leaves === 0 || source[leaves - 1] === color;
-          if (legal) options.push({ from, to, count });
-        }
+        if (dest.length >= spec.capacity) continue;
+        // Mirror of the no-op rule: a single token sitting alone in a lane may not come
+        // back from an empty one, so never create that position.
+        if (dest.length === 0 && source.length === 1) continue;
+        options.push({ from, to });
       }
     }
 
     if (options.length === 0) break;
     const pick = options[randomInt(rng, options.length)]!;
-    const moved = lanes[pick.from]!.splice(lanes[pick.from]!.length - pick.count, pick.count);
-    for (const token of moved) lanes[pick.to]!.push(token);
+    lanes[pick.to]!.push(lanes[pick.from]!.pop()!);
+
+    // The walk freely fills the free lanes and empties them again, so the board only has
+    // the planned number of free lanes at some points along the way. Remember the most
+    // recent moment it did, and ship that. Enforcing the count as an invariant instead
+    // would deadlock immediately: from a solved board, the ONLY legal reverse move is
+    // into a free lane.
+    if (countEmpty(lanes) >= spec.emptyLanes) {
+      lastValid = lanes.map((lane) => [...lane]);
+    }
   }
+
+  // Fall back to the final state only if the walk never satisfied the constraint.
+  if (lastValid) lanes = lastValid;
 
   const hidden = lanes.map((lane) => {
     if (lane.length === 0) return 0;
@@ -184,6 +195,9 @@ export function tryCandidate(
   const state: GameState = createState(config);
 
   if (isSolved(state)) return null;
+  // The plan promises a specific number of free lanes and the level browser reports it,
+  // so a board that drifted off that shape is not the level that was designed.
+  if (countEmpty(config.lanes) !== spec.emptyLanes) return null;
 
   const result = solve(state, { maxNodes });
   if (!result.solved) return null;
@@ -229,6 +243,10 @@ export function buildPool(
   }
   pool.sort((a, b) => a.difficulty - b.difficulty || a.seed - b.seed);
   return pool;
+}
+
+function countEmpty(lanes: number[][]): number {
+  return lanes.reduce((n, lane) => n + (lane.length === 0 ? 1 : 0), 0);
 }
 
 /** Pick the candidate sitting at `percentile` (0..1) of a ranked pool. */

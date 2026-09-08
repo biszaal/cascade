@@ -1,7 +1,7 @@
 import type { ColorId, GameState, LaneState, LevelConfig, Move, UndoRecord } from './types';
 
 /**
- * The rules of Goti. Pure TypeScript, no React Native, no I/O - which is why the same
+ * The rules of Cascade. Pure TypeScript, no React Native, no I/O - which is why the same
  * file backs the build-time level generator, the in-app hint, and (later) server-side
  * score validation.
  */
@@ -77,20 +77,25 @@ export function canMove(state: GameState, from: number, to: number): boolean {
   const destTop = topColor(dest);
   if (destTop !== null && destTop !== topColor(source)) return false;
 
-  // Emptying a fully-uniform, fully-revealed lane into an empty one reaches an identical
-  // position one move later. Refusing it keeps the solver honest and stops the player
-  // burning moves on a no-op.
-  if (destTop === null && source.hidden === 0 && isLaneUniform(source)) return false;
+  // Moving a lane's LAST token into an empty lane just swaps two interchangeable lanes -
+  // provably the same position, one move later. Relocating a taller stack one token at a
+  // time is legitimate, so only this exact case is refused.
+  if (destTop === null && source.tokens.length === 1) return false;
 
   return true;
 }
 
-/** Build the concrete pour for a from/to pair, sized to the space available. */
-export function moveFor(state: GameState, from: number, to: number): Move {
-  const source = state.lanes[from]!;
-  const dest = state.lanes[to]!;
-  const space = state.capacity - dest.tokens.length;
-  return { from, to, count: Math.min(topRun(source), space) };
+/**
+ * Build the move for a from/to pair.
+ *
+ * Exactly one token travels per move. A tap moves the top token and nothing else, so a
+ * run of three same-coloured tokens costs three moves to relocate - which is what makes
+ * a tidy board worth more than a lucky one.
+ */
+// `_state` is unused now that every move is one token, but the parameter stays so this
+// reads alongside canMove(state, from, to) at every call site.
+export function moveFor(_state: GameState, from: number, to: number): Move {
+  return { from, to, count: 1 };
 }
 
 export function legalMoves(state: GameState): Move[] {

@@ -1,14 +1,14 @@
 import XCTest
 
-/// UI tests that drive the real Goti build on a simulator.
+/// UI tests that drive the real Cascade build on a simulator.
 ///
 /// These exist because the two things a browser preview cannot check are taps on a real
 /// device and device rotation. They lean on the accessibility labels the app already
 /// exposes - the same ones a screen reader reads - so the automation and the
 /// accessibility work verify each other.
-final class GotiUITests: XCTestCase {
+final class CascadeUITests: XCTestCase {
 
-    private let bundleId = "com.biszaal.goti"
+    private let bundleId = "com.biszaal.cascade"
 
     private func launchApp() -> XCUIApplication {
         let app = XCUIApplication(bundleIdentifier: bundleId)

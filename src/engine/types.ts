@@ -26,8 +26,10 @@ export interface GameState {
 }
 
 /**
- * A pour. `count` consecutive same-coloured tokens travel from the top of `from` onto
- * `to`, and the whole thing counts as ONE move.
+ * One token travelling from the top of `from` onto `to`.
+ *
+ * `count` is always 1: the game moves a single token per move. It is kept as a field so
+ * the apply/undo path and the recorded solutions stay explicit about how much moved.
  */
 export interface Move {
   from: number;
@@ -65,4 +67,10 @@ export interface Level {
   /** Optimal solution found at build time, so the common hint case is an array lookup. */
   solution: Move[];
   difficulty: number;
+  /** Narrative role in the pacing curve: teach, build, rest, test or climax. */
+  beat: string;
+  /** Intended difficulty 0..1 from the authored plan, for reviewing the curve. */
+  intensity: number;
+  /** Why this level exists. */
+  note: string;
 }

@@ -26,17 +26,47 @@ export interface SolveResult {
 }
 
 const DEFAULT_MAX_NODES = 2_000_000;
-const DEFAULT_MAX_DEPTH = 200;
+const DEFAULT_MAX_DEPTH = 400;
 
 /**
- * Admissible lower bound: for each colour, the number of distinct lanes holding it,
- * minus one.
- *
- * A pour moves tokens of exactly one colour, so it can retire at most one unit of this
- * sum per move. That is what makes it admissible, and admissibility is what makes IDA*
+ * Admissible lower bound, taken as the larger of two independent bounds. Both under-
+ * estimate, so their maximum is still admissible - and admissibility is what makes IDA*
  * return a genuinely optimal answer rather than merely a short one.
  */
 export function heuristic(state: GameState): number {
+  return Math.max(misplacedTokens(state), colorSpread(state));
+}
+
+/**
+ * Tokens that cannot possibly stay where they are.
+ *
+ * Within a lane, only the unbroken run of one colour sitting on the bottom can survive
+ * untouched; everything above it must move at least once. Since a move relocates exactly
+ * one token, that count is a lower bound on the moves remaining.
+ *
+ * This is the bound that matters now that moves are single tokens - solutions are long,
+ * and counting colours barely constrains the search at that depth.
+ */
+export function misplacedTokens(state: GameState): number {
+  let total = 0;
+  for (const lane of state.lanes) {
+    if (lane.tokens.length === 0) continue;
+    const bottom = lane.tokens[0]!;
+    let settled = 0;
+    while (settled < lane.tokens.length && lane.tokens[settled] === bottom) settled++;
+    total += lane.tokens.length - settled;
+  }
+  return total;
+}
+
+/**
+ * For each colour, the number of distinct lanes holding it, minus one.
+ *
+ * A move relocates one token of one colour, so it can retire at most one unit of this
+ * sum. Weaker than the count above in most positions, but it stays sharp on boards that
+ * are nearly sorted, which is exactly where the other bound goes slack.
+ */
+export function colorSpread(state: GameState): number {
   const lanesPerColor = new Map<number, number>();
   for (const lane of state.lanes) {
     if (lane.tokens.length === 0) continue;

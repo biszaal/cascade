@@ -57,8 +57,8 @@ export const hiddenToken = {
   fill: 'rgba(240,237,230,0.07)',
   shade: 'rgba(240,237,230,0.17)',
   ink: '#98938B',
-  /** The small centre mark that says "face down" without shouting a question mark. */
-  mark: 'rgba(240,237,230,0.24)',
+  /** The question mark on a face-down piece. Legible, but never louder than a colour. */
+  mark: 'rgba(240,237,230,0.42)',
 } as const;
 
 /** Chapter accents, used on the level trail and chapter cards. */
