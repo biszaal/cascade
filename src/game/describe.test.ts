@@ -96,6 +96,10 @@ describe('describing progress', () => {
     expect(describeProgress(18, 20)).toBe('18 moves, 2 under par.');
   });
 
+  it('says "1 move", not "1 moves" - a screen reader speaks this', () => {
+    expect(describeProgress(1, 20)).toBe('1 move, 19 under par.');
+  });
+
   it('reports hitting par exactly', () => {
     expect(describeProgress(20, 20)).toBe('20 moves, exactly par.');
   });

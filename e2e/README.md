@@ -27,7 +27,7 @@ npm run ios          # build and install onto a simulator
 | Test | Proves |
 |---|---|
 | `testA_enterLevel` | The home screen loads and its primary action reaches a board; lanes carry accessibility labels. |
-| `testB_pourChangesMoveCount` | A real two-tap pour registers as one move - Undo goes from disabled to enabled. |
+| `testB_oneTapMovesOneToken` | One tap-pair moves exactly one token and costs exactly one move, read from the HUD counter. |
 | `testC_rotationRelaysOutTheBoard` | Rotating does not clip or empty the board, and the HUD survives. |
 | `testD_dailyBoardSurvivesRotation` | Nine lanes stay present and reachable across a rotation, exercising the one-row / two-row decision that a five-lane level cannot. |
 | `testE_orientationContract` | **iPad rotates to landscape; iPhone stays portrait.** This is the only way to prove the per-idiom `Info.plist` orientation keys actually work. |

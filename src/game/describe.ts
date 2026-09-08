@@ -84,8 +84,10 @@ export function describeLaneAction(
 /** Progress read out for the HUD. */
 export function describeProgress(moves: number, par: number): string {
   if (moves === 0) return `No moves yet. Par is ${par}.`;
+  // Spoken aloud, so "1 moves" is not acceptable.
+  const played = moves === 1 ? '1 move' : `${moves} moves`;
   const delta = moves - par;
-  if (delta < 0) return `${moves} moves, ${-delta} under par.`;
-  if (delta === 0) return `${moves} moves, exactly par.`;
-  return `${moves} moves, ${delta} over par.`;
+  if (delta < 0) return `${played}, ${-delta} under par.`;
+  if (delta === 0) return `${played}, exactly par.`;
+  return `${played}, ${delta} over par.`;
 }

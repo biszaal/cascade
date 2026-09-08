@@ -54,8 +54,12 @@ final class CascadeUITests: XCTestCase {
         XCTAssertTrue(lane(app, 1).exists, "Lane 1 has no accessibility label")
     }
 
-    /// A real two-tap pour on a real device, verified through the move counter.
-    func testB_pourChangesMoveCount() {
+    /// One tap-pair moves exactly ONE token and costs exactly ONE move.
+    ///
+    /// This is the rule the whole scoring model rests on, and it is the one that
+    /// regressed before: the board lifted a whole same-coloured run while only a single
+    /// token actually travelled.
+    func testB_oneTapMovesOneToken() {
         let app = launchApp()
         enterFirstLevel(app)
 
@@ -64,15 +68,26 @@ final class CascadeUITests: XCTestCase {
         XCTAssertTrue(undo.exists, "Undo control missing")
         XCTAssertFalse(undo.isEnabled, "Undo should be disabled before any move")
 
-        // Lift from lane 2 and pour into lane 4, which is empty on level 1.
+        // Lift from lane 2 and drop into lane 4, which is empty on level 1.
         lane(app, 2).tap()
         attach("lifted")
         lane(app, 4).tap()
-        attach("poured")
+        attach("dropped")
 
         XCTAssertTrue(
             undo.isEnabled,
-            "Undo stayed disabled, so the pour did not register as a move"
+            "Undo stayed disabled, so the move did not register"
+        )
+
+        // The HUD announces progress for screen readers, which makes it the most direct
+        // read of the move count available to a UI test.
+        let counter = app.otherElements
+            .matching(NSPredicate(format: "label CONTAINS 'par'"))
+            .firstMatch
+        XCTAssertTrue(counter.waitForExistence(timeout: 5), "Move counter not exposed")
+        XCTAssertTrue(
+            counter.label.contains("1 move,"),
+            "Expected exactly one move after one tap-pair, got: \(counter.label)"
         )
     }
 
