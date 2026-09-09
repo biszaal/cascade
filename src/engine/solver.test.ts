@@ -49,6 +49,24 @@ describe('canonical key', () => {
   });
 });
 
+describe('canonicalKey with anchors', () => {
+  it('separates boards that differ only in which lane is anchored', () => {
+    const a = createState({
+      capacity: 2, colorCount: 2, lanes: [[0], [1]], hidden: [0, 0], anchored: [true, false],
+    });
+    const b = createState({
+      capacity: 2, colorCount: 2, lanes: [[0], [1]], hidden: [0, 0], anchored: [false, true],
+    });
+    expect(canonicalKey(a)).not.toBe(canonicalKey(b));
+  });
+
+  it('still treats unanchored lanes as interchangeable', () => {
+    const a = createState({ capacity: 2, colorCount: 2, lanes: [[0], [1]], hidden: [0, 0] });
+    const b = createState({ capacity: 2, colorCount: 2, lanes: [[1], [0]], hidden: [0, 0] });
+    expect(canonicalKey(a)).toBe(canonicalKey(b));
+  });
+});
+
 describe('solve', () => {
   it('returns an empty solution for an already-solved board', () => {
     const result = solve(board(4, [[0, 0, 0, 0], [1, 1, 1, 1], []]));

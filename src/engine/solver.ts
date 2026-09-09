@@ -86,7 +86,13 @@ export function colorSpread(state: GameState): number {
  * Sorting before hashing is where nearly all of this solver's speed comes from.
  */
 export function canonicalKey(state: GameState): string {
-  const parts = state.lanes.map((lane) => `${lane.tokens.join(',')}:${lane.hidden}`);
+  // An anchored lane's colour is already the first element of `tokens`, so the `a`
+  // marker is enough to make two lanes anchored to different colours sort and compare
+  // distinctly. Unanchored lanes keep their exact previous key, so chapters 1-5 hash
+  // identically and their pars cannot drift.
+  const parts = state.lanes.map(
+    (lane) => `${lane.tokens.join(',')}:${lane.hidden}${lane.anchored ? 'a' : ''}`,
+  );
   parts.sort();
   return parts.join('|');
 }
