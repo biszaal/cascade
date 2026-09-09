@@ -2,7 +2,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } fr
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { chapterColors, radius, space, surface, type } from '@/design/tokens';
+import { chapterColors, duration, radius, space, surface, type } from '@/design/tokens';
 import { chapters } from '@/data/levels';
 import { useProgress } from '@/state/progress';
 import { BackIcon, ChevronIcon, LockIcon } from '@/components/Icons';
@@ -49,7 +49,7 @@ export default function Chapters() {
           ).length;
 
           return (
-            <Animated.View key={chapter.chapter} entering={FadeInDown.delay(i * 50).duration(360)}>
+            <Animated.View key={chapter.chapter} entering={FadeInDown.delay(i * duration.stagger).duration(duration.enter)}>
               <Pressable
                 disabled={!unlocked}
                 onPress={() => router.push(`/chapters/${chapter.chapter}`)}

@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Logo } from '@/components/Logo';
 import { Button } from '@/components/Button';
-import { radius, space, surface, type } from '@/design/tokens';
+import { duration, radius, space, surface, type } from '@/design/tokens';
 import { useProgress } from '@/state/progress';
 import { chapters, getLevel, totalLevels } from '@/data/levels';
 import { chapterColors } from '@/design/tokens';
@@ -39,7 +39,7 @@ export default function Home() {
       >
         {/* Left-aligned rather than centred - a centred hero is the default that makes
             everything look the same. */}
-        <Animated.View entering={FadeInDown.duration(400)} style={styles.header}>
+        <Animated.View entering={FadeInDown.duration(duration.enter)} style={styles.header}>
           <Logo size={52} />
           <Text style={[styles.wordmark, { fontSize: type.hero.fontSize * metrics.displayScale }]}>
             Cascade
@@ -49,7 +49,7 @@ export default function Home() {
           </Text>
         </Animated.View>
 
-        <Animated.View entering={FadeInDown.delay(80).duration(400)} style={styles.stats}>
+        <Animated.View entering={FadeInDown.delay(duration.enterStagger).duration(duration.enter)} style={styles.stats}>
           <Stat label="SOLVED" value={`${completed}`} suffix={`/${totalLevels}`} />
           <View style={styles.statDivider} />
           <Stat label="STARS" value={`${totalStars}`} suffix={`/${totalLevels * 3}`} />
@@ -60,7 +60,7 @@ export default function Home() {
         {/* The middle of a tall phone should carry information, not emptiness. This is
             what the primary button will actually open. */}
         {nextLevel ? (
-          <Animated.View entering={FadeInDown.delay(120).duration(400)} style={styles.upNext}>
+          <Animated.View entering={FadeInDown.delay(duration.enterStagger * 2).duration(duration.enter)} style={styles.upNext}>
             <View style={[styles.upNextRule, { backgroundColor: accent }]} />
             <View style={styles.upNextBody}>
               <Text style={styles.upNextLabel}>UP NEXT</Text>
@@ -82,7 +82,7 @@ export default function Home() {
 
         <View style={metrics.isTablet ? styles.spacerFixed : styles.spacer} />
 
-        <Animated.View entering={FadeInDown.delay(160).duration(400)} style={styles.actions}>
+        <Animated.View entering={FadeInDown.delay(duration.enterStagger * 3).duration(duration.enter)} style={styles.actions}>
           <Button
             label={completed === 0 ? 'Start playing' : `Continue — level ${nextLevelId}`}
             onPress={() => router.push(`/play/${nextLevelId}`)}

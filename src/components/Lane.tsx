@@ -7,7 +7,7 @@ import Animated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
-import { radius, spring, surface, tokenColors } from '@/design/tokens';
+import { duration, radius, spring, surface, tokenColors } from '@/design/tokens';
 
 interface LaneProps {
   x: number;
@@ -39,9 +39,9 @@ function LaneView({ x, y, width, height, complete, completeColor, selected, reje
     if (rejectNonce === null) return;
     if (calm) return;
     shake.value = withSequence(
-      withTiming(-1, { duration: 55 }),
-      withTiming(1, { duration: 55 }),
-      withTiming(-0.6, { duration: 55 }),
+      withTiming(-1, { duration: duration.shake }),
+      withTiming(1, { duration: duration.shake }),
+      withTiming(-0.6, { duration: duration.shake }),
       withSpring(0, spring.snappy),
     );
   }, [rejectNonce, shake, calm]);

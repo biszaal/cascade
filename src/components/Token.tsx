@@ -9,7 +9,7 @@ import Animated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
-import { font, hiddenToken, spring, tokenColors } from '@/design/tokens';
+import { duration, font, hiddenToken, spring, tokenColors } from '@/design/tokens';
 
 interface TokenProps {
   colorId: number;
@@ -68,7 +68,7 @@ function TokenView({ colorId, faceDown, size, x, y, lifted, celebrate, calm }: T
     arc.value = calm ? 0 : Math.abs(x - fromX.value) > 1 ? ARC : 0;
     progress.value = 0;
     progress.value = withTiming(1, {
-      duration: calm ? 130 : 280,
+      duration: calm ? duration.pourCalm : duration.pour,
       easing: Easing.inOut(Easing.cubic),
     });
   }, [x, y, arc, fromX, fromY, progress, toX, toY, calm]);
@@ -80,9 +80,9 @@ function TokenView({ colorId, faceDown, size, x, y, lifted, celebrate, calm }: T
   useEffect(() => {
     if (celebrate === null || calm) return;
     hop.value = withDelay(
-      celebrate * 45,
+      celebrate * duration.stagger,
       withSequence(
-        withTiming(1, { duration: 130, easing: Easing.out(Easing.quad) }),
+        withTiming(1, { duration: duration.hop, easing: Easing.out(Easing.quad) }),
         withSpring(0, spring.snappy),
       ),
     );

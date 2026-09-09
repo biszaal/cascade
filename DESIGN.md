@@ -154,7 +154,13 @@ Info.plist rather than at runtime.
 
 ## 7. Motion & Interaction
 
-- **Spring physics everywhere:** `damping 20, stiffness 100`. No linear easing.
+- **Spring physics everywhere:** `damping 24, stiffness 160, mass 0.9`. No linear easing.
+  Springs are tuned by *damping ratio*, not by feel: raising stiffness alone makes a disc
+  overshoot and bounce, which reads as cheap. Hold the ratio and raise the frequency and
+  the same motion simply happens sooner.
+- **Every timing lives in `duration` in `src/design/tokens.ts`.** No component carries a
+  literal, so the game's whole sense of pace is one block to read and one block to change.
+  A pour leg is 170ms; the reduced-motion path keeps the travel at 100ms and drops the lob.
 - **The fall is an arc, not a tween.** Lift the token clear of its lane, travel along a
   quadratic bezier whose control point sits above both lanes, then drop with a brief squash
   on landing. A straight-line slide is the single biggest tell of a cheap sorting game.

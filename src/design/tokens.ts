@@ -113,17 +113,36 @@ export const type = {
 
 /** Premium, weighty. Never linear easing. */
 export const spring = {
-  default: { damping: 20, stiffness: 100, mass: 1 },
-  snappy: { damping: 22, stiffness: 220, mass: 0.7 },
-  soft: { damping: 26, stiffness: 80, mass: 1.1 },
+  default: { damping: 24, stiffness: 160, mass: 0.9 },
+  snappy: { damping: 25, stiffness: 320, mass: 0.6 },
+  soft: { damping: 30, stiffness: 120, mass: 1 },
 } as const;
 
+/**
+ * Every animated timing in the app, in milliseconds. Components import from here rather
+ * than carrying literals, so the game's whole sense of pace is one block to read and one
+ * block to change.
+ */
 export const duration = {
   /** One leg of a pour arc. */
-  pour: 260,
-  lift: 150,
-  stagger: 45,
-  shake: 60,
+  pour: 170,
+  /** The same travel with the lob removed, for reduced motion. */
+  pourCalm: 100,
+  /** A token's hop across the solved board. */
+  hop: 90,
+  /** Between tokens in a celebration, and between rows of a list. */
+  stagger: 28,
+  /** One leg of a lane's refusal shake. */
+  shake: 45,
+  /** The win sheet, and a star that is not being awarded. */
+  sheet: 140,
+  /** A screen's first paint. */
+  enter: 240,
+  /** Between blocks staggered into that first paint. */
+  enterStagger: 35,
+  /** Before the first star stamps, and between each stamp after it. */
+  stampLead: 120,
+  stampGap: 100,
 } as const;
 
 /** One soft shadow, tinted to the paper hue. Never a dark halo. */

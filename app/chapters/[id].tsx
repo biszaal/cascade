@@ -4,7 +4,7 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import Animated, { FadeIn } from 'react-native-reanimated';
-import { chapterColors, space, surface, type } from '@/design/tokens';
+import { chapterColors, duration, space, surface, type } from '@/design/tokens';
 import { getChapter, getChapterLevels } from '@/data/levels';
 import { useProgress } from '@/state/progress';
 import { BackIcon, LockIcon } from '@/components/Icons';
@@ -140,7 +140,7 @@ export default function ChapterTrail() {
             return (
               <Animated.View
                 key={level.id}
-                entering={FadeIn.delay(Math.min(i * 22, 400)).duration(280)}
+                entering={FadeIn.delay(Math.min(i * duration.stagger, duration.enter)).duration(duration.sheet)}
                 style={[styles.node, { left: x, top: y, width: NODE }]}
               >
                 <Pressable

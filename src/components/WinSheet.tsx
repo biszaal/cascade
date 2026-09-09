@@ -9,7 +9,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import Svg, { Path } from 'react-native-svg';
-import { radius, space, spring, surface, type } from '@/design/tokens';
+import { duration, radius, space, spring, surface, type } from '@/design/tokens';
 import { Button } from './Button';
 import { metricsFor } from '@/game/responsive';
 
@@ -34,12 +34,12 @@ function StampedStar({ filled, index }: { filled: boolean; index: number }) {
 
   useEffect(() => {
     if (!filled) {
-      scale.value = withTiming(1, { duration: 200 });
+      scale.value = withTiming(1, { duration: duration.sheet });
       return;
     }
     scale.value = withDelay(
-      200 + index * 180,
-      withSequence(withSpring(1.28, { damping: 9, stiffness: 190 }), withSpring(1, spring.default)),
+      duration.stampLead + index * duration.stampGap,
+      withSequence(withSpring(1.28, { damping: 11, stiffness: 280 }), withSpring(1, spring.default)),
     );
   }, [filled, index, scale]);
 
