@@ -352,7 +352,34 @@ describe('solving anchored boards', () => {
 Run: `npx vitest run src/engine/solver.test.ts -t "solving anchored boards"`
 Expected: PASS if Tasks 1-3 are correct. **If either test fails, stop** — it means anchors are not reaching the solver's working state (Task 1, step 3, third edit) or the key fix is wrong. Do not weaken the test.
 
-- [ ] **Step 3: Commit**
+- [ ] **Step 3: Add the admissibility property test**
+
+The heuristics are unchanged, but that is a claim about anchors that must be *proved*, not
+asserted. An inadmissible heuristic does not crash — it quietly returns a non-optimal move
+count, and that number becomes par.
+
+```ts
+it('keeps the heuristic admissible on anchored boards', () => {
+  const spec = {
+    capacity: 4, colorCount: 5, emptyLanes: 2,
+    hiddenMin: 0, hiddenMax: 0,
+    strategy: 'reverse' as const, reverseSteps: 30, anchors: 2,
+  };
+  for (let seed = 1; seed <= 20; seed++) {
+    const state = createState(reverseBoard(seed, spec));
+    const result = solve(state, { maxNodes: 300_000 });
+    if (!result.solved) continue;
+    // Admissible means never overestimating the true remaining cost.
+    expect(heuristic(state)).toBeLessThanOrEqual(result.moves.length);
+  }
+});
+```
+
+This test depends on Task 6, so if it is run before the generator learns about anchors it
+will fail to compile. Run it as part of Task 6's verification instead, and leave the
+checkbox here as the record that the spec's requirement is covered.
+
+- [ ] **Step 4: Commit**
 
 ```bash
 git add src/engine/solver.test.ts
@@ -490,13 +517,21 @@ In `reverseBoard`, immediately after the solved `lanes` array is built and befor
   }
 ```
 
-The backward walk relocates tokens, so track each anchor by colour and mark the final lane whose **base** is that colour. After the walk, when the chosen arrangement is known, build the parallel array:
+The backward walk relocates tokens, so track each anchor by colour and mark the final lane whose **base** is that colour. Do this at the very end of `reverseBoard`, *after* the `if (lastValid) lanes = lastValid;` fallback, so it describes the arrangement actually shipped rather than the last one walked:
 
 ```ts
-  const anchored = chosen.map(
-    (lane) => lane.length > 0 && anchorColors.has(lane[0]!),
-  );
+  const anchored = lanes.map((lane) => lane.length > 0 && anchorColors.has(lane[0]!));
 ```
+
+and change the return to:
+
+```ts
+  return { capacity: spec.capacity, colorCount: spec.colorCount, lanes, hidden, anchored };
+```
+
+Note that the existing `hidden` computation already applies to every lane uniformly, so an
+anchored lane receives face-down tokens like any other. That is exactly what chapter 10
+needs: `hiddenMin >= 1` buries the anchor at index 0, and no extra field is required.
 
 The walk must also never lift a lane down to nothing if that lane's base is an anchor colour — otherwise the anchor would be relocated. Add to the reverse-move option filter, alongside the existing single-token rule:
 
