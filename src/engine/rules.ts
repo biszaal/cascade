@@ -83,6 +83,10 @@ export function canMove(state: GameState, from: number, to: number): boolean {
   // Taking a completed lane apart is never progress.
   if (isLaneComplete(source, state.capacity)) return false;
 
+  // An anchor is only ever the top of its lane when it is the last token there, so this
+  // single clause is the whole immovability rule.
+  if (source.anchored && source.tokens.length === 1) return false;
+
   const destTop = topColor(dest);
   if (destTop !== null && destTop !== topColor(source)) return false;
 

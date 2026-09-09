@@ -272,3 +272,33 @@ describe('anchored lanes', () => {
     expect(cloneState(state).lanes[0]!.anchored).toBe(true);
   });
 });
+
+describe('anchors are immovable', () => {
+  it('refuses to move a lone anchor', () => {
+    const state = createState({
+      capacity: 3, colorCount: 2, lanes: [[0], [0, 0]], hidden: [0, 0], anchored: [true, false],
+    });
+    expect(canMove(state, 0, 1)).toBe(false);
+  });
+
+  it('still allows moving a token that merely sits above an anchor', () => {
+    const state = createState({
+      capacity: 3, colorCount: 2, lanes: [[0, 1], [1]], hidden: [0, 0], anchored: [true, false],
+    });
+    expect(canMove(state, 0, 1)).toBe(true);
+  });
+
+  it('allows an unanchored lone token to move as before', () => {
+    const state = createState({
+      capacity: 3, colorCount: 2, lanes: [[0], [0, 0]], hidden: [0, 0], anchored: [false, false],
+    });
+    expect(canMove(state, 0, 1)).toBe(true);
+  });
+
+  it('never offers an anchor among the legal moves', () => {
+    const state = createState({
+      capacity: 3, colorCount: 2, lanes: [[0], [0, 0]], hidden: [0, 0], anchored: [true, false],
+    });
+    expect(legalMoves(state).some((m) => m.from === 0)).toBe(false);
+  });
+});
