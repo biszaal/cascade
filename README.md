@@ -202,6 +202,18 @@ This was reproduced here on an iOS 27 simulator. It is an upstream Expo issue
 [expo#46664](https://github.com/expo/expo/issues/46664)) affecting the prebuild template,
 not anything in this app's code.
 
+**Status as of 2026-09-09 — still unfixed on SDK 57, and no longer tracked.** Verified by
+`grep -c UIApplicationSceneManifest ios/Cascade/Info.plist` → `0`, and no Expo package in
+`node_modules` declares one. expo#46663 was closed as *"incomplete issue: missing or
+invalid repro"*, so nobody upstream is working on it. React Native is doing the groundwork
+([react-native#53602](https://github.com/facebook/react-native/pull/53602) removes the
+AppDelegate `window` assumptions that break under a `SceneDelegate`), but Expo's template
+still has to adopt it.
+
+The reproduction this project already has is exactly what that issue was closed for
+lacking. Filing it as a fresh, reproducible report is the cheapest way to stop this
+becoming a shipping emergency the day Apple raises the SDK floor to iOS 27.
+
 **Do not paper over it** by adding a bare `UIApplicationSceneManifest` to `app.json`. That
 satisfies the assert but leaves the React Native window unattached to any scene, so the app
 launches to a blank screen - worse than the clean failure. The real fix needs a
