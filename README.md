@@ -166,9 +166,25 @@ replays a submitted move list and rejects anything that does not reach a solved 
 
 ## iOS builds
 
-`eas.json` pins `macos-sequoia-15.6-xcode-26.0` on **every** iOS profile. Apple rejects
+`eas.json` pins `macos-tahoe-26.5-xcode-26.6` on **every** iOS profile. Apple rejects
 uploads not built with the iOS 26 SDK (`ITMS-90725`), and without an explicit image EAS
-picks one from the Expo SDK version that ships an older Xcode.
+picks one from the Expo SDK version, which on older SDKs ships an Xcode too old to pass.
+
+**Pin the image for this Expo SDK, not the lowest Xcode 26 image.** Expo tags one image per
+SDK; SDK 57's is `macos-tahoe-26.5-xcode-26.6`, while `macos-sequoia-15.6-xcode-26.0` is
+tagged `sdk-54`. Both ship the iOS 26 SDK, so both clear `ITMS-90725` - but the toolchain
+still has to be new enough to compile Expo's own Swift. Building SDK 57 on the `sdk-54`
+image fails in the compile step, because `expo-modules-core` and `expo-modules-jsi` declare
+`weak let` (SE-0481, Swift 6.2+) and annotate `RuntimeScheduler` for C++ interop:
+
+```
+'weak' must be a mutable variable, because it may change at runtime
+'RuntimeScheduler' cannot be annotated with either SWIFT_RETURNS_RETAINED or
+  SWIFT_RETURNS_UNRETAINED because it is not returning a SWIFT_SHARED_REFERENCE type
+```
+
+So the pin has to move with each SDK upgrade. It is a floor that tracks the SDK, not a
+ceiling that avoids new Xcodes.
 
 ### Known blocker on Xcode 27 (not on Xcode 26)
 
