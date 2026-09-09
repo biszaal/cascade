@@ -25,30 +25,38 @@ describe('colour names', () => {
 
 describe('describing a lane', () => {
   it('says a lane is empty', () => {
-    expect(describeLane({ tokens: [], hidden: 0 }, 3, 4)).toBe('Lane 4, empty');
+    expect(describeLane({ tokens: [], hidden: 0, anchored: false }, 3, 4)).toBe('Lane 4, empty');
   });
 
   it('leads with completion, since that is the goal', () => {
-    expect(describeLane({ tokens: [2, 2, 2, 2], hidden: 0 }, 0, 4)).toBe(
+    expect(describeLane({ tokens: [2, 2, 2, 2], hidden: 0, anchored: false }, 0, 4)).toBe(
       'Lane 1, complete, all Emerald',
     );
   });
 
   it('names the top colour and how full the lane is', () => {
-    expect(describeLane({ tokens: [0, 1], hidden: 0 }, 1, 4)).toBe('Lane 2, Sky on top, 2 of 4');
+    expect(describeLane({ tokens: [0, 1], hidden: 0, anchored: false }, 1, 4)).toBe(
+      'Lane 2, Sky on top, 2 of 4',
+    );
   });
 
   it('mentions a run, because that is how many will move', () => {
-    expect(describeLane({ tokens: [0, 1, 1], hidden: 0 }, 0, 4)).toContain('2 in a row');
+    expect(describeLane({ tokens: [0, 1, 1], hidden: 0, anchored: false }, 0, 4)).toContain(
+      '2 in a row',
+    );
   });
 
   it('mentions face-down tokens', () => {
-    expect(describeLane({ tokens: [0, 1, 2], hidden: 2 }, 0, 4)).toContain('2 face down');
+    expect(describeLane({ tokens: [0, 1, 2], hidden: 2, anchored: false }, 0, 4)).toContain(
+      '2 face down',
+    );
   });
 
   it('does not count face-down tokens into a visible run', () => {
     // All one colour, but the bottom two are face down, so only two are known to match.
-    expect(describeLane({ tokens: [0, 0, 0, 0], hidden: 2 }, 0, 5)).toContain('2 in a row');
+    expect(describeLane({ tokens: [0, 0, 0, 0], hidden: 2, anchored: false }, 0, 5)).toContain(
+      '2 in a row',
+    );
   });
 });
 

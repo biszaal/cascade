@@ -98,7 +98,11 @@ export function solve(state: GameState, options: SolveOptions = {}): SolveResult
   const working = {
     capacity: state.capacity,
     colorCount: state.colorCount,
-    lanes: state.lanes.map((lane) => ({ tokens: [...lane.tokens], hidden: lane.hidden })),
+    lanes: state.lanes.map((lane) => ({
+      tokens: [...lane.tokens],
+      hidden: lane.hidden,
+      anchored: lane.anchored,
+    })),
   };
 
   let nodes = 0;

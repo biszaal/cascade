@@ -13,7 +13,12 @@ export function createState(config: LevelConfig): GameState {
     colorCount: config.colorCount,
     lanes: config.lanes.map((tokens, i) => {
       const copy = [...tokens];
-      return { tokens: copy, hidden: clampHidden(config.hidden[i] ?? 0, copy.length) };
+      return {
+        tokens: copy,
+        hidden: clampHidden(config.hidden[i] ?? 0, copy.length),
+        // An empty lane has no base to anchor, so the flag is meaningless there.
+        anchored: (config.anchored?.[i] ?? false) && copy.length > 0,
+      };
     }),
   };
 }
@@ -22,7 +27,11 @@ export function cloneState(state: GameState): GameState {
   return {
     capacity: state.capacity,
     colorCount: state.colorCount,
-    lanes: state.lanes.map((lane) => ({ tokens: [...lane.tokens], hidden: lane.hidden })),
+    lanes: state.lanes.map((lane) => ({
+      tokens: [...lane.tokens],
+      hidden: lane.hidden,
+      anchored: lane.anchored,
+    })),
   };
 }
 

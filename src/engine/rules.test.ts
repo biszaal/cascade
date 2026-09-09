@@ -28,28 +28,28 @@ function board(capacity: number, lanes: number[][], hidden?: number[]): GameStat
 
 describe('lane inspection', () => {
   it('reads the top colour, which is the last element', () => {
-    expect(topColor({ tokens: [0, 1, 2], hidden: 0 })).toBe(2);
+    expect(topColor({ tokens: [0, 1, 2], hidden: 0, anchored: false })).toBe(2);
   });
 
   it('reports null for an empty lane', () => {
-    expect(topColor({ tokens: [], hidden: 0 })).toBeNull();
+    expect(topColor({ tokens: [], hidden: 0, anchored: false })).toBeNull();
   });
 
   it('counts a run of consecutive same-coloured tokens at the top', () => {
-    expect(topRun({ tokens: [1, 0, 0, 0], hidden: 0 })).toBe(3);
+    expect(topRun({ tokens: [1, 0, 0, 0], hidden: 0, anchored: false })).toBe(3);
   });
 
   it('stops a run at the first face-down token, because the player cannot see through it', () => {
     // Bottom two are face-down. Even though index 1 is also colour 0, the run cannot
     // include it - the player has no way of knowing it matches.
-    expect(topRun({ tokens: [0, 0, 0, 0], hidden: 2 })).toBe(2);
+    expect(topRun({ tokens: [0, 0, 0, 0], hidden: 2, anchored: false })).toBe(2);
   });
 
   it('treats a lane as complete only when it is full and single-coloured', () => {
-    expect(isLaneComplete({ tokens: [1, 1, 1, 1], hidden: 0 }, 4)).toBe(true);
-    expect(isLaneComplete({ tokens: [1, 1, 1], hidden: 0 }, 4)).toBe(false);
-    expect(isLaneComplete({ tokens: [1, 1, 1, 2], hidden: 0 }, 4)).toBe(false);
-    expect(isLaneComplete({ tokens: [], hidden: 0 }, 4)).toBe(false);
+    expect(isLaneComplete({ tokens: [1, 1, 1, 1], hidden: 0, anchored: false }, 4)).toBe(true);
+    expect(isLaneComplete({ tokens: [1, 1, 1], hidden: 0, anchored: false }, 4)).toBe(false);
+    expect(isLaneComplete({ tokens: [1, 1, 1, 2], hidden: 0, anchored: false }, 4)).toBe(false);
+    expect(isLaneComplete({ tokens: [], hidden: 0, anchored: false }, 4)).toBe(false);
   });
 });
 
@@ -233,5 +233,42 @@ describe('state construction', () => {
     const copy = cloneState(state);
     copy.lanes[0]!.tokens.push(2);
     expect(state.lanes[0]!.tokens).toEqual([0, 1]);
+  });
+});
+
+describe('anchored lanes', () => {
+  it('defaults to unanchored when the config omits anchors', () => {
+    const state = board(3, [[0, 0], [1]]);
+    expect(state.lanes.every((lane) => lane.anchored)).toBe(false);
+  });
+
+  it('reads anchors from the config', () => {
+    const state = createState({
+      capacity: 3,
+      colorCount: 2,
+      lanes: [[0, 1], [1]],
+      hidden: [0, 0],
+      anchored: [true, false],
+    });
+    expect(state.lanes[0]!.anchored).toBe(true);
+    expect(state.lanes[1]!.anchored).toBe(false);
+  });
+
+  it('never anchors an empty lane', () => {
+    const state = createState({
+      capacity: 3,
+      colorCount: 1,
+      lanes: [[0], []],
+      hidden: [0, 0],
+      anchored: [true, true],
+    });
+    expect(state.lanes[1]!.anchored).toBe(false);
+  });
+
+  it('carries the anchor through a clone', () => {
+    const state = createState({
+      capacity: 3, colorCount: 2, lanes: [[0, 1], [1]], hidden: [0, 0], anchored: [true, false],
+    });
+    expect(cloneState(state).lanes[0]!.anchored).toBe(true);
   });
 });

@@ -15,6 +15,11 @@ export type ColorId = number;
 export interface LaneState {
   tokens: ColorId[];
   hidden: number;
+  /**
+   * A base token that can never move, so this lane can only ever finish in its colour.
+   * Anchors sit at index 0; the rule is enforced in `canMove`.
+   */
+  anchored: boolean;
 }
 
 export interface GameState {
@@ -54,6 +59,8 @@ export interface LevelConfig {
   lanes: ColorId[][];
   /** Face-down count per lane, parallel to `lanes`. */
   hidden: number[];
+  /** Which lanes carry an immovable base token, parallel to `lanes`. Absent means none. */
+  anchored?: boolean[];
 }
 
 export interface Level {
