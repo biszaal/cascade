@@ -8,26 +8,29 @@
       "developmentClient": true,
       "distribution": "internal",
       "ios": {
-        "image": "macos-sequoia-15.6-xcode-26.0"
+        "image": "macos-tahoe-26.5-xcode-26.6"
       }
     },
     "preview": {
       "distribution": "internal",
       "ios": {
-        "image": "macos-sequoia-15.6-xcode-26.0"
+        "image": "macos-tahoe-26.5-xcode-26.6"
       }
     },
     "production": {
       "autoIncrement": true,
       "ios": {
-        "image": "macos-sequoia-15.6-xcode-26.0",
+        "image": "macos-tahoe-26.5-xcode-26.6",
         "resourceClass": "m-medium"
       }
     }
   },
   "submit": {
     "production": {
-      "ios": {}
+      "ios": {
+        "ascAppId": "6810394977",
+        "appleTeamId": "HG4G2ZMGV8"
+      }
     }
   }
 }
