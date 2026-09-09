@@ -135,8 +135,23 @@ at least as hard as a missing free lane does. Reverse-play starts from the finis
 walks legal moves backwards, so the result is solvable by construction - and because an anchor
 never moves, a backward walk respects it automatically with no extra logic.
 
-`GenerationSpec` gains `anchors: number`, the count of lanes to anchor. The generator assigns
-distinct colours, satisfying invariant 1.
+`GenerationSpec` gains `anchors: number`, the count of lanes to anchor. Placement is
+straightforward under reverse-play: the walk starts from the finished board, where each colour
+already occupies its own lane, so anchoring is a matter of marking the base of `anchors` of
+those lanes before walking backwards. Distinct colours therefore fall out of the starting
+position rather than needing a separate check, which satisfies invariant 1 by construction.
+
+## Par
+
+`parFor(optimal, hiddenCount)` adds a fairness allowance for face-down tokens, because a
+player cannot plan around what they cannot see. Anchors need **no allowance of their own**:
+they *reduce* uncertainty by declaring what a lane must become, and the cost they impose is
+already inside `optimal`, since a constrained board simply needs more moves.
+
+Chapter 10's hidden anchors need no special case either. A hidden anchor is a face-down
+token, so it is already inside `hiddenCount` and already draws the existing allowance.
+
+`parFor` is therefore unchanged, and the regression test in item 5 covers it.
 
 ## Chapters
 
