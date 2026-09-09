@@ -13,6 +13,7 @@
     "typecheck": "tsc --noEmit",
     "levels": "tsx scripts/generate-levels.ts",
     "sounds": "node scripts/generate-sounds.mjs",
+    "icons": "node scripts/generate-icons.mjs",
     "e2e": "./e2e/run.sh",
     "browse": "tsx scripts/level-browser.ts"
   },

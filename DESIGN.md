@@ -20,13 +20,20 @@ Depth comes from a single soft shadow tinted to the paper hue, never from a dark
 
 Surface palette. One accent. No purple, no neon, no pure black.
 
-- **Board Linen** (`#F2EEE6`) — the board surface, the app's default background
-- **Chalk** (`#FBF9F5`) — sheets, cards, raised panels
-- **Ink** (`#1C1B19`) — primary text and the board's drawn lines
-- **Graphite** (`#6E6A63`) — secondary text, metadata, inactive states
-- **Hairline** (`rgba(28,27,25,0.10)`) — 1px structural rules and lane borders
-- **Recess** (`rgba(28,27,25,0.045)`) — the inside of an empty lane, a printed depression
-- **Saffron** (`#C8801F`) — the single accent: primary CTA, focus ring, active state
+The board is dark. §1 asks for a low lamp, and a saturated disc carries further on
+charcoal than it does on paper — which matters when colour *is* the mechanic.
+
+- **Board** (`#17161A`) — deep charcoal felt, the app's default background. Never `#000`:
+  pure black reads as a hole, not a surface
+- **Chalk** (`#201F25`) — sheets, cards and controls, one step up so panels lift off the felt
+- **Ink** (`#F0EDE6`) — primary text and drawn lines, warm off-white to match the felt
+- **Graphite** (`#98938B`) — secondary text, metadata, inactive states
+- **Hairline** (`rgba(240,237,230,0.13)`) — 1px structural rules and lane borders
+- **Recess** (`rgba(0,0,0,0.26)`) — the inside of an empty lane. A well cut *into* the felt,
+  so it goes darker, not lighter
+- **Baseline** (`rgba(240,237,230,0.20)`) — the printed rule along a lane's base
+- **Saffron** (`#E0952B`) — the single accent: primary CTA, focus ring, active state.
+  Lifted in luminance from the token saffron so it carries on a dark ground
 
 ### Token palette
 
@@ -63,7 +70,32 @@ so the eye skips them and reads the revealed pieces first.
 
 **Banned:** Inter. System-default font stacks for anything above body text. All serifs.
 
-## 4. Component Stylings
+## 4. The Mark
+
+Three lanes on a descending stagger: Emerald filled to the brim, Vermilion two deep, Sky
+holding one. Colour being gathered lane by lane — the whole game in one glyph, reading as a
+diagonal from the top left, the direction an eye already travels.
+
+The mark is built from the board's own parts. A lane is the same recessed capsule with the
+same hairline edge; a disc is the same flat fill with the same inset rim. Nothing in the
+icon is drawn only for the icon.
+
+- **Proportions** are multiples of a lane's width, so one number sets the mark at any size:
+  lane padding `0.075`, disc `0.85`, slot gap `0.09`, lane gap `0.24`, rim `0.037` of a
+  disc. Depth 3 gives a lane height of `2.88` and a mark aspect of `1.208` wide to tall.
+- **Three hues, not two.** An earlier pass — a full green lane beside a single amber disc —
+  read unmistakably as a traffic light. Spreading the palette across the wheel and breaking
+  the symmetry removes the association.
+- **The discs carry it alone at small sizes.** Lane edges fall below a pixel by 58pt, which
+  is fine: the stagger is legible in monochrome and with the lanes gone entirely.
+- **Android monochrome** keeps the discs solid and drops the lanes to 40% — the same
+  silhouette, no colour required.
+
+`src/components/Logo.tsx` draws it in the app and `scripts/generate-icons.mjs` draws every
+launcher asset, from the same constants. Change one and change the other; `npm run icons`
+redraws the PNGs.
+
+## 5. Component Stylings
 
 - **Tokens** — a flat filled circle with a 2px inset rim in the colour's shade. No
   gradient, no specular highlight, no drop shadow. A carrom striker, not a marble.
@@ -78,7 +110,7 @@ so the eye skips them and reads the revealed pieces first.
 - **Empty states** — a composed illustration of the board's own vocabulary (an empty lane,
   a scattered token) with one clear action. Never the words "No data".
 
-## 5. Layout Principles
+## 6. Layout Principles
 
 - The board is the hero and is vertically centred in the remaining space after the HUD.
 - Lanes wrap into at most two rows, sized to fit the narrowest supported viewport without
@@ -120,7 +152,7 @@ Info.plist rather than at runtime.
   functions and they are tested.
 - Safe-area insets respected on every screen; nothing sits under the notch or home bar.
 
-## 6. Motion & Interaction
+## 7. Motion & Interaction
 
 - **Spring physics everywhere:** `damping 20, stiffness 100`. No linear easing.
 - **The fall is an arc, not a tween.** Lift the token clear of its lane, travel along a
@@ -141,7 +173,7 @@ Info.plist rather than at runtime.
 **Interaction model:** tap a lane to lift, tap a second lane to pour, tap the lifted lane
 again to cancel. One-handed and unambiguous. Drag is out of scope.
 
-## 7. Anti-Patterns (Banned)
+## 8. Anti-Patterns (Banned)
 
 - No emojis anywhere in the UI
 - No Inter, no system font stacks, no serifs
