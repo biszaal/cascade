@@ -58,6 +58,16 @@ describe('describing a lane', () => {
       '2 in a row',
     );
   });
+
+  it('announces an anchored lane so its destiny is audible', () => {
+    const lane = { tokens: [1, 0], hidden: 0, anchored: true };
+    expect(describeLane(lane, 3, 4)).toContain('Sky anchored at the base');
+  });
+
+  it('says nothing about anchors on an ordinary lane', () => {
+    const lane = { tokens: [1, 0], hidden: 0, anchored: false };
+    expect(describeLane(lane, 3, 4)).not.toContain('anchored');
+  });
 });
 
 describe('describing what a tap will do', () => {

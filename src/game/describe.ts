@@ -41,6 +41,9 @@ export function describeLane(lane: LaneState, index: number, capacity: number): 
 
   const top = topColor(lane);
   const run = topRun(lane);
+  // A player cannot see the anchor by looking, so the anchor colour has to be spoken -
+  // it is the one fact that tells them what this lane's finished colour must be.
+  const anchor = lane.anchored ? `, ${colorName(lane.tokens[0]!)} anchored at the base` : '';
   const parts = [
     position,
     `${colorName(top!)} on top`,
@@ -49,7 +52,7 @@ export function describeLane(lane: LaneState, index: number, capacity: number): 
     lane.hidden > 0 ? `${lane.hidden} face down` : null,
   ].filter(Boolean);
 
-  return parts.join(', ');
+  return `${parts.join(', ')}${anchor}`;
 }
 
 /** What double-tapping this lane will do, given what the player is currently holding. */
