@@ -4,6 +4,7 @@ import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createState, replay, isSolved, countHidden } from '../src/engine/rules';
 import { parFor } from '../src/engine/generator';
+import { solve } from '../src/engine/solver';
 import type { Level } from '../src/engine/types';
 
 /**
@@ -32,6 +33,11 @@ const packs: Pack[] = [1, 2, 3, 4, 5].map(
   (n) => JSON.parse(readFileSync(join(levelsDir, `chapter-${n}.json`), 'utf8')) as Pack,
 );
 const allLevels = packs.flatMap((pack) => pack.levels);
+
+// The opening level of each chapter - fixed and deterministic, not random. These are the
+// smallest, quickest boards a chapter has, which keeps a full solve() cheap; a random or
+// exhaustive sample would turn this file from a unit test into a benchmark.
+const SOLVE_SAMPLE_IDS = [1, 11, 21, 31, 41];
 
 /** The shape of a board, which is what makes two levels feel alike. */
 function shapeOf(level: Level): string {
@@ -102,6 +108,30 @@ describe('level packs', () => {
       const hidden = countHidden(createState(level.config));
       expect(level.par, `level ${level.id}`).toBe(parFor(level.solution.length, hidden));
       expect(level.par, `level ${level.id}`).toBeGreaterThanOrEqual(level.solution.length);
+    }
+  });
+
+  /**
+   * Every check above takes the recorded solution as given and checks arithmetic
+   * consistency around it - none of them ever calls solve(). Par is the game's entire
+   * scoring model, and it was computed at build time by feeding solve() through
+   * canonicalKey; a regression there (say, a canonical key that starts collapsing two
+   * genuinely different boards) would prune reachable branches and silently reprice a
+   * level with no test failing, because nothing re-derives the optimal from scratch. This
+   * re-solves a small, fixed sample - one level per chapter - and checks the search still
+   * finds the same optimal length that shipped, so a repriced chapter reaches this suite
+   * instead of a player. maxNodes is bounded so a regression that makes the search blow up
+   * fails fast instead of hanging.
+   */
+  it('re-solves a fixed sample of shipped levels and finds the same optimal length', () => {
+    for (const id of SOLVE_SAMPLE_IDS) {
+      const level = allLevels.find((l) => l.id === id)!;
+      const result = solve(createState(level.config), { maxNodes: 200_000 });
+      expect(result.solved, `level ${level.id} did not solve within budget`).toBe(true);
+      expect(
+        result.moves.length,
+        `level ${level.id} re-solved to a different optimal length than shipped`,
+      ).toBe(level.solution.length);
     }
   });
 });

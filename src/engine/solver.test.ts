@@ -60,11 +60,9 @@ describe('canonicalKey with anchors', () => {
     expect(canonicalKey(a)).not.toBe(canonicalKey(b));
   });
 
-  it('still treats unanchored lanes as interchangeable', () => {
-    const a = createState({ capacity: 2, colorCount: 2, lanes: [[0], [1]], hidden: [0, 0] });
-    const b = createState({ capacity: 2, colorCount: 2, lanes: [[1], [0]], hidden: [0, 0] });
-    expect(canonicalKey(a)).toBe(canonicalKey(b));
-  });
+  // Unanchored-lane order-independence is already covered above in 'canonical key' - an
+  // unanchored board built here would exercise the exact same property, so it is not
+  // repeated.
 });
 
 describe('solve', () => {
