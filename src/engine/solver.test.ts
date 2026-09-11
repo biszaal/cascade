@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { solve, heuristic, canonicalKey } from './solver';
 import { createState, replay, isSolved, applyMove, applyMoveInPlace, moveFor } from './rules';
 import { mulberry32, shuffle } from './rng';
+import { reverseBoard } from './generator';
 import type { GameState } from './types';
 
 function board(capacity: number, lanes: number[][], hidden?: number[]): GameState {
@@ -30,6 +31,21 @@ describe('heuristic', () => {
       const state = board(3, [tokens.slice(0, 3), tokens.slice(3, 6), tokens.slice(6, 9), []]);
       const result = solve(state);
       if (!result.solved) continue;
+      expect(heuristic(state)).toBeLessThanOrEqual(result.moves.length);
+    }
+  });
+
+  it('keeps the heuristic admissible on anchored boards', () => {
+    const spec = {
+      capacity: 4, colorCount: 5, emptyLanes: 2,
+      hiddenMin: 0, hiddenMax: 0,
+      strategy: 'reverse' as const, reverseSteps: 30, anchors: 2,
+    };
+    for (let seed = 1; seed <= 20; seed++) {
+      const state = createState(reverseBoard(seed, spec));
+      const result = solve(state, { maxNodes: 300_000 });
+      if (!result.solved) continue;
+      // Admissible means never overestimating the true remaining cost.
       expect(heuristic(state)).toBeLessThanOrEqual(result.moves.length);
     }
   });
