@@ -324,7 +324,12 @@ describe('solving anchored boards', () => {
 
     const state = createState(config);
     for (const move of result.moves) {
-      expect(state.lanes[move.from]!.tokens.length).toBeGreaterThan(1);
+      const lane = state.lanes[move.from]!;
+      // An anchor is only ever the source of a move when it is alone in its lane, so this
+      // is the exact condition that would mean the search moved one. Asserting the source
+      // simply holds more than one token would be wrong: moving the last token out of an
+      // UNANCHORED lane is legal and the optimal solution here does it twice.
+      expect(lane.anchored && lane.tokens.length === 1).toBe(false);
       applyMoveInPlace(state, move);
     }
     expect(isSolved(state)).toBe(true);

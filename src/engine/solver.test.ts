@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { solve, heuristic, canonicalKey } from './solver';
-import { createState, replay, isSolved, applyMove, moveFor } from './rules';
+import { createState, replay, isSolved, applyMove, applyMoveInPlace, moveFor } from './rules';
 import { mulberry32, shuffle } from './rng';
 import type { GameState } from './types';
 
@@ -162,5 +162,40 @@ describe('solve', () => {
     expect(result.solved).toBe(true);
     expect(result.moves.length).toBeGreaterThan(0);
     expect(isSolved(replay(afterOne, result.moves)!)).toBe(true);
+  });
+});
+
+describe('solving anchored boards', () => {
+  it('never returns a solution that moves an anchor', () => {
+    const config = {
+      capacity: 3, colorCount: 2,
+      lanes: [[0, 1, 1], [1, 0, 0], []],
+      hidden: [0, 0, 0],
+      anchored: [true, true, false],
+    };
+    const result = solve(createState(config));
+    expect(result.solved).toBe(true);
+
+    const state = createState(config);
+    for (const move of result.moves) {
+      expect(state.lanes[move.from]!.tokens.length).toBeGreaterThan(1);
+      applyMoveInPlace(state, move);
+    }
+    expect(isSolved(state)).toBe(true);
+  });
+
+  it('reports an unsolvable anchored board rather than cheating', () => {
+    // Both lanes are anchored to Vermilion. Only one lane can hold a colour, so this
+    // cannot be solved - and the solver must say so instead of moving an anchor.
+    const result = solve(
+      createState({
+        capacity: 2, colorCount: 2,
+        lanes: [[0, 1], [0, 1]],
+        hidden: [0, 0],
+        anchored: [true, true],
+      }),
+      { maxNodes: 50_000 },
+    );
+    expect(result.solved).toBe(false);
   });
 });
