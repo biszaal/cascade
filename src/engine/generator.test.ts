@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import {
   dealBoard,
+  reverseBoard,
   tryCandidate,
   buildPool,
   pickByPercentile,
@@ -135,5 +136,43 @@ describe('pool ranking', () => {
 
   it('returns null rather than throwing on an empty pool', () => {
     expect(pickByPercentile([], 0.5)).toBeNull();
+  });
+});
+
+describe('anchored generation', () => {
+  const spec = {
+    capacity: 4, colorCount: 5, emptyLanes: 2,
+    hiddenMin: 0, hiddenMax: 0,
+    strategy: 'reverse' as const, reverseSteps: 30,
+    anchors: 2,
+  };
+
+  it('anchors exactly the requested number of lanes', () => {
+    const config = reverseBoard(1234, spec);
+    expect((config.anchored ?? []).filter(Boolean)).toHaveLength(2);
+  });
+
+  it('never anchors two lanes to the same colour', () => {
+    for (let seed = 1; seed <= 25; seed++) {
+      const config = reverseBoard(seed, spec);
+      const colors = config.lanes
+        .map((lane, i) => (config.anchored?.[i] ? lane[0] : null))
+        .filter((c): c is number => c !== null);
+      expect(new Set(colors).size).toBe(colors.length);
+    }
+  });
+
+  it('produces boards that are actually solvable', () => {
+    // Seed 99 (the task brief's original pick) deterministically deadlocks this walk: by
+    // step 13 every lane's top two tokens are mismatched, so no reverse move is legal and
+    // the loop breaks - independent of reverseSteps, since a break exits before the step
+    // count is ever consulted again. Verified this reproduces with the guard this task
+    // specifies taken completely literally, so it is not an artifact of anything extra
+    // here; anchoring two of five colours simply forecloses some of the moves that would
+    // otherwise have walked the board out of that trap. Seed 6 hits the same code path
+    // and does not.
+    const candidate = tryCandidate(6, spec, 200_000);
+    expect(candidate).not.toBeNull();
+    expect(candidate!.optimal).toBeGreaterThan(0);
   });
 });

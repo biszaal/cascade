@@ -29,6 +29,14 @@ export interface GenerationSpec {
   strategy?: 'deal' | 'reverse';
   /** Reverse-play only: how many backward moves to walk. More walking, more tangled. */
   reverseSteps?: number;
+  /**
+   * How many lanes carry an immovable base token.
+   *
+   * Reverse-play only. The backward walk starts from the finished board, where each
+   * colour already occupies its own lane, so anchoring bases there satisfies the
+   * one-anchor-per-colour invariant by construction rather than by check.
+   */
+  anchors?: number;
 }
 
 export interface Candidate {
@@ -121,6 +129,19 @@ export function reverseBoard(seed: number, spec: GenerationSpec): LevelConfig {
   }
   for (let i = 0; i < spec.emptyLanes; i++) lanes.push([]);
 
+  // Anchor colours are chosen right here, while the board is still solved and lane c
+  // holds ONLY colour c - so choosing colours is the same as choosing lane indices, and
+  // the one-anchor-per-colour invariant holds by construction rather than by a check
+  // later. Skipped entirely when none are requested, so an unanchored spec draws the
+  // exact same RNG sequence it always has and chapters 1-5 stay byte-identical.
+  const anchorCount = Math.min(spec.anchors ?? 0, spec.colorCount);
+  const anchorColors = new Set<number>();
+  if (anchorCount > 0) {
+    const order = Array.from({ length: spec.colorCount }, (_, c) => c);
+    shuffle(rng, order);
+    for (let i = 0; i < anchorCount; i++) anchorColors.add(order[i]!);
+  }
+
   // The last arrangement seen that still had the planned number of free lanes.
   let lastValid: number[][] | null = null;
 
@@ -139,6 +160,9 @@ export function reverseBoard(seed: number, spec: GenerationSpec): LevelConfig {
       // Forward, the token returns to this lane, so the lane must be able to accept it:
       // either it empties out, or what is left on top matches.
       if (below !== null && below !== color) continue;
+
+      // An anchor never moves, so the backward walk must never take one off its lane.
+      if (source.length === 1 && anchorColors.has(source[0]!)) continue;
 
       for (let to = 0; to < lanes.length; to++) {
         if (to === from) continue;
@@ -168,6 +192,22 @@ export function reverseBoard(seed: number, spec: GenerationSpec): LevelConfig {
   // Fall back to the final state only if the walk never satisfied the constraint.
   if (lastValid) lanes = lastValid;
 
+  // Anchored lanes are identified by INDEX, not by re-inspecting the final board's
+  // contents. The walk above only ever pops from the top and pushes to the top, so a
+  // lane's index-0 token is set once - the moment it goes from empty to holding one
+  // token - and never changes again short of the lane fully draining. Lane c starts as
+  // the only home of colour c, and the single-token rule above forbids ever draining an
+  // anchored lane that far, so lane c's base is colour c for the rest of this function
+  // regardless of anything piled on top of it. That makes the one-anchor-per-colour
+  // invariant hold without a check: no OTHER lane's index-0 token is ever inspected, so
+  // none can accidentally qualify, however its contents drift.
+  //
+  // Left undefined rather than an all-false array when no anchors were requested, so an
+  // unanchored spec serialises exactly as it did before this feature existed -
+  // JSON.stringify drops an undefined property, so chapters 1-5 stay byte-identical if
+  // their pack is regenerated.
+  const anchored = anchorCount > 0 ? lanes.map((_, i) => anchorColors.has(i)) : undefined;
+
   const hidden = lanes.map((lane) => {
     if (lane.length === 0) return 0;
     const span = spec.hiddenMax - spec.hiddenMin + 1;
@@ -175,7 +215,7 @@ export function reverseBoard(seed: number, spec: GenerationSpec): LevelConfig {
     return Math.max(0, Math.min(want, spec.capacity - 1));
   });
 
-  return { capacity: spec.capacity, colorCount: spec.colorCount, lanes, hidden };
+  return { capacity: spec.capacity, colorCount: spec.colorCount, lanes, hidden, anchored };
 }
 
 /**
