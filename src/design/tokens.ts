@@ -61,7 +61,14 @@ export const hiddenToken = {
   mark: 'rgba(240,237,230,0.42)',
 } as const;
 
-/** Chapter accents, used on the level trail and chapter cards. */
+/**
+ * Chapter accents, used on the level trail and chapter cards.
+ *
+ * Every consumer looks these up by `chapter.color % chapterColors.length`, so running out
+ * fails silently rather than loudly - a chapter beyond the end of this list does not
+ * error, it just quietly wears an earlier chapter's accent. Keep this at least as long as
+ * the number of chapters that exist.
+ */
 export const chapterColors = [
   '#E69F00',
   '#009E73',
@@ -69,6 +76,10 @@ export const chapterColors = [
   '#5A57C4',
   '#CC79A7',
   '#8A9099',
+  '#F0E442', // Okabe-Ito yellow
+  '#56B4E9', // Okabe-Ito sky blue
+  '#8C5A3C', // umber
+  '#7D4E8C', // plum
 ] as const;
 
 /** 4pt base scale. */
