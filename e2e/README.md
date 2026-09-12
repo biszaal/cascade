@@ -31,5 +31,6 @@ npm run ios          # build and install onto a simulator
 | `testC_rotationRelaysOutTheBoard` | Rotating does not clip or empty the board, and the HUD survives. |
 | `testD_dailyBoardSurvivesRotation` | Nine lanes stay present and reachable across a rotation, exercising the one-row / two-row decision that a five-lane level cannot. |
 | `testE_orientationContract` | **iPad rotates to landscape; iPhone stays portrait.** This is the only way to prove the per-idiom `Info.plist` orientation keys actually work. |
+| `testF_anchoredLevel` | A deep link into an anchored level announces the anchor and its colour, and once excavated down to a lone anchor, tapping it refuses the lift and leaves the move counter untouched. |
 
 Run `testE` on both a phone and a tablet - it asserts the opposite outcome on each.

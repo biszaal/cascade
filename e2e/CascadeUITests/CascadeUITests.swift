@@ -148,6 +148,92 @@ final class CascadeUITests: XCTestCase {
         }
     }
 
+    /// Anchors are new this release, and only a device can prove two things a unit test
+    /// cannot: that the accessibility label actually calls one out, and that the engine
+    /// really refuses to lift a lone anchor - a bug a review caught (a lone anchor could
+    /// be lifted in the app) and a fix wave then closed.
+    func testF_anchoredLevel() {
+        let app = launchApp()
+
+        // Deep links are not gated by progress, so this reaches level 51 (chapter 6
+        // "Bedrock", level 1) directly on a fresh install, without navigating the
+        // (locked) chapter list.
+        app.open(URL(string: "cascade://play/51")!)
+
+        // Opening a custom-scheme URL this way surfaces iOS's own confirmation alert,
+        // which lives in Springboard, not in Cascade.
+        let springboard = XCUIApplication(bundleIdentifier: "com.apple.springboard")
+        let openButton = springboard.buttons["Open"]
+        if openButton.waitForExistence(timeout: 5) {
+            openButton.tap()
+        }
+
+        XCTAssertTrue(lane(app, 1).waitForExistence(timeout: 30), "Level 51 board never appeared")
+
+        // Level 51 deals its anchor face-up (assets/levels/chapter-6.json, id 51), so a
+        // sighted player can see it is there but not what colour it is - the label has
+        // to say the colour, since that is the one fact a screen reader user cannot get
+        // any other way.
+        let lane1Label = lane(app, 1).label
+        XCTAssertTrue(
+            lane1Label.contains("anchored at the base"),
+            "Lane 1 should announce its anchor, got: \(lane1Label)"
+        )
+        XCTAssertFalse(
+            lane1Label.contains("colour unknown"),
+            "Level 51's anchor is dealt face-up, so its colour should be spoken: \(lane1Label)"
+        )
+        attach("anchored-board")
+
+        // Level 51's lanes, bottom (index 0 - the anchor) to top:
+        //   1: Saffron, Saffron, Sky, Vermilion   <- anchored, capacity 4, FULL
+        //   2: Emerald, Sky, Saffron, Sky         <- capacity 4, FULL
+        //   3: Vermilion, Emerald, Emerald, Vermilion <- capacity 4, FULL
+        //   4: Vermilion, Emerald, Saffron, Sky   <- capacity 4, FULL
+        //   5, 6: empty
+        // Every dealt lane starts full, so lane 1's first two pops (Vermilion, then Sky)
+        // have nowhere to go but the two empty lanes - neither of which then matches
+        // lane 1's third token (Saffron), and every other lane is still full. So move 3
+        // is a detour on lane 2: it pours lane 2's top Sky onto the Sky already sitting
+        // in lane 6, which uncovers a Saffron top on lane 2 with a free slot. Move 4
+        // pours lane 1's last free token onto that, leaving lane 1 down to its anchor.
+        lane(app, 1).tap(); lane(app, 5).tap()  // Vermilion -> empty lane 5
+        lane(app, 1).tap(); lane(app, 6).tap()  // Sky -> empty lane 6
+        lane(app, 2).tap(); lane(app, 6).tap()  // Sky -> lane 6 (matches), uncovers Saffron on lane 2
+        lane(app, 1).tap(); lane(app, 2).tap()  // Saffron -> lane 2 (matches)
+
+        // Guard: if level 51's layout ever changes, this fails loudly here instead of
+        // the refusal check below silently testing nothing.
+        let excavated = lane(app, 1).label
+        XCTAssertTrue(
+            excavated.contains("1 of 4"),
+            "Expected lane 1 excavated down to just its anchor, got: \(excavated)"
+        )
+        attach("lone-anchor")
+
+        // The HUD announces progress for screen readers, which makes it the most direct
+        // read of the move count available to a UI test (see testB).
+        let counter = app.otherElements
+            .matching(NSPredicate(format: "label CONTAINS 'par'"))
+            .firstMatch
+        XCTAssertTrue(counter.waitForExistence(timeout: 5), "Move counter not exposed")
+        let movesBefore = counter.label
+
+        // The on-device proof: tapping the lone anchor must refuse the lift outright, not
+        // merely fail to complete a move that never should have started.
+        lane(app, 1).tap()
+        lane(app, 5).tap()
+
+        XCTAssertEqual(
+            counter.label, movesBefore,
+            "Tapping a lone anchor should refuse the lift, not register a move"
+        )
+        XCTAssertTrue(
+            lane(app, 1).label.contains("1 of 4"),
+            "Lane 1 should still hold only its anchor after the refused lift"
+        )
+    }
+
     /// Rotation: the thing that cannot be checked without a device.
     func testC_rotationRelaysOutTheBoard() {
         let app = launchApp()
