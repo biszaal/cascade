@@ -1,7 +1,7 @@
 # Anchored tokens, and chapters 6-10
 
 **Date:** 2026-09-09
-**Status:** approved, not yet implemented
+**Status:** implemented
 
 ## Problem
 
@@ -127,19 +127,58 @@ somewhat more slowly, which is acceptable.
 
 This is the single highest-risk item in the design and gets a dedicated regression test.
 
+### The same trap, a second time: the solver's lane-shape shortcut
+
+`canonicalKey` is not the only place lane identity is hashed. Inside `search()`, the solver
+tries each lane *shape* once per node as a source and once as a destination, keyed on tokens
+and hidden count. That key originally omitted anchors, so a lone anchor and a lone free token
+of the same colour shared a shape; whichever was visited first stood in for both, and with the
+anchor first the free token's moves were never tried. On a two-token board with one legal move
+the solver reported "unsolvable", and it shipped four levels (62, 73, 78, 79) with par one or
+two moves too long before a final review caught it.
+
+Both sites now append the same `a` marker. It is the same class of bug, and the lesson is the
+same: **any key built from a lane's contents must include whether that lane is anchored.** The
+solver tests cover both lane orders of the reproducing board.
+
 ## Generation
 
-Anchored levels use `strategy: 'reverse'`. The generator's own notes record that a dealt board
-with one free lane is genuinely unsolvable about 92% of the time, and anchors constrain a board
-at least as hard as a missing free lane does. Reverse-play starts from the finished board and
-walks legal moves backwards, so the result is solvable by construction - and because an anchor
-never moves, a backward walk respects it automatically with no extra logic.
+Both strategies place anchors, and most anchored levels are dealt. `GenerationSpec` gains
+`anchors: number`, the count of lanes to anchor, and each strategy satisfies invariant 1 by
+construction:
 
-`GenerationSpec` gains `anchors: number`, the count of lanes to anchor. Placement is
-straightforward under reverse-play: the walk starts from the finished board, where each colour
-already occupies its own lane, so anchoring is a matter of marking the base of `anchors` of
-those lanes before walking backwards. Distinct colours therefore fall out of the starting
-position rather than needing a separate check, which satisfies invariant 1 by construction.
+- `dealBoard` chooses anchor colours from a shuffle of the colour list, seats one token of each
+  at index 0 of its own lane before shuffling the rest of the pool, and then reorders the
+  dealt lanes so anchors land in varied positions rather than always the leftmost.
+- `reverseBoard` starts from the finished board, where each colour already occupies its own
+  lane, and marks the base of `anchors` of those lanes before walking backwards. Because an
+  anchor never moves, the walk respects it with no extra logic.
+
+The design originally required `reverse` for every anchored level, on the assumption that
+anchors would make random deals unsolvable. Measurement said otherwise, and forcing reverse
+was the actual cause of an early build of these chapters shipping far too easy: reverse-play
+saturates almost immediately (mean optimal solution length ~18 however long the walk), while
+dealt anchored boards are about 2.7x harder (mean optimal ~48 against ~18) and solvable 75-82%
+of the time. `tryCandidate` already rejects any candidate the solver cannot solve, so an
+unsolvable deal costs a seed, not a broken level; anchored specs get a larger seed budget to
+pay for that. The strategy choice is therefore the same as chapters 1-5: `deal` with two free
+lanes, `reverse` with one.
+
+Every anchor-related draw is skipped when `anchors` is zero, so an unanchored spec consumes
+exactly the random numbers it did before this feature existed and chapters 1-5 regenerate
+byte-identically.
+
+### Hidden anchors are opt-in: `hideAnchors`
+
+Hidden counts fill a lane from index 0, so any fog at all on an anchored lane buries its
+anchor. Left alone, every anchor in Mantle and Fault would already be face down and Core's
+"an anchor you cannot see" would teach nothing new. `GenerationSpec.hideAnchors` (default
+false) keeps anchored lanes face-up while unanchored lanes keep their fog; only Core sets it.
+It is applied after the hidden counts are drawn and draws nothing, so the board is otherwise
+identical either way.
+
+When an anchor is face down, `describe.ts` says the lane is anchored and that the colour is
+unknown, rather than speaking the colour a sighted player cannot see.
 
 ## Par
 
@@ -158,13 +197,17 @@ token, so it is already inside `hiddenCount` and already draws the existing allo
 Chapters 1-5 descend through water: Spring, Brook, Rapids, Undertow, Deep. Chapters 6-10 descend
 through stone, so the fiction marks the change of rule.
 
-| Ch | Name | Introduces | Hidden | Par range |
+| Ch | Name | Introduces | Hidden | Par range (as shipped) |
 |----|------|-----------|--------|-----------|
-| 6  | Bedrock | one anchor, then two | none | 15-35 |
-| 7  | Trench  | anchors crowd out free space | none | 30-50 |
-| 8  | Mantle  | anchors and hidden together | yes | 40-60 |
-| 9  | Fault   | many anchors, heavy hidden | heavy | 50-70 |
-| 10 | Core    | hidden anchors | max | 60-85 |
+| 6  | Bedrock | one anchor, then up to four | none | 10-36 |
+| 7  | Trench  | anchors crowd out free space | none | 12-47 |
+| 8  | Mantle  | anchors and hidden together (anchors stay visible) | yes | 16-61 |
+| 9  | Fault   | many anchors, heavy hidden (anchors stay visible) | heavy | 18-65 |
+| 10 | Core    | hidden anchors (`hideAnchors`) | max | 20-73 |
+
+The low end of each range is a `tight` or `rest` level; one-free-lane boards are short by
+construction. The ranges above are the measured values from the final regeneration, not
+targets.
 
 Chapter 6 deliberately drops below chapter 5 in difficulty. `level-plan.ts` already states the
 principle - "each new mechanic is taught on a deliberately easy board before it is ever tested
@@ -197,6 +240,7 @@ Test-driven, in this order:
 | Risk | Mitigation |
 |------|-----------|
 | `canonicalKey` collision silently corrupts par | Dedicated test, item 2 above |
-| Anchors make boards unsolvable | `reverse` strategy makes solvability structural |
+| Solver shape shortcut lets an anchor shadow a free lane | `a` marker in both shapes; test in both lane orders |
+| Anchors make boards unsolvable | Dealt anchored boards measured solvable 75-82%; `tryCandidate` rejects unsolvable candidates and anchored specs get a larger seed budget |
 | Generation slows from reduced dedup | Measure; raise `maxNodes` per level if needed |
 | Chapter 10 hidden anchors feel unfair | Taught across chapters 6-9 first; revisit if playtest disagrees |
