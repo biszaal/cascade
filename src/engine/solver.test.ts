@@ -205,6 +205,21 @@ describe('solving anchored boards', () => {
     expect(isSolved(state)).toBe(true);
   });
 
+  it('does not let an anchored lane shadow an identical unanchored one', () => {
+    // A lone anchor and a lone free token of the same colour look alike token for token,
+    // but only one of them can move. The search tries each lane shape once, so if the two
+    // shared a shape, whichever came first would stand in for both - and with the anchor
+    // first, the one legal move on this board would never be tried. Both lane orders are
+    // checked because only one of them exposes the bug.
+    for (const anchored of [[true, false, false], [false, true, false]]) {
+      const result = solve(
+        createState({ capacity: 2, colorCount: 2, lanes: [[0], [0], [1, 1]], hidden: [0, 0, 0], anchored }),
+      );
+      expect(result.solved, `anchored ${anchored.join(',')}`).toBe(true);
+      expect(result.moves, `anchored ${anchored.join(',')}`).toHaveLength(1);
+    }
+  });
+
   it('reports an unsolvable anchored board rather than cheating', () => {
     // Both lanes are anchored to Vermilion. Only one lane can hold a colour, so this
     // cannot be solved - and the solver must say so instead of moving an anchor.

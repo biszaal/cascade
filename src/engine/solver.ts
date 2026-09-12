@@ -162,6 +162,14 @@ export function solve(state: GameState, options: SolveOptions = {}): SolveResult
     // Only try the FIRST empty lane and the first lane of each identical shape. Every
     // empty lane is the same empty lane, and pouring into any of them gives the same
     // position, so exploring the rest is pure waste.
+    //
+    // This is the SECOND place lane identity is hashed, after canonicalKey, and it needs
+    // the same `a` marker for the same reason. An anchored lane is not interchangeable
+    // with an unanchored lane holding identical tokens: a lone anchor cannot move while a
+    // lone free token can. Without the marker the two share a shape, and whichever is
+    // visited first stands in for both - so a lone anchor seen first silently hides every
+    // move from its free twin, and the search reports a longer optimal, or none at all.
+    // Unanchored lanes keep their exact previous shape, so chapters 1-5 search identically.
     const triedDestinations = new Set<string>();
     const triedSources = new Set<string>();
 
@@ -169,7 +177,7 @@ export function solve(state: GameState, options: SolveOptions = {}): SolveResult
       const source = working.lanes[from]!;
       if (source.tokens.length === 0) continue;
 
-      const sourceShape = `${source.tokens.join(',')}:${source.hidden}`;
+      const sourceShape = `${source.tokens.join(',')}:${source.hidden}${source.anchored ? 'a' : ''}`;
       if (triedSources.has(sourceShape)) continue;
       triedSources.add(sourceShape);
 
@@ -180,7 +188,7 @@ export function solve(state: GameState, options: SolveOptions = {}): SolveResult
         if (!canMove(working, from, to)) continue;
 
         const dest = working.lanes[to]!;
-        const destShape = `${dest.tokens.join(',')}:${dest.hidden}`;
+        const destShape = `${dest.tokens.join(',')}:${dest.hidden}${dest.anchored ? 'a' : ''}`;
         if (triedDestinations.has(destShape)) continue;
         triedDestinations.add(destShape);
 
