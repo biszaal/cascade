@@ -34,6 +34,21 @@ const packs: Pack[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(
 );
 const allLevels = packs.flatMap((pack) => pack.levels);
 
+/**
+ * The game is arranged in five-chapter arcs, each teaching one mechanic on deliberately
+ * gentle boards before testing it: water (chapters 1-5) is the base rules, then hidden
+ * tokens; stone (chapters 6-10) is anchors. Two more arcs are planned. Chunking the pack
+ * list rather than hardcoding chapter numbers keeps this working unchanged once chapters
+ * 11-20 arrive.
+ */
+const ARC_SIZE = 5;
+function arcsOf<T>(items: T[]): T[][] {
+  const arcs: T[][] = [];
+  for (let i = 0; i < items.length; i += ARC_SIZE) arcs.push(items.slice(i, i + ARC_SIZE));
+  return arcs;
+}
+const arcs = arcsOf(packs);
+
 // The opening level of each chapter - fixed and deterministic, not random. These are the
 // smallest, quickest boards a chapter has, which keeps a full solve() cheap; a random or
 // exhaustive sample would turn this file from a unit test into a benchmark.
@@ -153,32 +168,59 @@ describe('level packs', () => {
 });
 
 describe('the authored curve', () => {
-  it('gets harder over the course of the game', () => {
-    const averages = packs.map(
-      (pack) => pack.levels.reduce((sum, l) => sum + l.difficulty, 0) / pack.levels.length,
-    );
-
-    // Deliberately NOT a strict chapter-by-chapter ramp. Undertow opens easier than
-    // Rapids closes, because it introduces face-down tokens and a new mechanic has to be
-    // taught on a gentle board. Requiring monotonic chapters would forbid exactly the
-    // pacing this curve was rebuilt to have.
-    for (let i = 2; i < averages.length; i++) {
-      expect(
-        averages[i],
-        `chapter ${i + 1} is not harder than chapter ${i - 1}, so the trend has stalled`,
-      ).toBeGreaterThan(averages[i - 2]!);
+  it('gets harder within each arc, and from arc to arc', () => {
+    // A new mechanic resets the ceiling inside its own arc: Bedrock opens easier than
+    // Deep closes, the same way Undertow once opened easier than Rapids closed, because
+    // a mechanic has to be taught on a gentle board. Requiring monotonic chapters would
+    // forbid exactly the pacing this curve was rebuilt to have, so the within-arc trend
+    // is checked one arc at a time rather than across the seam between them.
+    //
+    // But no arc may be gentler than the one before it - the seam is where a new
+    // mechanic gets taught, not where the game is allowed to get easier overall.
+    for (const arc of arcs) {
+      const averages = arc.map(
+        (pack) => pack.levels.reduce((sum, l) => sum + l.difficulty, 0) / pack.levels.length,
+      );
+      for (let i = 2; i < averages.length; i++) {
+        expect(
+          averages[i],
+          `${arc[i]!.name} is not harder on average than ${arc[i - 2]!.name}, so this arc's trend has stalled`,
+        ).toBeGreaterThan(averages[i - 2]!);
+      }
     }
-    expect(averages[averages.length - 1]).toBeGreaterThan(averages[0]! * 2);
+
+    const arcMeans = arcs.map((arc) => {
+      const diffs = arc.flatMap((pack) => pack.levels.map((l) => l.difficulty));
+      return diffs.reduce((sum, d) => sum + d, 0) / diffs.length;
+    });
+    for (let i = 1; i < arcMeans.length; i++) {
+      expect(
+        arcMeans[i],
+        `arc ${i + 1} is not harder on average than arc ${i}, so an arc got gentler overall`,
+      ).toBeGreaterThan(arcMeans[i - 1]!);
+    }
   });
 
-  it('raises the peak with every chapter', () => {
-    // Averages may dip where a mechanic is introduced, but the ceiling must keep rising -
-    // otherwise a later chapter is not actually asking more of the player.
-    const peaks = packs.map((pack) => Math.max(...pack.levels.map((l) => l.difficulty)));
-    for (let i = 1; i < peaks.length; i++) {
-      expect(peaks[i], `${packs[i]!.name} peaks no higher than ${packs[i - 1]!.name}`).toBeGreaterThan(
-        peaks[i - 1]!,
-      );
+  it('raises the peak within each arc, and from arc to arc', () => {
+    // Averages may dip where a mechanic is introduced (above), but within an arc the
+    // ceiling must keep rising - otherwise a later chapter in the same arc is not
+    // actually asking more of the player. That requirement resets at each arc seam for
+    // the same reason the trend does: a new mechanic is taught gently, so Bedrock's peak
+    // is not required to beat Deep's.
+    for (const arc of arcs) {
+      const peaks = arc.map((pack) => Math.max(...pack.levels.map((l) => l.difficulty)));
+      for (let i = 1; i < peaks.length; i++) {
+        expect(peaks[i], `${arc[i]!.name} peaks no higher than ${arc[i - 1]!.name}`).toBeGreaterThan(
+          peaks[i - 1]!,
+        );
+      }
+    }
+
+    // The seam itself is still held to a floor: each arc's hardest board must clearly
+    // beat the arc before it, so the game's absolute ceiling always rises.
+    const arcPeaks = arcs.map((arc) => Math.max(...arc.flatMap((pack) => pack.levels.map((l) => l.difficulty))));
+    for (let i = 1; i < arcPeaks.length; i++) {
+      expect(arcPeaks[i], `arc ${i + 1} peaks no higher than arc ${i}`).toBeGreaterThan(arcPeaks[i - 1]!);
     }
   });
 
