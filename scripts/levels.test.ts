@@ -29,7 +29,7 @@ interface Pack {
   levels: Level[];
 }
 
-const packs: Pack[] = [1, 2, 3, 4, 5].map(
+const packs: Pack[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(
   (n) => JSON.parse(readFileSync(join(levelsDir, `chapter-${n}.json`), 'utf8')) as Pack,
 );
 const allLevels = packs.flatMap((pack) => pack.levels);
@@ -37,7 +37,7 @@ const allLevels = packs.flatMap((pack) => pack.levels);
 // The opening level of each chapter - fixed and deterministic, not random. These are the
 // smallest, quickest boards a chapter has, which keeps a full solve() cheap; a random or
 // exhaustive sample would turn this file from a unit test into a benchmark.
-const SOLVE_SAMPLE_IDS = [1, 11, 21, 31, 41];
+const SOLVE_SAMPLE_IDS = [1, 11, 21, 31, 41, 51, 61, 71, 81, 91];
 
 /** The shape of a board, which is what makes two levels feel alike. */
 function shapeOf(level: Level): string {
@@ -58,14 +58,14 @@ describe('level packs', () => {
     expect(onDisk).toEqual(packs.map((p) => `chapter-${p.chapter}.json`).sort());
   });
 
-  it('ships five chapters of ten levels', () => {
-    expect(packs).toHaveLength(5);
+  it('ships ten chapters of ten levels', () => {
+    expect(packs).toHaveLength(10);
     for (const pack of packs) expect(pack.levels, pack.name).toHaveLength(10);
   });
 
-  it('numbers levels 1..50 with no gaps or repeats', () => {
+  it('numbers levels 1..100 with no gaps or repeats', () => {
     const ids = allLevels.map((l) => l.id).sort((a, b) => a - b);
-    expect(ids).toEqual(Array.from({ length: 50 }, (_, i) => i + 1));
+    expect(ids).toEqual(Array.from({ length: 100 }, (_, i) => i + 1));
   });
 
   it('deals every colour exactly capacity times', () => {
@@ -100,6 +100,22 @@ describe('level packs', () => {
       for (const move of level.solution) {
         expect(move.count, `level ${level.id} has a multi-token move`).toBe(1);
       }
+    }
+  });
+
+  it('never anchors two lanes to the same colour', () => {
+    for (const level of allLevels) {
+      const anchored = level.config.anchored ?? [];
+      const colors = level.config.lanes
+        .map((lane, i) => (anchored[i] ? lane[0] : null))
+        .filter((c): c is number => c !== null && c !== undefined);
+      expect(new Set(colors).size).toBe(colors.length);
+    }
+  });
+
+  it('leaves chapters 1 to 5 free of anchors', () => {
+    for (const level of allLevels.filter((l) => l.chapter <= 5)) {
+      expect((level.config.anchored ?? []).some(Boolean)).toBe(false);
     }
   });
 
@@ -241,10 +257,16 @@ describe('the authored curve', () => {
     expect(teach.difficulty).toBeLessThan(undertow.levels[9]!.difficulty);
   });
 
-  it('keeps face-down tokens out of the first three chapters', () => {
+  it('keeps face-down tokens out of the chapters teaching something else', () => {
+    // Two mechanics get taught in this game, and each is introduced on a board that is
+    // otherwise plain so the new idea is the only new thing: face-down tokens in chapter
+    // 4, anchors in chapter 6. That means hidden tokens are absent twice over - chapters
+    // 1-3, before either mechanic exists, and chapters 6-7, where anchors are taught on
+    // their own before the two mechanics combine starting in chapter 8.
+    const hiddenFree = new Set([1, 2, 3, 6, 7]);
     for (const pack of packs) {
       const hiddenTotal = pack.levels.reduce((sum, l) => sum + countHidden(createState(l.config)), 0);
-      if (pack.chapter <= 3) expect(hiddenTotal, pack.name).toBe(0);
+      if (hiddenFree.has(pack.chapter)) expect(hiddenTotal, pack.name).toBe(0);
       else expect(hiddenTotal, pack.name).toBeGreaterThan(0);
     }
   });

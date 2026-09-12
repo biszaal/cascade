@@ -35,6 +35,23 @@ function maxNodesFor(plan: LevelPlan): number {
   return work <= 32 ? 600_000 : 2_000_000;
 }
 
+/**
+ * How many seeds to try before giving up on a pool.
+ *
+ * An anchored reverse walk can only reach its planned free-lane count when one of the
+ * FEW lanes still able to fully empty - the unanchored colours and the appended empty
+ * lanes - happens to do so at the same step as another. The more colours are anchored,
+ * the fewer such lanes exist, so that coincidence gets rarer per seed even though the
+ * spec itself is unchanged. Measured failing 22-51% of seeds at tight shapes versus 2-3%
+ * unanchored, so anchored specs get a much larger seed budget; unanchored specs keep
+ * buildPool's default exactly, so chapters 1-5 try the identical seeds in the identical
+ * order.
+ */
+function attemptsFor(plan: LevelPlan): number | undefined {
+  if (!plan.spec.anchors) return undefined;
+  return poolSizeFor(plan) * 200;
+}
+
 function seedFor(chapter: number, index: number): number {
   return chapter * 1_000_003 + index * 7919 + 4242;
 }
@@ -57,6 +74,7 @@ function main() {
         plan.spec,
         poolSizeFor(plan),
         maxNodesFor(plan),
+        attemptsFor(plan),
       );
 
       // Rank the pool and take the candidate sitting at this level's intended intensity.

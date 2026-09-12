@@ -34,6 +34,41 @@
       "color": 4,
       "levels": 10,
       "parTotal": 396
+    },
+    {
+      "chapter": 6,
+      "name": "Bedrock",
+      "color": 5,
+      "levels": 10,
+      "parTotal": 219
+    },
+    {
+      "chapter": 7,
+      "name": "Trench",
+      "color": 6,
+      "levels": 10,
+      "parTotal": 260
+    },
+    {
+      "chapter": 8,
+      "name": "Mantle",
+      "color": 7,
+      "levels": 10,
+      "parTotal": 414
+    },
+    {
+      "chapter": 9,
+      "name": "Fault",
+      "color": 8,
+      "levels": 10,
+      "parTotal": 507
+    },
+    {
+      "chapter": 10,
+      "name": "Core",
+      "color": 9,
+      "levels": 10,
+      "parTotal": 478
     }
   ]
 }

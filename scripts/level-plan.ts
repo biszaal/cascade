@@ -63,10 +63,10 @@ function spec(
     hiddenMax,
     anchors,
     // One free lane is almost never solvable from a random deal, so those boards are
-    // built by walking backwards from the finished position instead. Anchors force the
-    // same choice at any shape: dealBoard cannot place them, so a dealt anchored board
-    // would silently ship with no anchors at all.
-    strategy: emptyLanes >= 2 && anchors === 0 ? 'deal' : 'reverse',
+    // built by walking backwards from the finished position instead. dealBoard can place
+    // anchors now, so that tightness is the only remaining reason to walk backwards -
+    // exactly as before anchors existed.
+    strategy: emptyLanes >= 2 ? 'deal' : 'reverse',
     reverseSteps: colorCount * capacity * 4,
   };
 }
