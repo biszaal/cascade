@@ -52,7 +52,13 @@ const arcs = arcsOf(packs);
 // The opening level of each chapter - fixed and deterministic, not random. These are the
 // smallest, quickest boards a chapter has, which keeps a full solve() cheap; a random or
 // exhaustive sample would turn this file from a unit test into a benchmark.
-const SOLVE_SAMPLE_IDS = [1, 11, 21, 31, 41, 51, 61, 71, 81, 91];
+//
+// Levels 55 and 58 are added on top: two more small anchored boards from Bedrock, a rest
+// and a tight one. The first sample's expected lengths came from a solver that let a lone
+// anchor hide an identical free lane from the search, and it caught nothing, because it
+// was checking the bug against itself. More anchored boards of varied shape give the
+// anchor-specific paths through the search more chances to disagree with what shipped.
+const SOLVE_SAMPLE_IDS = [1, 11, 21, 31, 41, 51, 55, 58, 61, 71, 81, 91];
 
 /** The shape of a board, which is what makes two levels feel alike. */
 function shapeOf(level: Level): string {
@@ -125,6 +131,28 @@ describe('level packs', () => {
         .map((lane, i) => (anchored[i] ? lane[0] : null))
         .filter((c): c is number => c !== null && c !== undefined);
       expect(new Set(colors).size).toBe(colors.length);
+    }
+  });
+
+  it('anchors at least one lane in every level from chapter 6 on', () => {
+    // Anchors are the whole point of these chapters. A level that silently shipped without
+    // one would pass every other check here and teach nothing.
+    for (const level of allLevels.filter((l) => l.chapter >= 6)) {
+      expect((level.config.anchored ?? []).some(Boolean), `level ${level.id}`).toBe(true);
+    }
+  });
+
+  it('never ships the same board twice, from chapter 6 on', () => {
+    // Neighbouring levels with the same spec once drew from overlapping seeds and shipped
+    // one board under two level numbers. Chapters 1-5 are left out on purpose: they hold
+    // three such pairs from before the seeds were fixed (levels 1/2, 23/26 and 35/38), and
+    // removing them would reprice levels players have already been scored on.
+    const seen = new Map<string, number>();
+    for (const level of allLevels.filter((l) => l.chapter >= 6)) {
+      const { lanes, hidden, anchored } = level.config;
+      const key = JSON.stringify({ lanes, hidden, anchored });
+      expect(seen.get(key), `level ${level.id} repeats level ${seen.get(key)}`).toBeUndefined();
+      seen.set(key, level.id);
     }
   });
 
