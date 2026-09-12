@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { StyleSheet, Text } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import Animated, {
   Easing,
   useAnimatedStyle,
@@ -14,6 +14,11 @@ import { duration, font, hiddenToken, spring, tokenColors } from '@/design/token
 interface TokenProps {
   colorId: number;
   faceDown: boolean;
+  /**
+   * True only for the base (index 0) token of an anchored lane - it can never move, so
+   * that lane can only ever finish in this token's colour.
+   */
+  anchored: boolean;
   size: number;
   x: number;
   y: number;
@@ -35,7 +40,7 @@ const ARC = 46;
  * whole board rather than nested inside a lane. That is what lets a pour actually travel
  * between lanes instead of disappearing from one and popping up in the other.
  */
-function TokenView({ colorId, faceDown, size, x, y, lifted, celebrate, calm }: TokenProps) {
+function TokenView({ colorId, faceDown, anchored, size, x, y, lifted, celebrate, calm }: TokenProps) {
   const progress = useSharedValue(1);
   const fromX = useSharedValue(x);
   const fromY = useSharedValue(y);
@@ -120,10 +125,24 @@ function TokenView({ colorId, faceDown, size, x, y, lifted, celebrate, calm }: T
       style={[
         styles.token,
         { width: size, height: size, borderRadius: size / 2, backgroundColor: fill, borderColor: rim },
+        // An anchor can never move, so it is keyed by shape rather than by colour - the
+        // palette is colourblind-safe on purpose, and a tint or opacity change would
+        // vanish for exactly the players who need the cue most, and under high-contrast
+        // settings too. Squaring the bottom corners seats the disc flat against the
+        // lane, like a piece keyed into a socket, while the top stays a disc.
+        anchored
+          ? { borderBottomLeftRadius: size * 0.08, borderBottomRightRadius: size * 0.08 }
+          : null,
         animatedStyle,
       ]}
       pointerEvents="none"
     >
+      {anchored ? (
+        // The bar reuses `rim` rather than a fresh colour: it is already face-down aware
+        // (hiddenToken.shade vs. the palette shade), so a hidden anchor still reads as
+        // keyed without giving its colour away.
+        <View style={[styles.key, { width: size * 0.42, bottom: size * 0.13, backgroundColor: rim }]} />
+      ) : null}
       {faceDown ? (
         <Text
           style={[styles.unknown, { fontSize: size * 0.5, lineHeight: size * 0.62 }]}
@@ -145,6 +164,15 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  // The short inset bar that keys an anchored base - a bracket pinning the disc down,
+  // not a sticker on top of it. Fixed height like the rim, so it reads as part of the
+  // same printed material at any token size.
+  key: {
+    position: 'absolute',
+    alignSelf: 'center',
+    height: 3,
+    borderRadius: 1.5,
   },
   // A question mark states "unknown" outright, which a bare dot only implied. Kept in the
   // muted mark colour so a face-down piece still recedes behind the coloured ones.

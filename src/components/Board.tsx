@@ -52,6 +52,7 @@ export function Board({
       key: number;
       colorId: number;
       faceDown: boolean;
+      anchored: boolean;
       x: number;
       y: number;
       lifted: boolean;
@@ -67,6 +68,9 @@ export function Board({
           key: ids[laneIndex]?.[slot] ?? laneIndex * 1000 + slot,
           colorId,
           faceDown: slot < lane.hidden,
+          // Only the base can never move - a token merely stacked on top of an anchor
+          // is free to be lifted like any other.
+          anchored: lane.anchored && slot === 0,
           x: position.x,
           y: position.y,
           lifted: isLifted,
@@ -111,6 +115,7 @@ export function Board({
             key={token.key}
             colorId={token.colorId}
             faceDown={token.faceDown}
+            anchored={token.anchored}
             size={geometry.tokenSize}
             x={token.x}
             y={token.y}
