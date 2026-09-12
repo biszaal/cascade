@@ -32,9 +32,10 @@ export interface GenerationSpec {
   /**
    * How many lanes carry an immovable base token.
    *
-   * Reverse-play only. The backward walk starts from the finished board, where each
-   * colour already occupies its own lane, so anchoring bases there satisfies the
-   * one-anchor-per-colour invariant by construction rather than by check.
+   * Both strategies place them: dealBoard seats one token of each anchor colour at index
+   * 0 before shuffling the rest of the pool, and reverseBoard starts from the finished
+   * board, where each colour already occupies its own lane, and anchors bases there. Both
+   * satisfy the one-anchor-per-colour invariant by construction rather than by check.
    */
   anchors?: number;
 }
@@ -92,13 +93,43 @@ export function dealBoard(seed: number, spec: GenerationSpec): LevelConfig {
   for (let color = 0; color < spec.colorCount; color++) {
     for (let n = 0; n < spec.capacity; n++) pool.push(color);
   }
+
+  // Anchor colours are chosen before the pool is shuffled, the same way reverseBoard
+  // chooses them before its backward walk - and skipped entirely when none are requested,
+  // so an unanchored spec draws the exact same single `shuffle(rng, pool)` call it always
+  // has and nothing else. Chapters 1-5 depend on that to stay byte-identical.
+  const anchorCount = Math.min(spec.anchors ?? 0, spec.colorCount);
+  const anchorColors: number[] = [];
+  if (anchorCount > 0) {
+    const order = Array.from({ length: spec.colorCount }, (_, c) => c);
+    shuffle(rng, order);
+    anchorColors.push(...order.slice(0, anchorCount));
+
+    // One instance of each anchor colour is pulled out of the pool now, before the
+    // shuffle below runs, so it is seated directly at index 0 of its lane further down
+    // rather than landing wherever the shuffle happens to put it.
+    for (const color of anchorColors) pool.splice(pool.indexOf(color), 1);
+  }
+
   shuffle(rng, pool);
 
   const lanes: number[][] = [];
-  for (let i = 0; i < spec.colorCount; i++) {
-    lanes.push(pool.slice(i * spec.capacity, (i + 1) * spec.capacity));
+  // Anchor lanes come first, one colour each. `anchorColors` was sliced from a shuffled
+  // list of distinct colours, so it has no duplicates - the one-anchor-per-colour
+  // invariant holds by construction, because each entry seeds exactly one lane and every
+  // other lane below is filled with no pre-seated token at all.
+  for (let i = 0; i < anchorCount; i++) {
+    lanes.push([anchorColors[i]!, ...pool.splice(0, spec.capacity - 1)]);
+  }
+  for (let i = anchorCount; i < spec.colorCount; i++) {
+    lanes.push(pool.splice(0, spec.capacity));
   }
   for (let i = 0; i < spec.emptyLanes; i++) lanes.push([]);
+
+  // Left undefined rather than an all-false array when no anchors were requested, for the
+  // same reason as reverseBoard: JSON.stringify drops an undefined property, so an
+  // unanchored pack serialises exactly as it did before this feature existed.
+  const anchored = anchorCount > 0 ? lanes.map((_, i) => i < anchorCount) : undefined;
 
   const hidden = lanes.map((lane) => {
     if (lane.length === 0) return 0;
@@ -108,7 +139,7 @@ export function dealBoard(seed: number, spec: GenerationSpec): LevelConfig {
     return Math.max(0, Math.min(want, spec.capacity - 1));
   });
 
-  return { capacity: spec.capacity, colorCount: spec.colorCount, lanes, hidden };
+  return { capacity: spec.capacity, colorCount: spec.colorCount, lanes, hidden, anchored };
 }
 
 /**
@@ -275,9 +306,15 @@ export function buildPool(
   spec: GenerationSpec,
   size: number,
   maxNodes = 400_000,
+  // Optional override for how many seeds to try before giving up on filling the pool.
+  // Defaults to the ratio that has always worked for dealt and lightly-constrained
+  // reverse boards, so any existing call site that omits this argument tries the exact
+  // same seeds in the exact same order as before - untouched behaviour, not just an
+  // equivalent result.
+  maxAttempts = size * 12,
 ): Candidate[] {
   const pool: Candidate[] = [];
-  for (let attempt = 0; pool.length < size && attempt < size * 12; attempt++) {
+  for (let attempt = 0; pool.length < size && attempt < maxAttempts; attempt++) {
     const candidate = tryCandidate(baseSeed + attempt * 7919, spec, maxNodes);
     if (candidate) pool.push(candidate);
   }
