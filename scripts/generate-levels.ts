@@ -35,25 +35,51 @@ function maxNodesFor(plan: LevelPlan): number {
   return work <= 32 ? 600_000 : 2_000_000;
 }
 
+/** buildPool asks for this many seeds per pool slot on an anchored spec. */
+const ANCHORED_ATTEMPTS_PER_SLOT = 200;
+
 /**
  * How many seeds to try before giving up on a pool.
  *
- * An anchored reverse walk can only reach its planned free-lane count when one of the
- * FEW lanes still able to fully empty - the unanchored colours and the appended empty
- * lanes - happens to do so at the same step as another. The more colours are anchored,
- * the fewer such lanes exist, so that coincidence gets rarer per seed even though the
- * spec itself is unchanged. Measured failing 22-51% of seeds at tight shapes versus 2-3%
- * unanchored, so anchored specs get a much larger seed budget; unanchored specs keep
- * buildPool's default exactly, so chapters 1-5 try the identical seeds in the identical
- * order.
+ * Anchored specs lose far more seeds than unanchored ones, for a different reason
+ * depending on how the board is built. Most anchored levels are dealt, and a dealt
+ * anchored board comes back unsolvable 18-25% of the time (measured solvable 75-82%) -
+ * tryCandidate rejects those, so every loss costs a seed. The tight one-free-lane levels
+ * are still reverse-walked, and there the walk only reaches its planned free-lane count
+ * when one of the FEW lanes still able to fully empty happens to do so at the same step as
+ * another; anchoring removes such lanes, and those shapes measured failing 22-51% of seeds
+ * against 2-3% unanchored. Either way the default budget runs dry, so anchored specs get a
+ * much larger one; unanchored specs keep buildPool's default exactly, so chapters 1-5 try
+ * the identical seeds in the identical order.
  */
 function attemptsFor(plan: LevelPlan): number | undefined {
   if (!plan.spec.anchors) return undefined;
-  return poolSizeFor(plan) * 200;
+  return poolSizeFor(plan) * ANCHORED_ATTEMPTS_PER_SLOT;
 }
 
+/** buildPool's step between consecutive seeds in one pool. */
+const POOL_SEED_STEP = 7919;
+
+/**
+ * The first seed a level's pool tries.
+ *
+ * The original formula steps 7919 per level, and buildPool also steps 7919 per attempt -
+ * so level n+1's pool begins exactly at level n's second seed. Two neighbouring levels
+ * with the same spec then draw from the same seeds, rank them the same way, and can ship
+ * the identical board twice; chapters 6-10 did, twice.
+ *
+ * Chapters 1-5 keep that formula unchanged, because their levels are already shipped and
+ * priced. From chapter 6 on, each level owns a disjoint block of seeds one pool can never
+ * run past: a stride of one step more than the largest pool (14, from poolSizeFor) times
+ * its anchored budget. Every seed in that range sits at 4242 plus a multiple of 7919,
+ * which no seed of chapters 1-5 does, so the new blocks cannot collide with the old ones
+ * either. The largest seed for chapter 10 is about 1.1 billion, well inside the 32 bits
+ * mulberry32 reads.
+ */
 function seedFor(chapter: number, index: number): number {
-  return chapter * 1_000_003 + index * 7919 + 4242;
+  if (chapter <= 5) return chapter * 1_000_003 + index * POOL_SEED_STEP + 4242;
+  const stride = POOL_SEED_STEP * (14 * ANCHORED_ATTEMPTS_PER_SLOT + 1);
+  return ((chapter - 6) * 10 + index) * stride + 4242;
 }
 
 function main() {

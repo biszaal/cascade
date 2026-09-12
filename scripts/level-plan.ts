@@ -54,6 +54,10 @@ function spec(
   hiddenMin = 0,
   hiddenMax = 0,
   anchors = 0,
+  // Anchored lanes are dealt face-up unless this is set, so the anchors of Mantle and
+  // Fault stay in sight and Core - the only chapter that sets it - is where the player
+  // first meets an anchor they cannot see.
+  hideAnchors = false,
 ): GenerationSpec {
   return {
     capacity,
@@ -62,6 +66,7 @@ function spec(
     hiddenMin,
     hiddenMax,
     anchors,
+    hideAnchors,
     // One free lane is almost never solvable from a random deal, so those boards are
     // built by walking backwards from the finished position instead. dealBoard can place
     // anchors now, so that tightness is the only remaining reason to walk backwards -
@@ -244,15 +249,15 @@ export const CHAPTERS: ChapterPlan[] = [
     name: 'Core',
     color: 9,
     levels: [
-      { n: 1, beat: 'teach', intensity: 0.62, spec: spec(6, 4, 2, 1, 2, 2), note: 'An anchor you cannot see. You know the lane has a destiny; you must dig to learn it.' },
-      { n: 2, beat: 'build', intensity: 0.72, spec: spec(7, 4, 2, 2, 2, 3), note: 'Two hidden destinies.' },
-      { n: 3, beat: 'build', intensity: 0.80, spec: spec(7, 5, 2, 2, 3, 4), note: 'Deeper, and the anchors stay buried longer.' },
-      { n: 4, beat: 'rest', intensity: 0.58, spec: spec(6, 3, 2, 1, 2, 3), note: 'Short enough to see the whole idea at once.' },
-      { n: 5, beat: 'build', intensity: 0.86, spec: spec(8, 5, 2, 3, 4, 5), note: 'Five anchors, none of them visible at the start.' },
-      { n: 6, beat: 'build', intensity: 0.90, spec: spec(8, 5, 2, 3, 4, 6), note: 'Six.' },
-      { n: 7, beat: 'tight', intensity: 0.74, pick: 0.95, spec: spec(7, 5, 1, 2, 3, 5), note: 'One free lane, and every destination is a guess.' },
-      { n: 8, beat: 'build', intensity: 0.94, spec: spec(9, 5, 2, 4, 4, 6), note: 'Nine colours, six buried anchors.' },
-      { n: 9, beat: 'tight', intensity: 0.80, pick: 0.95, spec: spec(8, 5, 1, 3, 4, 6), note: 'The last tight board.' },
+      { n: 1, beat: 'teach', intensity: 0.62, spec: spec(6, 4, 2, 1, 2, 2, true), note: 'An anchor you cannot see. You know the lane has a destiny; you must dig to learn it.' },
+      { n: 2, beat: 'build', intensity: 0.72, spec: spec(7, 4, 2, 2, 2, 3, true), note: 'Two hidden destinies.' },
+      { n: 3, beat: 'build', intensity: 0.80, spec: spec(7, 5, 2, 2, 3, 4, true), note: 'Deeper, and the anchors stay buried longer.' },
+      { n: 4, beat: 'rest', intensity: 0.58, spec: spec(6, 3, 2, 1, 2, 3, true), note: 'Short enough to see the whole idea at once.' },
+      { n: 5, beat: 'build', intensity: 0.86, spec: spec(8, 5, 2, 3, 4, 5, true), note: 'Five anchors, none of them visible at the start.' },
+      { n: 6, beat: 'build', intensity: 0.90, spec: spec(8, 5, 2, 3, 4, 6, true), note: 'Six.' },
+      { n: 7, beat: 'tight', intensity: 0.74, pick: 0.95, spec: spec(7, 5, 1, 2, 3, 5, true), note: 'One free lane, and every destination is a guess.' },
+      { n: 8, beat: 'build', intensity: 0.94, spec: spec(9, 5, 2, 4, 4, 6, true), note: 'Nine colours, six buried anchors.' },
+      { n: 9, beat: 'tight', intensity: 0.80, pick: 0.95, spec: spec(8, 5, 1, 3, 4, 6, true), note: 'The last tight board.' },
       // Core is the arc's final chapter and must top Fault's climax (294) clearly, not by
       // the single point seven anchors left it short by. `emptyLanes: 1` - measured as the
       // sharpest lever there is - was tried first, at colorCount 9, capacity 5, maximum
@@ -262,7 +267,7 @@ export const CHAPTERS: ChapterPlan[] = [
       // `emptyLanes: 2` with `anchors: 3` - fewer anchors, not more, per the measurement
       // that a heavily anchored board is more determined and therefore easier - reaches
       // 295: the summit, ahead of Fault, by construction rather than luck.
-      { n: 10, beat: 'climax', intensity: 1.0, pick: 1.0, spec: spec(9, 5, 2, 4, 4, 3), note: 'The floor of the world. Nine colours, none of them visible, and only three anchors - a board this open asks more than one that is mostly decided.' },
+      { n: 10, beat: 'climax', intensity: 1.0, pick: 1.0, spec: spec(9, 5, 2, 4, 4, 3, true), note: 'The floor of the world. Nine colours, none of them visible, and only three anchors - a board this open asks more than one that is mostly decided.' },
     ],
   },
 ];

@@ -38,6 +38,30 @@ export interface GenerationSpec {
    * satisfy the one-anchor-per-colour invariant by construction rather than by check.
    */
   anchors?: number;
+  /**
+   * Whether an anchored lane keeps its face-down tokens. Defaults to false.
+   *
+   * Hidden counts fill a lane from index 0, so any fog at all on an anchored lane buries
+   * the anchor itself. Left on by default, every anchor in a fogged chapter would already
+   * be face down, and the chapter written to introduce buried anchors would teach nothing
+   * new. So by default an anchored lane is dealt with nothing hidden - its anchor stays in
+   * sight while the unanchored lanes around it keep their fog - and only a spec that asks
+   * for buried anchors gets them.
+   */
+  hideAnchors?: boolean;
+}
+
+/**
+ * Clear the fog from anchored lanes unless the spec asks for buried anchors.
+ *
+ * Called only after every hidden count has been drawn, and it draws nothing itself, so a
+ * spec's RNG sequence is the same whichever way `hideAnchors` is set.
+ */
+function revealAnchors(hidden: number[], anchored: boolean[], spec: GenerationSpec): void {
+  if (spec.hideAnchors) return;
+  anchored.forEach((isAnchored, i) => {
+    if (isAnchored) hidden[i] = 0;
+  });
 }
 
 export interface Candidate {
@@ -113,9 +137,9 @@ export function dealBoard(seed: number, spec: GenerationSpec): LevelConfig {
 
   shuffle(rng, pool);
 
-  const lanes: number[][] = [];
-  // Anchor lanes come first, one colour each. `anchorColors` was sliced from a shuffled
-  // list of distinct colours, so it has no duplicates - the one-anchor-per-colour
+  let lanes: number[][] = [];
+  // Anchor lanes are built first, one colour each. `anchorColors` was sliced from a
+  // shuffled list of distinct colours, so it has no duplicates - the one-anchor-per-colour
   // invariant holds by construction, because each entry seeds exactly one lane and every
   // other lane below is filled with no pre-seated token at all.
   for (let i = 0; i < anchorCount; i++) {
@@ -129,15 +153,36 @@ export function dealBoard(seed: number, spec: GenerationSpec): LevelConfig {
   // Left undefined rather than an all-false array when no anchors were requested, for the
   // same reason as reverseBoard: JSON.stringify drops an undefined property, so an
   // unanchored pack serialises exactly as it did before this feature existed.
-  const anchored = anchorCount > 0 ? lanes.map((_, i) => i < anchorCount) : undefined;
+  let anchored = anchorCount > 0 ? lanes.map((_, i) => i < anchorCount) : undefined;
 
-  const hidden = lanes.map((lane) => {
+  let hidden = lanes.map((lane) => {
     if (lane.length === 0) return 0;
     const span = spec.hiddenMax - spec.hiddenMin + 1;
     const want = spec.hiddenMin + randomInt(rng, Math.max(1, span));
     // A face-down token can never be on top, so a lane can hide at most capacity - 1.
     return Math.max(0, Math.min(want, spec.capacity - 1));
   });
+
+  if (anchored) {
+    revealAnchors(hidden, anchored, spec);
+
+    // Built as above, the anchors would always sit in the leftmost lanes, and a player
+    // would soon learn "the left lanes are fixed" instead of reading each board. So the
+    // dealt lanes are reordered - each lane keeping its own hidden count and anchor flag -
+    // with a shuffle drawn only after every draw above. The free lanes stay on the right,
+    // where every other board keeps them. This whole block is skipped when no anchors were
+    // requested, so an unanchored spec never draws from it and chapters 1-5 stay
+    // byte-identical.
+    const order = Array.from({ length: spec.colorCount }, (_, i) => i);
+    shuffle(rng, order);
+    const reorder = <T>(items: T[]): T[] => [
+      ...order.map((i) => items[i]!),
+      ...items.slice(spec.colorCount),
+    ];
+    lanes = reorder(lanes);
+    anchored = reorder(anchored);
+    hidden = reorder(hidden);
+  }
 
   return { capacity: spec.capacity, colorCount: spec.colorCount, lanes, hidden, anchored };
 }
@@ -245,6 +290,10 @@ export function reverseBoard(seed: number, spec: GenerationSpec): LevelConfig {
     const want = spec.hiddenMin + randomInt(rng, Math.max(1, span));
     return Math.max(0, Math.min(want, spec.capacity - 1));
   });
+
+  // The same rule dealBoard follows, and like there it is applied only once every hidden
+  // count has been drawn, so the walk's RNG sequence is untouched.
+  if (anchored) revealAnchors(hidden, anchored, spec);
 
   return { capacity: spec.capacity, colorCount: spec.colorCount, lanes, hidden, anchored };
 }

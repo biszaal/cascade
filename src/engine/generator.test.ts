@@ -139,6 +139,89 @@ describe('pool ranking', () => {
   });
 });
 
+describe('dealt anchors', () => {
+  const dealt: GenerationSpec = {
+    capacity: 4, colorCount: 6, emptyLanes: 2,
+    hiddenMin: 0, hiddenMax: 0,
+    strategy: 'deal', anchors: 3,
+  };
+  const seeds = Array.from({ length: 25 }, (_, i) => i + 1);
+
+  it('anchors exactly the requested number of lanes, every seed', () => {
+    for (const seed of seeds) {
+      const config = dealBoard(seed, dealt);
+      expect(config.anchored, `seed ${seed}`).toHaveLength(config.lanes.length);
+      expect(config.anchored!.filter(Boolean), `seed ${seed}`).toHaveLength(3);
+    }
+  });
+
+  it('never anchors two lanes to the same colour', () => {
+    for (const seed of seeds) {
+      const config = dealBoard(seed, dealt);
+      const colors = config.lanes.filter((_, i) => config.anchored![i]).map((lane) => lane[0]);
+      expect(new Set(colors).size, `seed ${seed}`).toBe(3);
+    }
+  });
+
+  it('seats anchors only at the base of a dealt lane, never on a free one', () => {
+    // The flag is per lane and means index 0, so the checks that can actually fail are
+    // that an anchored lane has a base at all, and that it is not one of the free lanes.
+    for (const seed of seeds) {
+      const config = dealBoard(seed, dealt);
+      config.lanes.forEach((lane, i) => {
+        if (!config.anchored![i]) return;
+        expect(lane.length, `seed ${seed} lane ${i}`).toBe(dealt.capacity);
+        expect(i, `seed ${seed} lane ${i}`).toBeLessThan(dealt.colorCount);
+      });
+      expect(config.lanes.slice(dealt.colorCount).every((lane) => lane.length === 0)).toBe(true);
+    }
+  });
+
+  it('puts anchors in different lanes from seed to seed, not always the leftmost', () => {
+    const patterns = new Set(
+      seeds.map((seed) => dealBoard(seed, dealt).anchored!.map(Number).join('')),
+    );
+    expect(patterns.size).toBeGreaterThan(5);
+    const everAnchoredRight = seeds.some((seed) =>
+      dealBoard(seed, dealt).anchored!.some((a, i) => a && i >= dealt.anchors!),
+    );
+    expect(everAnchoredRight).toBe(true);
+  });
+});
+
+describe('hiding anchors', () => {
+  const foggy = (strategy: 'deal' | 'reverse', hideAnchors?: boolean): GenerationSpec => ({
+    capacity: 4, colorCount: 5, emptyLanes: 2,
+    hiddenMin: 1, hiddenMax: 2,
+    strategy, reverseSteps: 60, anchors: 2, hideAnchors,
+  });
+
+  for (const strategy of ['deal', 'reverse'] as const) {
+    it(`keeps anchors in sight by default, while other lanes keep their fog (${strategy})`, () => {
+      for (let seed = 1; seed <= 15; seed++) {
+        const config = (strategy === 'deal' ? dealBoard : reverseBoard)(seed, foggy(strategy));
+        config.lanes.forEach((lane, i) => {
+          if (lane.length === 0) return;
+          if (config.anchored![i]) expect(config.hidden[i], `seed ${seed} lane ${i}`).toBe(0);
+          else expect(config.hidden[i], `seed ${seed} lane ${i}`).toBeGreaterThan(0);
+        });
+      }
+    });
+
+    it(`buries anchors only when the spec asks for it (${strategy})`, () => {
+      for (let seed = 1; seed <= 15; seed++) {
+        const build = strategy === 'deal' ? dealBoard : reverseBoard;
+        const config = build(seed, foggy(strategy, true));
+        config.anchored!.forEach((isAnchored, i) => {
+          if (isAnchored) expect(config.hidden[i], `seed ${seed} lane ${i}`).toBeGreaterThan(0);
+        });
+        // Hiding is decided after every draw, so the board itself is the same either way.
+        expect(config.lanes).toEqual(build(seed, foggy(strategy)).lanes);
+      }
+    });
+  }
+});
+
 describe('anchored generation', () => {
   const spec = {
     capacity: 4, colorCount: 5, emptyLanes: 2,
