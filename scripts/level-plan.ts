@@ -241,7 +241,13 @@ export const CHAPTERS: ChapterPlan[] = [
       { n: 7, beat: 'tight', intensity: 0.66, pick: 0.95, spec: spec(7, 5, 1, 2, 3, 5), note: 'One free lane against five anchors.' },
       { n: 8, beat: 'build', intensity: 0.88, spec: spec(9, 5, 2, 3, 4, 6), note: 'The hardest ordinary board in the game so far.' },
       { n: 9, beat: 'tight', intensity: 0.70, pick: 0.95, spec: spec(8, 5, 1, 3, 4, 6), note: 'Tight, deep, anchored and blind at once.' },
-      { n: 10, beat: 'climax', intensity: 0.92, pick: 1.0, spec: spec(9, 5, 2, 4, 4, 7), note: 'Seven anchors under four face-down tokens each.' },
+      // Once anchors stopped carrying fog (hideAnchors), seven anchors left only two of this
+      // board's nine lanes face down, and the climax fell to 227, under level 8's 233. Colour
+      // count, depth and fog per lane are already at their ceilings, so the lever left is
+      // how many lanes the fog can reach - fewer anchors, never more. Measured hardest pool
+      // member at seven through three anchors: 227, 240, 246, 247, 252. Five is the least
+      // taken away that clears level 8 honestly, and stays under Core's summit.
+      { n: 10, beat: 'climax', intensity: 0.92, pick: 1.0, spec: spec(9, 5, 2, 4, 4, 5), note: 'Five anchors in sight, and everything else under four face-down tokens.' },
     ],
   },
   {
