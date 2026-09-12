@@ -199,6 +199,17 @@ describe('the authored curve', () => {
         `arc ${i + 1} is not harder on average than arc ${i}, so an arc got gentler overall`,
       ).toBeGreaterThan(arcMeans[i - 1]!);
     }
+
+    // The game must not merely trend upward - it must actually arrive somewhere. The last
+    // chapter is at least twice as hard on average as the first, which no amount of
+    // within-arc shuffling can fake.
+    const chapterAverages = packs.map(
+      (pack) => pack.levels.reduce((sum, l) => sum + l.difficulty, 0) / pack.levels.length,
+    );
+    expect(
+      chapterAverages[chapterAverages.length - 1],
+      'the last chapter is not twice as hard as the first, so the game does not go anywhere',
+    ).toBeGreaterThan(chapterAverages[0]! * 2);
   });
 
   it('raises the peak within each arc, and from arc to arc', () => {
