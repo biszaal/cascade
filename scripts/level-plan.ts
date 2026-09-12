@@ -179,7 +179,7 @@ export const CHAPTERS: ChapterPlan[] = [
       { n: 7, beat: 'build', intensity: 0.42, spec: spec(6, 5, 2, 0, 0, 3), note: 'Three anchors: half the board is committed.' },
       { n: 8, beat: 'tight', intensity: 0.30, pick: 0.95, spec: spec(5, 4, 1, 0, 0, 2), note: 'One free lane and two anchors. Short, and there is almost nowhere to put anything.' },
       { n: 9, beat: 'build', intensity: 0.50, spec: spec(7, 5, 2, 0, 0, 3), note: 'Seven colours, three anchors.' },
-      { n: 10, beat: 'climax', intensity: 0.60, spec: spec(7, 5, 2, 0, 0, 4), note: 'Four anchors. More of this board is decided than is free.' },
+      { n: 10, beat: 'climax', intensity: 0.60, pick: 1.0, spec: spec(7, 5, 2, 0, 0, 4), note: 'Four anchors. More of this board is decided than is free.' },
     ],
   },
   {
@@ -196,7 +196,7 @@ export const CHAPTERS: ChapterPlan[] = [
       { n: 7, beat: 'tight', intensity: 0.45, pick: 0.95, spec: spec(6, 4, 1, 0, 0, 3), note: 'One free lane, three anchors.' },
       { n: 8, beat: 'build', intensity: 0.66, spec: spec(7, 5, 2, 0, 0, 5), note: 'Five anchors. Most of the board is already spoken for.' },
       { n: 9, beat: 'tight', intensity: 0.50, pick: 0.95, spec: spec(6, 5, 1, 0, 0, 4), note: 'The tightest board yet, and four of its lanes cannot move.' },
-      { n: 10, beat: 'climax', intensity: 0.72, spec: spec(8, 5, 2, 0, 0, 5), note: 'Eight colours, five anchors, two free lanes.' },
+      { n: 10, beat: 'climax', intensity: 0.72, pick: 1.0, spec: spec(8, 5, 2, 0, 0, 5), note: 'Eight colours, five anchors, two free lanes.' },
     ],
   },
   {
@@ -213,7 +213,13 @@ export const CHAPTERS: ChapterPlan[] = [
       { n: 7, beat: 'tight', intensity: 0.55, pick: 0.95, spec: spec(6, 4, 1, 1, 2, 3), note: 'One free lane, and you cannot see what is coming.' },
       { n: 8, beat: 'build', intensity: 0.75, spec: spec(8, 5, 2, 2, 3, 5), note: 'Eight colours, five of them already assigned.' },
       { n: 9, beat: 'build', intensity: 0.78, spec: spec(8, 5, 2, 3, 4, 5), note: 'Almost nothing on this board is visible.' },
-      { n: 10, beat: 'climax', intensity: 0.84, spec: spec(8, 5, 2, 3, 4, 6), note: 'Six anchors. The board is mostly decided and mostly unseen.' },
+      // Measured: six anchors on an eight-colour board capped this pool at difficulty 252 -
+      // a hair under level 9's 265, because one anchor more than level 9 makes the board
+      // MORE determined, the same trap Core's climax hit. `pick: 1.0` alone cannot fix
+      // this: 252 is already that pool's hardest member. Escalating with colour count
+      // instead - the strong lever, not anchors - reopens the gap honestly: nine colours,
+      // the same six anchors, difficulty 282.
+      { n: 10, beat: 'climax', intensity: 0.84, pick: 1.0, spec: spec(9, 5, 2, 3, 4, 6), note: 'Nine colours now, and six anchors - the board is mostly decided and mostly unseen.' },
     ],
   },
   {
@@ -230,7 +236,7 @@ export const CHAPTERS: ChapterPlan[] = [
       { n: 7, beat: 'tight', intensity: 0.66, pick: 0.95, spec: spec(7, 5, 1, 2, 3, 5), note: 'One free lane against five anchors.' },
       { n: 8, beat: 'build', intensity: 0.88, spec: spec(9, 5, 2, 3, 4, 6), note: 'The hardest ordinary board in the game so far.' },
       { n: 9, beat: 'tight', intensity: 0.70, pick: 0.95, spec: spec(8, 5, 1, 3, 4, 6), note: 'Tight, deep, anchored and blind at once.' },
-      { n: 10, beat: 'climax', intensity: 0.92, spec: spec(9, 5, 2, 4, 4, 7), note: 'Seven anchors under four face-down tokens each.' },
+      { n: 10, beat: 'climax', intensity: 0.92, pick: 1.0, spec: spec(9, 5, 2, 4, 4, 7), note: 'Seven anchors under four face-down tokens each.' },
     ],
   },
   {
@@ -247,7 +253,16 @@ export const CHAPTERS: ChapterPlan[] = [
       { n: 7, beat: 'tight', intensity: 0.74, pick: 0.95, spec: spec(7, 5, 1, 2, 3, 5), note: 'One free lane, and every destination is a guess.' },
       { n: 8, beat: 'build', intensity: 0.94, spec: spec(9, 5, 2, 4, 4, 6), note: 'Nine colours, six buried anchors.' },
       { n: 9, beat: 'tight', intensity: 0.80, pick: 0.95, spec: spec(8, 5, 1, 3, 4, 6), note: 'The last tight board.' },
-      { n: 10, beat: 'climax', intensity: 1.0, spec: spec(9, 5, 2, 4, 4, 7), note: 'The floor of the world. Nine colours, seven anchors, none of them visible.' },
+      // Core is the arc's final chapter and must top Fault's climax (294) clearly, not by
+      // the single point seven anchors left it short by. `emptyLanes: 1` - measured as the
+      // sharpest lever there is - was tried first, at colorCount 9, capacity 5, maximum
+      // fog and anchors reduced to 3: it capped at difficulty 171, because a reverse-walked
+      // board is short by construction (mean optimal ~18) however tangled its walk, so the
+      // sharpest lever on paper is the wrong tool at this size. Falling back to
+      // `emptyLanes: 2` with `anchors: 3` - fewer anchors, not more, per the measurement
+      // that a heavily anchored board is more determined and therefore easier - reaches
+      // 295: the summit, ahead of Fault, by construction rather than luck.
+      { n: 10, beat: 'climax', intensity: 1.0, pick: 1.0, spec: spec(9, 5, 2, 4, 4, 3), note: 'The floor of the world. Nine colours, none of them visible, and only three anchors - a board this open asks more than one that is mostly decided.' },
     ],
   },
 ];

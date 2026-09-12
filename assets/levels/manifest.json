@@ -40,21 +40,21 @@
       "name": "Bedrock",
       "color": 5,
       "levels": 10,
-      "parTotal": 219
+      "parTotal": 220
     },
     {
       "chapter": 7,
       "name": "Trench",
       "color": 6,
       "levels": 10,
-      "parTotal": 260
+      "parTotal": 263
     },
     {
       "chapter": 8,
       "name": "Mantle",
       "color": 7,
       "levels": 10,
-      "parTotal": 414
+      "parTotal": 423
     },
     {
       "chapter": 9,
@@ -68,7 +68,7 @@
       "name": "Core",
       "color": 9,
       "levels": 10,
-      "parTotal": 478
+      "parTotal": 481
     }
   ]
 }
