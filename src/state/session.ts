@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import type { GameState, Level, Move } from '@/engine/types';
 import {
   applyMove,
+  canLift,
   canMove,
   cloneState,
   createState,
@@ -106,9 +107,11 @@ export const useSession = create<SessionState>((set, get) => ({
     const lane = state.lanes[index];
     if (!lane) return;
 
-    // Nothing held: pick this lane up, if there is anything to pick up.
+    // Nothing held: pick this lane up, if there is anything to pick up. A lone anchor has
+    // a token but cannot give it up, so it is refused here rather than lifted into a hold
+    // that every drop would then shake off.
     if (selected === null) {
-      if (lane.tokens.length === 0 || isLaneComplete(lane, state.capacity)) {
+      if (!canLift(lane, state.capacity)) {
         set({ rejected: { lane: index, nonce: Date.now() } });
         haptics.tapInvalid();
         return;
@@ -128,7 +131,7 @@ export const useSession = create<SessionState>((set, get) => ({
       // A refused pour usually means the player wants a different source, so switch to it
       // rather than making them tap twice.
       const target = state.lanes[index]!;
-      if (target.tokens.length > 0 && !isLaneComplete(target, state.capacity)) {
+      if (canLift(target, state.capacity)) {
         haptics.tapLift();
         set({ selected: index });
       } else {

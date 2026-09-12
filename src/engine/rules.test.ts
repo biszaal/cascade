@@ -4,6 +4,7 @@ import {
   topColor,
   topRun,
   isLaneComplete,
+  canLift,
   canMove,
   legalMoves,
   applyMove,
@@ -293,6 +294,21 @@ describe('anchors are immovable', () => {
       capacity: 3, colorCount: 2, lanes: [[0], [0, 0]], hidden: [0, 0], anchored: [false, false],
     });
     expect(canMove(state, 0, 1)).toBe(true);
+  });
+
+  it('says whether a lane can give up a token, before any destination is known', () => {
+    const state = createState({
+      capacity: 2, colorCount: 3,
+      lanes: [[], [0], [1], [2, 0], [1, 1]],
+      hidden: [0, 0, 0, 0, 0],
+      anchored: [false, true, false, true, false],
+    });
+    const lanes = state.lanes;
+    expect(canLift(lanes[0]!, 2), 'empty').toBe(false);
+    expect(canLift(lanes[1]!, 2), 'lone anchor').toBe(false);
+    expect(canLift(lanes[2]!, 2), 'lone free token').toBe(true);
+    expect(canLift(lanes[3]!, 2), 'token above an anchor').toBe(true);
+    expect(canLift(lanes[4]!, 2), 'complete').toBe(false);
   });
 
   it('never offers an anchor among the legal moves', () => {

@@ -1,5 +1,5 @@
 import type { GameState, LaneState } from '@/engine/types';
-import { isLaneComplete, topColor, topRun } from '@/engine/rules';
+import { canLift, isLaneComplete, topColor, topRun } from '@/engine/rules';
 
 /**
  * Spoken descriptions of the board.
@@ -42,8 +42,15 @@ export function describeLane(lane: LaneState, index: number, capacity: number): 
   const top = topColor(lane);
   const run = topRun(lane);
   // A player cannot see the anchor by looking, so the anchor colour has to be spoken -
-  // it is the one fact that tells them what this lane's finished colour must be.
-  const anchor = lane.anchored ? `, ${colorName(lane.tokens[0]!)} anchored at the base` : '';
+  // it is the one fact that tells them what this lane's finished colour must be. But
+  // whenever anything in the lane is face down, the anchor at index 0 is too, and a
+  // sighted player sees only "?" there. Naming the colour then would hand a screen-reader
+  // user exactly what a buried anchor exists to withhold, so only the fact is spoken.
+  const anchor = !lane.anchored
+    ? ''
+    : lane.hidden > 0
+      ? ', anchored at the base, colour unknown'
+      : `, ${colorName(lane.tokens[0]!)} anchored at the base`;
   const parts = [
     position,
     `${colorName(top!)} on top`,
@@ -67,6 +74,9 @@ export function describeLaneAction(
   if (selected === null) {
     if (lane.tokens.length === 0) return 'Empty, nothing to lift';
     if (isLaneComplete(lane, state.capacity)) return 'Already complete';
+    // What remains is a lone anchor: there is a token, but the engine will never let it
+    // go, so offering to lift it would promise a move that cannot happen.
+    if (!canLift(lane, state.capacity)) return 'Anchored, nothing can be lifted';
     // One token per move, so never promise to lift a run.
     return `Lift ${colorName(topColor(lane)!)}`;
   }

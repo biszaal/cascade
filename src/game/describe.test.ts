@@ -64,6 +64,14 @@ describe('describing a lane', () => {
     expect(describeLane(lane, 3, 4)).toContain('Sky anchored at the base');
   });
 
+  it('announces a face-down anchor without naming its colour', () => {
+    // With anything face down the anchor is face down too, and a sighted player sees "?".
+    const lane = { tokens: [1, 2, 0], hidden: 1, anchored: true };
+    const spoken = describeLane(lane, 3, 4);
+    expect(spoken).toContain('anchored at the base, colour unknown');
+    expect(spoken).not.toContain('Sky');
+  });
+
   it('says nothing about anchors on an ordinary lane', () => {
     const lane = { tokens: [1, 0], hidden: 0, anchored: false };
     expect(describeLane(lane, 3, 4)).not.toContain('anchored');
@@ -98,6 +106,13 @@ describe('describing what a tap will do', () => {
 
   it('names an empty destination', () => {
     expect(describeLaneAction(board(4, [[0, 1], []]), 1, 0)).toBe('Pour Sky into the empty lane');
+  });
+
+  it('says a lone anchor cannot be lifted rather than offering to lift it', () => {
+    const state = createState({
+      capacity: 3, colorCount: 2, lanes: [[0], [1, 1]], hidden: [0, 0], anchored: [true, false],
+    });
+    expect(describeLaneAction(state, 0, null)).toBe('Anchored, nothing can be lifted');
   });
 
   it('says nothing can be lifted from an empty lane', () => {

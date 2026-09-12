@@ -72,20 +72,33 @@ export function isLaneComplete(lane: LaneState, capacity: number): boolean {
   return lane.tokens.length === capacity && isLaneUniform(lane);
 }
 
+/**
+ * Whether this lane can give up a token at all, wherever it might go.
+ *
+ * The app decides whether a tap may lift a lane, and the screen reader decides whether to
+ * offer a lift, before any destination is known - so this is the source half of canMove,
+ * exported so neither can drift from what the engine will actually allow.
+ */
+export function canLift(lane: LaneState, capacity: number): boolean {
+  if (lane.tokens.length === 0) return false;
+
+  // Taking a completed lane apart is never progress.
+  if (isLaneComplete(lane, capacity)) return false;
+
+  // An anchor is only ever the top of its lane when it is the last token there, so this
+  // single clause is the whole immovability rule.
+  if (lane.anchored && lane.tokens.length === 1) return false;
+
+  return true;
+}
+
 export function canMove(state: GameState, from: number, to: number): boolean {
   if (from === to) return false;
   const source = state.lanes[from];
   const dest = state.lanes[to];
   if (!source || !dest) return false;
-  if (source.tokens.length === 0) return false;
+  if (!canLift(source, state.capacity)) return false;
   if (dest.tokens.length >= state.capacity) return false;
-
-  // Taking a completed lane apart is never progress.
-  if (isLaneComplete(source, state.capacity)) return false;
-
-  // An anchor is only ever the top of its lane when it is the last token there, so this
-  // single clause is the whole immovability rule.
-  if (source.anchored && source.tokens.length === 1) return false;
 
   const destTop = topColor(dest);
   if (destTop !== null && destTop !== topColor(source)) return false;
