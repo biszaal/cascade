@@ -53,6 +53,7 @@ function spec(
   emptyLanes: number,
   hiddenMin = 0,
   hiddenMax = 0,
+  anchors = 0,
 ): GenerationSpec {
   return {
     capacity,
@@ -60,9 +61,12 @@ function spec(
     emptyLanes,
     hiddenMin,
     hiddenMax,
+    anchors,
     // One free lane is almost never solvable from a random deal, so those boards are
-    // built by walking backwards from the finished position instead.
-    strategy: emptyLanes >= 2 ? 'deal' : 'reverse',
+    // built by walking backwards from the finished position instead. Anchors force the
+    // same choice at any shape: dealBoard cannot place them, so a dealt anchored board
+    // would silently ship with no anchors at all.
+    strategy: emptyLanes >= 2 && anchors === 0 ? 'deal' : 'reverse',
     reverseSteps: colorCount * capacity * 4,
   };
 }
@@ -159,6 +163,91 @@ export const CHAPTERS: ChapterPlan[] = [
       { n: 8, beat: 'build', intensity: 0.92, spec: spec(8, 5, 2, 2, 3), note: '' },
       { n: 9, beat: 'tight', intensity: 0.66, pick: 1, spec: spec(9, 4, 1, 2, 2), note: 'The tightest board in the game: nine colours, one free lane, half unseen.' },
       { n: 10, beat: 'climax', intensity: 1.0, pick: 1, spec: spec(9, 5, 2, 2, 3), note: 'The last board. Nine colours, five deep, mostly unknown.' },
+    ],
+  },
+  {
+    n: 6,
+    name: 'Bedrock',
+    color: 5,
+    levels: [
+      { n: 1, beat: 'teach', intensity: 0.05, spec: spec(4, 4, 2, 0, 0, 1), note: 'One anchor. That lane can only ever finish in its colour.' },
+      { n: 2, beat: 'teach', intensity: 0.10, spec: spec(5, 4, 2, 0, 0, 1), note: 'The same idea with one more colour to place around it.' },
+      { n: 3, beat: 'build', intensity: 0.20, spec: spec(5, 4, 2, 0, 0, 2), note: 'Two anchors. Two lanes are now spoken for before a move is made.' },
+      { n: 4, beat: 'build', intensity: 0.28, spec: spec(5, 5, 2, 0, 0, 2), note: 'Deeper lanes, so a wrong token buries more beneath it.' },
+      { n: 5, beat: 'rest', intensity: 0.15, spec: spec(5, 3, 2, 0, 0, 2), note: 'Short and shallow. A breath before the squeeze.' },
+      { n: 6, beat: 'build', intensity: 0.35, spec: spec(6, 4, 2, 0, 0, 2), note: 'Six colours against two anchors.' },
+      { n: 7, beat: 'build', intensity: 0.42, spec: spec(6, 5, 2, 0, 0, 3), note: 'Three anchors: half the board is committed.' },
+      { n: 8, beat: 'tight', intensity: 0.30, pick: 0.95, spec: spec(5, 4, 1, 0, 0, 2), note: 'One free lane and two anchors. Short, and there is almost nowhere to put anything.' },
+      { n: 9, beat: 'build', intensity: 0.50, spec: spec(7, 5, 2, 0, 0, 3), note: 'Seven colours, three anchors.' },
+      { n: 10, beat: 'climax', intensity: 0.60, spec: spec(7, 5, 2, 0, 0, 4), note: 'Four anchors. More of this board is decided than is free.' },
+    ],
+  },
+  {
+    n: 7,
+    name: 'Trench',
+    color: 6,
+    levels: [
+      { n: 1, beat: 'rest', intensity: 0.30, spec: spec(6, 4, 2, 0, 0, 2), note: 'Settling in: the anchors are familiar now.' },
+      { n: 2, beat: 'build', intensity: 0.42, spec: spec(6, 4, 2, 0, 0, 3), note: 'Three anchors and room to work.' },
+      { n: 3, beat: 'build', intensity: 0.50, spec: spec(6, 5, 2, 0, 0, 3), note: 'The same shape, one token deeper.' },
+      { n: 4, beat: 'build', intensity: 0.55, spec: spec(7, 5, 2, 0, 0, 4), note: 'Four anchors: the free lanes are the whole game now.' },
+      { n: 5, beat: 'rest', intensity: 0.32, spec: spec(6, 3, 2, 0, 0, 3), note: 'Shallow again, briefly.' },
+      { n: 6, beat: 'build', intensity: 0.60, spec: spec(7, 4, 2, 0, 0, 4), note: 'Seven colours and four fixed destinations.' },
+      { n: 7, beat: 'tight', intensity: 0.45, pick: 0.95, spec: spec(6, 4, 1, 0, 0, 3), note: 'One free lane, three anchors.' },
+      { n: 8, beat: 'build', intensity: 0.66, spec: spec(7, 5, 2, 0, 0, 5), note: 'Five anchors. Most of the board is already spoken for.' },
+      { n: 9, beat: 'tight', intensity: 0.50, pick: 0.95, spec: spec(6, 5, 1, 0, 0, 4), note: 'The tightest board yet, and four of its lanes cannot move.' },
+      { n: 10, beat: 'climax', intensity: 0.72, spec: spec(8, 5, 2, 0, 0, 5), note: 'Eight colours, five anchors, two free lanes.' },
+    ],
+  },
+  {
+    n: 8,
+    name: 'Mantle',
+    color: 7,
+    levels: [
+      { n: 1, beat: 'teach', intensity: 0.40, spec: spec(6, 4, 2, 1, 1, 2), note: 'One face-down token per lane, and the anchors you already know.' },
+      { n: 2, beat: 'build', intensity: 0.50, spec: spec(6, 4, 2, 1, 2, 3), note: 'The anchor says what the lane must become; the hidden tokens hide what is in the way.' },
+      { n: 3, beat: 'build', intensity: 0.58, spec: spec(6, 5, 2, 1, 2, 3), note: 'Deeper, and less of it visible.' },
+      { n: 4, beat: 'rest', intensity: 0.38, spec: spec(6, 3, 2, 1, 1, 2), note: 'A short board to re-read the mechanic on.' },
+      { n: 5, beat: 'build', intensity: 0.64, spec: spec(7, 5, 2, 2, 3, 4), note: 'Four anchors under three face-down tokens each.' },
+      { n: 6, beat: 'build', intensity: 0.70, spec: spec(7, 5, 2, 2, 3, 4), note: 'The same, tangled further.' },
+      { n: 7, beat: 'tight', intensity: 0.55, pick: 0.95, spec: spec(6, 4, 1, 1, 2, 3), note: 'One free lane, and you cannot see what is coming.' },
+      { n: 8, beat: 'build', intensity: 0.75, spec: spec(8, 5, 2, 2, 3, 5), note: 'Eight colours, five of them already assigned.' },
+      { n: 9, beat: 'build', intensity: 0.78, spec: spec(8, 5, 2, 3, 4, 5), note: 'Almost nothing on this board is visible.' },
+      { n: 10, beat: 'climax', intensity: 0.84, spec: spec(8, 5, 2, 3, 4, 6), note: 'Six anchors. The board is mostly decided and mostly unseen.' },
+    ],
+  },
+  {
+    n: 9,
+    name: 'Fault',
+    color: 8,
+    levels: [
+      { n: 1, beat: 'rest', intensity: 0.55, spec: spec(7, 4, 2, 1, 2, 3), note: 'A gentler opening after the Mantle\'s last board.' },
+      { n: 2, beat: 'build', intensity: 0.68, spec: spec(7, 5, 2, 2, 3, 4), note: 'Back to depth.' },
+      { n: 3, beat: 'build', intensity: 0.74, spec: spec(8, 5, 2, 2, 3, 5), note: 'Eight colours, five anchors.' },
+      { n: 4, beat: 'build', intensity: 0.80, spec: spec(8, 5, 2, 3, 4, 5), note: 'Deeper into the dark.' },
+      { n: 5, beat: 'rest', intensity: 0.50, spec: spec(7, 3, 2, 1, 2, 4), note: 'Shallow, and over quickly.' },
+      { n: 6, beat: 'build', intensity: 0.84, spec: spec(9, 5, 2, 3, 4, 6), note: 'Nine colours. Six lanes cannot move.' },
+      { n: 7, beat: 'tight', intensity: 0.66, pick: 0.95, spec: spec(7, 5, 1, 2, 3, 5), note: 'One free lane against five anchors.' },
+      { n: 8, beat: 'build', intensity: 0.88, spec: spec(9, 5, 2, 3, 4, 6), note: 'The hardest ordinary board in the game so far.' },
+      { n: 9, beat: 'tight', intensity: 0.70, pick: 0.95, spec: spec(8, 5, 1, 3, 4, 6), note: 'Tight, deep, anchored and blind at once.' },
+      { n: 10, beat: 'climax', intensity: 0.92, spec: spec(9, 5, 2, 4, 4, 7), note: 'Seven anchors under four face-down tokens each.' },
+    ],
+  },
+  {
+    n: 10,
+    name: 'Core',
+    color: 9,
+    levels: [
+      { n: 1, beat: 'teach', intensity: 0.62, spec: spec(6, 4, 2, 1, 2, 2), note: 'An anchor you cannot see. You know the lane has a destiny; you must dig to learn it.' },
+      { n: 2, beat: 'build', intensity: 0.72, spec: spec(7, 4, 2, 2, 2, 3), note: 'Two hidden destinies.' },
+      { n: 3, beat: 'build', intensity: 0.80, spec: spec(7, 5, 2, 2, 3, 4), note: 'Deeper, and the anchors stay buried longer.' },
+      { n: 4, beat: 'rest', intensity: 0.58, spec: spec(6, 3, 2, 1, 2, 3), note: 'Short enough to see the whole idea at once.' },
+      { n: 5, beat: 'build', intensity: 0.86, spec: spec(8, 5, 2, 3, 4, 5), note: 'Five anchors, none of them visible at the start.' },
+      { n: 6, beat: 'build', intensity: 0.90, spec: spec(8, 5, 2, 3, 4, 6), note: 'Six.' },
+      { n: 7, beat: 'tight', intensity: 0.74, pick: 0.95, spec: spec(7, 5, 1, 2, 3, 5), note: 'One free lane, and every destination is a guess.' },
+      { n: 8, beat: 'build', intensity: 0.94, spec: spec(9, 5, 2, 4, 4, 6), note: 'Nine colours, six buried anchors.' },
+      { n: 9, beat: 'tight', intensity: 0.80, pick: 0.95, spec: spec(8, 5, 1, 3, 4, 6), note: 'The last tight board.' },
+      { n: 10, beat: 'climax', intensity: 1.0, spec: spec(9, 5, 2, 4, 4, 7), note: 'The floor of the world. Nine colours, seven anchors, none of them visible.' },
     ],
   },
 ];
