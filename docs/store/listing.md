@@ -38,14 +38,14 @@ EVERY MOVE COUNTS
 Solve a level in fewer moves to earn more stars. Undo freely, restart any time, and use a hint when you're truly stuck.
 
 A NEW PUZZLE EVERY DAY
-The daily challenge gives everyone the same board each day.
+The daily challenge gives everyone the same board each day, with a leaderboard for the fewest moves.
 
 MADE TO FEEL GOOD
 Tactile animations, soft wooden sound effects and gentle haptics — never a timer, never a rush.
 
 FOR EVERYONE
 • Plays fully offline
-• No ads, no in-app purchases, no account
+• No ads, no in-app purchases, no sign-up
 • Colourblind-friendly palette with shape cues
 • Full VoiceOver support
 • Designed for iPhone and iPad
@@ -56,5 +56,5 @@ Welcome to Cascade.
 
 ## App Review notes
 
-No account or sign-in is required, and the game works fully offline. Online features such as a
-leaderboard are not included in this version.
+No sign-in is required: the game creates an anonymous account automatically for the daily
+leaderboard and result backup. Every level, including the daily puzzle, also works fully offline.

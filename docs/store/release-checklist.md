@@ -17,8 +17,11 @@ accepts by hand. Work top to bottom.
       <https://www.biszaaltech.com/games/cascade>. App Review opens both. Deployed 13 Sep 2026.
 - [ ] **The build under review is the latest TestFlight build** and has been played on a real
       device: a level from each world, the daily puzzle, Settings.
-- [ ] **No online features are visible.** The daily screen shows no leaderboard, and Settings
-      shows no Cloud/Sync section. The `testG_storeTour` UI test asserts both.
+- [ ] **Online features work against the real backend:** a fresh install signs in anonymously,
+      a solved level appears in `level_results`, a daily result appears on the leaderboard, and
+      Settings shows the Cloud section.
+- [ ] **Anonymous sign-ins are enabled** in Supabase (Authentication → Sign In / Providers).
+      Without it every online feature silently does nothing.
 
 ## App Store Connect — by hand
 
@@ -26,10 +29,18 @@ EAS Metadata does not cover these.
 
 ### App Privacy
 
-- **Data collection:** *No, we do not collect data from this app.*
-- This is accurate for 1.0 only because no backend is configured: nothing leaves the device.
-  **If Supabase is ever enabled, this answer and the privacy page must change before that build
-  ships.** Anonymous sign-in creates a user identifier, and the leaderboard stores gameplay data.
+1.0 ships with the Supabase backend, so **data is collected**. Answer:
+
+- **Do you or your third-party partners collect data from this app?** Yes.
+- **Identifiers → User ID** — the anonymous Supabase account id.
+  Purpose: *App Functionality*. Linked to the user: **Yes** (it is an account id). Used for
+  tracking: **No**.
+- **User Content → Gameplay Content** — best moves, stars and times per level, and daily moves
+  and time. Purpose: *App Functionality*. Linked to the user: **Yes**. Used for tracking: **No**.
+- Nothing else: no name, email, location, contacts, purchases, diagnostics or advertising data.
+
+The privacy page at <https://www.biszaaltech.com/games/cascade/privacy> describes exactly this.
+If what the app sends changes, update the page and these answers before that build ships.
 
 ### Screenshots
 
@@ -59,8 +70,8 @@ Order: home, sorting, face-down tokens, anchors, anchors and fog, chapters. The
 
 ## Known limits of 1.0
 
-- Online leaderboard and cloud sync are off. They need the new Supabase account, and the
-  privacy answers above change when they ship.
+- Daily leaderboard scores are client-reported and can be forged. The planned fix is an edge
+  function that replays a submitted move list against the engine before accepting it.
 - Chapters 1-5 contain three duplicate board pairs (levels 1/2, 23/26, 35/38), kept because
   removing them would reprice levels already scored against.
 - Chapters 11-20 are specced (`docs/superpowers/specs/2026-09-13-chapters-11-20-design.md`)
