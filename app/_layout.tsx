@@ -1,5 +1,6 @@
 import { useEffect } from 'react';
-import { Stack } from 'expo-router';
+import { Pressable, Text, View } from 'react-native';
+import { Stack, type ErrorBoundaryProps } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as SplashScreen from 'expo-splash-screen';
@@ -19,6 +20,54 @@ import { ensureSession } from '@/supabase/auth';
 import { flushPending, pullRemote } from '@/data/sync';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
+
+/**
+ * The last line of defence for a render error anywhere in the app.
+ *
+ * Without it, a crash in a release build closes the app with nothing on screen. It uses the
+ * system font on purpose: it may render before the custom fonts have loaded, and a missing
+ * font must not break the one screen whose job is to survive breakage. Progress is written
+ * to device storage as each level is solved, so retrying loses nothing.
+ */
+export function ErrorBoundary({ retry }: ErrorBoundaryProps) {
+  useEffect(() => {
+    // An error before first paint would otherwise leave the splash screen covering this.
+    SplashScreen.hideAsync().catch(() => {});
+  }, []);
+
+  return (
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: surface.board,
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 32,
+        gap: 12,
+      }}
+    >
+      <Text style={{ color: surface.ink, fontSize: 22, fontWeight: '600', textAlign: 'center' }}>
+        Something went wrong
+      </Text>
+      <Text style={{ color: surface.graphite, fontSize: 16, textAlign: 'center', lineHeight: 24 }}>
+        Your progress is saved on this device.
+      </Text>
+      <Pressable
+        onPress={retry}
+        accessibilityRole="button"
+        style={{
+          marginTop: 12,
+          paddingVertical: 14,
+          paddingHorizontal: 28,
+          borderRadius: 999,
+          backgroundColor: surface.accent,
+        }}
+      >
+        <Text style={{ color: surface.board, fontSize: 16, fontWeight: '600' }}>Try again</Text>
+      </Pressable>
+    </View>
+  );
+}
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
