@@ -234,6 +234,70 @@ final class CascadeUITests: XCTestCase {
         )
     }
 
+    /// Opens a Cascade deep link and accepts iOS's own "Open in Cascade?" alert, which lives in
+    /// Springboard rather than the app.
+    private func open(_ app: XCUIApplication, _ link: String) {
+        app.open(URL(string: link)!)
+        let openButton = XCUIApplication(bundleIdentifier: "com.apple.springboard").buttons["Open"]
+        if openButton.waitForExistence(timeout: 5) {
+            openButton.tap()
+        }
+    }
+
+    /// The App Store screenshot tour, and the release contract for an offline build.
+    ///
+    /// Run it against a Release build so the shots carry no developer tooling. It also proves on a
+    /// device what 1.0 promises players: with no backend configured, the daily screen has no
+    /// leaderboard and Settings has no sync control - neither may say "not configured".
+    func testG_storeTour() {
+        XCUIDevice.shared.orientation = .portrait
+        let app = launchApp()
+        attach("store-01-home")
+
+        // Boards chosen to show each idea on its own and then together: plain sorting,
+        // face-down tokens, anchors, and anchors under fog.
+        let boards: [(link: String, name: String)] = [
+            ("cascade://play/14", "store-02-sorting"),
+            ("cascade://play/38", "store-03-face-down"),
+            ("cascade://play/59", "store-04-anchors"),
+            ("cascade://play/83", "store-05-anchors-and-fog"),
+        ]
+        for board in boards {
+            open(app, board.link)
+            XCTAssertTrue(lane(app, 1).waitForExistence(timeout: 30), "\(board.link) never showed a board")
+            attach(board.name)
+        }
+
+        open(app, "cascade://chapters")
+        XCTAssertTrue(
+            app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Spring'")).firstMatch
+                .waitForExistence(timeout: 15),
+            "Chapter list never appeared"
+        )
+        attach("store-06-chapters")
+
+        open(app, "cascade://daily")
+        XCTAssertTrue(lane(app, 1).waitForExistence(timeout: 30), "Daily board never appeared")
+        XCTAssertFalse(
+            app.staticTexts["TODAY'S BOARD"].exists,
+            "An offline build must not show the leaderboard section"
+        )
+        XCTAssertEqual(
+            app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] 'supabase'")).count, 0,
+            "Players must never be shown backend setup text"
+        )
+        attach("verify-daily-offline")
+
+        open(app, "cascade://settings")
+        XCTAssertTrue(app.staticTexts["Haptics"].waitForExistence(timeout: 15), "Settings never appeared")
+        XCTAssertFalse(app.buttons["Sync now"].exists, "An offline build must not offer sync")
+        XCTAssertEqual(
+            app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] 'not configured'")).count, 0,
+            "Players must never be shown backend setup text"
+        )
+        attach("verify-settings-offline")
+    }
+
     /// Rotation: the thing that cannot be checked without a device.
     func testC_rotationRelaysOutTheBoard() {
         let app = launchApp()
