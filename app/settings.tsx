@@ -54,31 +54,33 @@ export default function Settings() {
           </Row>
         </Section>
 
-        <Section title="Cloud">
-          <Row
-            label="Sync"
-            description={
-              !isSupabaseConfigured
-                ? 'Not configured — the game runs entirely offline'
-                : dirty.length > 0
+        {/* Sync only exists when a backend is configured. An offline build leaves the section out
+            rather than showing a control that can never do anything. */}
+        {isSupabaseConfigured ? (
+          <Section title="Cloud">
+            <Row
+              label="Sync"
+              description={
+                dirty.length > 0
                   ? `${dirty.length} result${dirty.length === 1 ? '' : 's'} waiting to upload`
                   : 'Everything is up to date'
-            }
-          >
-            <Pressable
-              disabled={!isSupabaseConfigured || syncing}
-              onPress={async () => {
-                setSyncing(true);
-                await flushPending().catch(() => {});
-                await pullRemote().catch(() => {});
-                setSyncing(false);
-              }}
-              style={[styles.smallButton, (!isSupabaseConfigured || syncing) && styles.smallButtonOff]}
+              }
             >
-              <Text style={styles.smallButtonLabel}>{syncing ? 'Syncing' : 'Sync now'}</Text>
-            </Pressable>
-          </Row>
-        </Section>
+              <Pressable
+                disabled={syncing}
+                onPress={async () => {
+                  setSyncing(true);
+                  await flushPending().catch(() => {});
+                  await pullRemote().catch(() => {});
+                  setSyncing(false);
+                }}
+                style={[styles.smallButton, syncing && styles.smallButtonOff]}
+              >
+                <Text style={styles.smallButtonLabel}>{syncing ? 'Syncing' : 'Sync now'}</Text>
+              </Pressable>
+            </Row>
+          </Section>
+        ) : null}
 
         <Section title="Progress">
           <Row label="Reset everything" description="Clears every star and best score on this device">

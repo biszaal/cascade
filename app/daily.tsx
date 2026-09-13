@@ -125,13 +125,12 @@ export default function Daily() {
           </View>
         ) : null}
 
+        {/* The leaderboard needs a backend. Without one the section is left out entirely rather
+            than shown empty: a player cannot act on "not configured", and it reads as broken. */}
+        {isSupabaseConfigured ? (
         <View style={styles.leaderboard}>
           <Text style={styles.sectionTitle}>TODAY'S BOARD</Text>
-          {!isSupabaseConfigured ? (
-            <Text style={styles.emptyText}>
-              Leaderboards need a Supabase project. The puzzle itself works without one.
-            </Text>
-          ) : loadingBoard ? (
+          {loadingBoard ? (
             // Skeleton rows matching the real layout, never a spinner.
             <View style={styles.skeletonGroup}>
               {[0, 1, 2, 3, 4].map((i) => (
@@ -154,6 +153,7 @@ export default function Daily() {
             ))
           )}
         </View>
+        ) : null}
       </ScrollView>
     </SafeAreaView>
   );
