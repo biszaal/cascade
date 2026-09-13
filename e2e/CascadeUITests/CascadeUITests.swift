@@ -249,22 +249,35 @@ final class CascadeUITests: XCTestCase {
     /// A screen reached by URL keeps a back-link to whatever opened it in the status bar, which
     /// must never appear in a store screenshot. Sending the app home and bringing it back the
     /// normal way returns to the same screen with the breadcrumb gone.
-    private func storeShot(_ app: XCUIApplication, _ name: String) {
+    private func storeShot(_ app: XCUIApplication, _ name: String, ready: XCUIElement) {
         XCUIDevice.shared.press(.home)
         app.activate()
-        _ = app.wait(for: .runningForeground, timeout: 10)
+        XCTAssertTrue(
+            app.wait(for: .runningForeground, timeout: 10),
+            "\(name): the app never came back to the foreground"
+        )
+        // activate() returns while SpringBoard is still animating the app open, so a shot taken
+        // straight away captures the home screen. Wait until this screen's own element can
+        // actually be tapped, then let the zoom-in finish.
+        let hittable = expectation(for: NSPredicate(format: "isHittable == true"), evaluatedWith: ready)
+        wait(for: [hittable], timeout: 15)
+        Thread.sleep(forTimeInterval: 1.5)
         attach(name)
     }
 
-    /// The App Store screenshot tour, and the release contract for an offline build.
+    /// The App Store screenshot tour, and a release check that holds whether or not a backend is
+    /// configured.
     ///
-    /// Run it against a Release build so the shots carry no developer tooling. It also proves on a
-    /// device what 1.0 promises players: with no backend configured, the daily screen has no
-    /// leaderboard and Settings has no sync control - neither may say "not configured".
+    /// Run it against a Release build so the shots carry no developer tooling. Online features come
+    /// and go together: the daily leaderboard and Settings' sync control are either both present
+    /// (a backend is configured) or both absent, and no screen ever shows backend setup text.
     func testG_storeTour() {
         XCUIDevice.shared.orientation = .portrait
         let app = launchApp()
-        storeShot(app, "store-01-home")
+        storeShot(
+            app, "store-01-home",
+            ready: app.buttons.matching(NSPredicate(format: "label == 'Start playing' OR label BEGINSWITH 'Continue'")).firstMatch
+        )
 
         // Boards chosen to show each idea on its own and then together: plain sorting,
         // face-down tokens, anchors, and anchors under fog.
@@ -278,7 +291,7 @@ final class CascadeUITests: XCTestCase {
             open(app, board.link)
             XCTAssertTrue(lane(app, 1).waitForExistence(timeout: 30), "\(board.link) never showed a board")
             XCTAssertTrue(lane(app, 1).exists, "\(board.link) lost its board")
-            storeShot(app, board.name)
+            storeShot(app, board.name, ready: lane(app, 1))
         }
 
         open(app, "cascade://chapters")
@@ -287,28 +300,34 @@ final class CascadeUITests: XCTestCase {
                 .waitForExistence(timeout: 15),
             "Chapter list never appeared"
         )
-        storeShot(app, "store-06-chapters")
+        storeShot(
+            app, "store-06-chapters",
+            ready: app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Spring'")).firstMatch
+        )
 
         open(app, "cascade://daily")
         XCTAssertTrue(lane(app, 1).waitForExistence(timeout: 30), "Daily board never appeared")
-        XCTAssertFalse(
-            app.staticTexts["TODAY'S BOARD"].exists,
-            "An offline build must not show the leaderboard section"
-        )
+        // Whether this build has a backend decides what Settings must show below.
+        let online = app.staticTexts["TODAY'S BOARD"].exists
         XCTAssertEqual(
             app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] 'supabase'")).count, 0,
             "Players must never be shown backend setup text"
         )
-        attach("verify-daily-offline")
+        attach(online ? "verify-daily-online" : "verify-daily-offline")
 
         open(app, "cascade://settings")
         XCTAssertTrue(app.staticTexts["Haptics"].waitForExistence(timeout: 15), "Settings never appeared")
-        XCTAssertFalse(app.buttons["Sync now"].exists, "An offline build must not offer sync")
+        XCTAssertEqual(
+            app.buttons["Sync now"].exists, online,
+            online
+                ? "The daily leaderboard is on, so Settings must offer sync too"
+                : "The daily leaderboard is off, so Settings must not offer sync"
+        )
         XCTAssertEqual(
             app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] 'not configured'")).count, 0,
             "Players must never be shown backend setup text"
         )
-        attach("verify-settings-offline")
+        attach(online ? "verify-settings-online" : "verify-settings-offline")
     }
 
     /// Rotation: the thing that cannot be checked without a device.
