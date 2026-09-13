@@ -214,17 +214,20 @@ export const CHAPTERS: ChapterPlan[] = [
       { n: 3, beat: 'build', intensity: 0.58, spec: spec(6, 5, 2, 1, 2, 3), note: 'Deeper, and less of it visible.' },
       { n: 4, beat: 'rest', intensity: 0.38, spec: spec(6, 3, 2, 1, 1, 2), note: 'A short board to re-read the mechanic on.' },
       { n: 5, beat: 'build', intensity: 0.64, spec: spec(7, 5, 2, 2, 3, 4), note: 'Four anchors under three face-down tokens each.' },
-      { n: 6, beat: 'build', intensity: 0.70, spec: spec(7, 5, 2, 2, 3, 4), note: 'The same, tangled further.' },
+      // Same spec as level 5 - same colours, depth and anchor count - so what makes this
+      // one harder is only the deal: a different seed, tangled worse.
+      { n: 6, beat: 'build', intensity: 0.70, spec: spec(7, 5, 2, 2, 3, 4), note: 'Same shape as level 5, dealt into a worse tangle.' },
       { n: 7, beat: 'tight', intensity: 0.55, pick: 0.95, spec: spec(6, 4, 1, 1, 2, 3), note: 'One free lane, and you cannot see what is coming.' },
-      { n: 8, beat: 'build', intensity: 0.75, spec: spec(8, 5, 2, 2, 3, 5), note: 'Eight colours, five of them already assigned.' },
-      { n: 9, beat: 'build', intensity: 0.78, spec: spec(8, 5, 2, 3, 4, 5), note: 'Almost nothing on this board is visible.' },
-      // Measured: six anchors on an eight-colour board capped this pool at difficulty 252 -
-      // a hair under level 9's 265, because one anchor more than level 9 makes the board
-      // MORE determined, the same trap Core's climax hit. `pick: 1.0` alone cannot fix
-      // this: 252 is already that pool's hardest member. Escalating with colour count
-      // instead - the strong lever, not anchors - reopens the gap honestly: nine colours,
-      // the same six anchors, difficulty 282.
-      { n: 10, beat: 'climax', intensity: 0.84, pick: 1.0, spec: spec(9, 5, 2, 3, 4, 6), note: 'Nine colours now, and six anchors - the board is mostly decided and mostly unseen.' },
+      { n: 8, beat: 'build', intensity: 0.76, spec: spec(8, 5, 2, 3, 4, 4), note: 'Eight colours under the deepest fog a five-deep lane can hold.' },
+      { n: 9, beat: 'build', intensity: 0.80, spec: spec(9, 5, 2, 3, 4, 4), note: 'Nine colours arrive a level early, still under four anchors.' },
+      // Keeping anchors visible (product decision, so Core stays the only chapter that
+      // buries them) leaves fog as the lever for Mantle and Fault both. Measured at
+      // colorCount 9, capacity 5, emptyLanes 2, maximum fog (hiddenMin 4 = hiddenMax 4,
+      // the most a five-deep lane can hide) across three seeds: anchors 3 hit 266, 262,
+      // 256 - one seed under Deep's 258, too close to risk. Anchors 1-2 held 264-277
+      // every time. Two anchors, keeping one more than Fault's climax so Fault can still
+      // be the harder of the two: hardest measured 270, 264, 276.
+      { n: 10, beat: 'climax', intensity: 0.86, pick: 1.0, spec: spec(9, 5, 2, 4, 4, 2), note: 'Nine colours, fog as deep as a lane allows, and only two anchors to lean on.' },
     ],
   },
   {
@@ -237,17 +240,19 @@ export const CHAPTERS: ChapterPlan[] = [
       { n: 3, beat: 'build', intensity: 0.74, spec: spec(8, 5, 2, 2, 3, 5), note: 'Eight colours, five anchors.' },
       { n: 4, beat: 'build', intensity: 0.80, spec: spec(8, 5, 2, 3, 4, 5), note: 'Deeper into the dark.' },
       { n: 5, beat: 'rest', intensity: 0.50, spec: spec(7, 3, 2, 1, 2, 4), note: 'Shallow, and over quickly.' },
-      { n: 6, beat: 'build', intensity: 0.84, spec: spec(9, 5, 2, 3, 4, 6), note: 'Nine colours. Six lanes cannot move.' },
+      { n: 6, beat: 'build', intensity: 0.85, spec: spec(9, 5, 2, 3, 4, 4), note: 'Nine colours. Four lanes cannot move, and most of the rest are half-buried.' },
       { n: 7, beat: 'tight', intensity: 0.66, pick: 0.95, spec: spec(7, 5, 1, 2, 3, 5), note: 'One free lane against five anchors.' },
-      { n: 8, beat: 'build', intensity: 0.88, spec: spec(9, 5, 2, 3, 4, 6), note: 'The hardest ordinary board in the game so far.' },
+      { n: 8, beat: 'build', intensity: 0.89, spec: spec(9, 5, 2, 4, 4, 3), note: 'The hardest ordinary board in the game so far - fog as deep as a lane allows, three anchors holding it together.' },
       { n: 9, beat: 'tight', intensity: 0.70, pick: 0.95, spec: spec(8, 5, 1, 3, 4, 6), note: 'Tight, deep, anchored and blind at once.' },
-      // Once anchors stopped carrying fog (hideAnchors), seven anchors left only two of this
-      // board's nine lanes face down, and the climax fell to 227, under level 8's 233. Colour
-      // count, depth and fog per lane are already at their ceilings, so the lever left is
-      // how many lanes the fog can reach - fewer anchors, never more. Measured hardest pool
-      // member at seven through three anchors: 227, 240, 246, 247, 252. Five is the least
-      // taken away that clears level 8 honestly, and stays under Core's summit.
-      { n: 10, beat: 'climax', intensity: 0.92, pick: 1.0, spec: spec(9, 5, 2, 4, 4, 5), note: 'Five anchors in sight, and everything else under four face-down tokens.' },
+      // Product decision: keep anchors visible through Mantle and Fault, so Core - where
+      // they are buried - is the chapter that introduces that. That costs both chapters
+      // the fog an anchored lane used to carry, so the lever left is how many lanes stay
+      // fogged at all: fewer anchors, never more, at the deepest fog a five-deep lane can
+      // hold (hiddenMin 4 = hiddenMax 4). Measured at colorCount 9, capacity 5, emptyLanes
+      // 2 across three seeds: anchors 1 held 277, 268, 274 - clear of Mantle's anchors-2
+      // climax (measured 270, 264, 276 at the same shape) and of Deep's 258, and still
+      // under Core's 284.
+      { n: 10, beat: 'climax', intensity: 0.93, pick: 1.0, spec: spec(9, 5, 2, 4, 4, 1), note: 'One anchor in sight - everything else is fog as deep as a lane allows.' },
     ],
   },
   {

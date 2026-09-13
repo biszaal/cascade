@@ -179,8 +179,9 @@ describe('level packs', () => {
    * level with no test failing, because nothing re-derives the optimal from scratch. This
    * re-solves a small, fixed sample - one level per chapter - and checks the search still
    * finds the same optimal length that shipped, so a repriced chapter reaches this suite
-   * instead of a player. maxNodes is bounded so a regression that makes the search blow up
-   * fails fast instead of hanging.
+   * instead of a player. The sample is SOLVE_SAMPLE_IDS above - twelve boards, not one per
+   * chapter, for the reason documented there. maxNodes is bounded so a regression that
+   * makes the search blow up fails fast instead of hanging.
    */
   it('re-solves a fixed sample of shipped levels and finds the same optimal length', () => {
     for (const id of SOLVE_SAMPLE_IDS) {
