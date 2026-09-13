@@ -244,6 +244,18 @@ final class CascadeUITests: XCTestCase {
         }
     }
 
+    /// Takes a store screenshot free of iOS's "◀ previous app" breadcrumb.
+    ///
+    /// A screen reached by URL keeps a back-link to whatever opened it in the status bar, which
+    /// must never appear in a store screenshot. Sending the app home and bringing it back the
+    /// normal way returns to the same screen with the breadcrumb gone.
+    private func storeShot(_ app: XCUIApplication, _ name: String) {
+        XCUIDevice.shared.press(.home)
+        app.activate()
+        _ = app.wait(for: .runningForeground, timeout: 10)
+        attach(name)
+    }
+
     /// The App Store screenshot tour, and the release contract for an offline build.
     ///
     /// Run it against a Release build so the shots carry no developer tooling. It also proves on a
@@ -252,7 +264,7 @@ final class CascadeUITests: XCTestCase {
     func testG_storeTour() {
         XCUIDevice.shared.orientation = .portrait
         let app = launchApp()
-        attach("store-01-home")
+        storeShot(app, "store-01-home")
 
         // Boards chosen to show each idea on its own and then together: plain sorting,
         // face-down tokens, anchors, and anchors under fog.
@@ -265,7 +277,8 @@ final class CascadeUITests: XCTestCase {
         for board in boards {
             open(app, board.link)
             XCTAssertTrue(lane(app, 1).waitForExistence(timeout: 30), "\(board.link) never showed a board")
-            attach(board.name)
+            XCTAssertTrue(lane(app, 1).exists, "\(board.link) lost its board")
+            storeShot(app, board.name)
         }
 
         open(app, "cascade://chapters")
@@ -274,7 +287,7 @@ final class CascadeUITests: XCTestCase {
                 .waitForExistence(timeout: 15),
             "Chapter list never appeared"
         )
-        attach("store-06-chapters")
+        storeShot(app, "store-06-chapters")
 
         open(app, "cascade://daily")
         XCTAssertTrue(lane(app, 1).waitForExistence(timeout: 30), "Daily board never appeared")
