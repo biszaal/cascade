@@ -103,8 +103,8 @@ export default function Settings() {
         </Section>
 
         <Text style={styles.about}>
-          Every level was solved by a search before it shipped, and par is that solution's
-          length. Three stars means you matched it.
+          Every level was solved by a search before it shipped. Par is that solution's length, plus
+          a small allowance on boards with face-down tokens. Three stars means you matched it.
         </Text>
       </ScrollView>
     </SafeAreaView>
