@@ -2,14 +2,33 @@
   "configVersion": 0,
   "apple": {
     "copyright": "2026 Biszaal Tech Ltd.",
-    "categories": [["GAMES", "GAMES_PUZZLE"]],
+    "categories": [
+      [
+        "GAMES",
+        "GAMES_PUZZLE"
+      ]
+    ],
     "info": {
       "en-US": {
         "title": "Cascade: Colour Sorting",
         "subtitle": "Calm colour-sorting puzzles",
         "promoText": "100 hand-built levels across two worlds. Sort colours one token at a time, dig through face-down tokens, and plan around anchors that never move.",
         "description": "Cascade is a calm, thoughtful colour-sorting puzzle. Every lane should end up holding a single colour — but you move only one token at a time, and every move counts.\n\n100 HAND-BUILT LEVELS\nTen chapters across two worlds, each introducing a new idea on a gentle board before testing it on a hard one.\n\n• Water — learn to sort, then dig through face-down tokens you can't see until you reach them.\n• Stone — plan around anchored tokens that never move, so their lanes can only ever finish in one colour.\n\nEVERY MOVE COUNTS\nSolve a level in fewer moves to earn more stars. Undo freely, restart any time, and use a hint when you're truly stuck.\n\nA NEW PUZZLE EVERY DAY\nThe daily challenge gives everyone the same board each day.\n\nMADE TO FEEL GOOD\nTactile animations, soft wooden sound effects and gentle haptics — never a timer, never a rush.\n\nFOR EVERYONE\n• Plays fully offline\n• No ads, no in-app purchases, no account\n• Colourblind-friendly palette with shape cues\n• Full VoiceOver support\n• Designed for iPhone and iPad",
-        "keywords": ["sort", "color", "puzzle", "ball sort", "water sort", "logic", "brain", "relax", "offline", "tube", "daily", "calm", "strategy"],
+        "keywords": [
+          "sort",
+          "color",
+          "puzzle",
+          "ball sort",
+          "water sort",
+          "logic",
+          "brain",
+          "relax",
+          "offline",
+          "tube",
+          "daily",
+          "calm",
+          "strategy"
+        ],
         "releaseNotes": "Welcome to Cascade.",
         "supportUrl": "https://www.biszaaltech.com/games/cascade",
         "marketingUrl": "https://www.biszaaltech.com/games/cascade",
@@ -30,7 +49,10 @@
       "violenceRealistic": "NONE",
       "violenceRealisticProlongedGraphicOrSadistic": "NONE",
       "gambling": false,
-      "unrestrictedWebAccess": false
+      "unrestrictedWebAccess": false,
+      "kidsAgeBand": null,
+      "ageRatingOverride": "NONE",
+      "koreaAgeRatingOverride": "NONE"
     },
     "release": {
       "automaticRelease": false
