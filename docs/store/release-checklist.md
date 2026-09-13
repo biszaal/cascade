@@ -8,13 +8,13 @@ accepts by hand. Work top to bottom.
 | Step | Command | Notes |
 |---|---|---|
 | Production build + TestFlight upload | `npx eas-cli build -p ios --profile production --auto-submit` | Builds from the current branch - run it on `master`. Build number auto-increments. |
-| Store listing text, category, age rating | `npx eas-cli metadata:push` | Reads `store.config.json`. Needs the privacy and support pages live first. |
+| Store listing text, category, age rating | `npx eas-cli metadata:push` | Reads `store.config.json`; run `npx eas-cli metadata:lint` first. **Pushed 13 Sep 2026** — listing, version 1.0.0, category, age rating and manual release are synced. |
 
 ## Before submitting
 
-- [ ] **Privacy and support pages are live** at
+- [x] **Privacy and support pages are live** at
       <https://www.biszaaltech.com/games/cascade/privacy> and
-      <https://www.biszaaltech.com/games/cascade>. App Review opens both.
+      <https://www.biszaaltech.com/games/cascade>. App Review opens both. Deployed 13 Sep 2026.
 - [ ] **The build under review is the latest TestFlight build** and has been played on a real
       device: a level from each world, the daily puzzle, Settings.
 - [ ] **No online features are visible.** The daily screen shows no leaderboard, and Settings
