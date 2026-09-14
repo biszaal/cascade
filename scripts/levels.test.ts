@@ -6,6 +6,8 @@ import { createState, replay, isSolved, countHidden } from '../src/engine/rules'
 import { parFor } from '../src/engine/generator';
 import { solve } from '../src/engine/solver';
 import type { Level } from '../src/engine/types';
+import { chapterColors } from '../src/design/tokens';
+import { CHAPTERS } from './level-plan';
 
 /**
  * Validation of the shipped level packs.
@@ -29,17 +31,21 @@ interface Pack {
   levels: Level[];
 }
 
-const packs: Pack[] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(
-  (n) => JSON.parse(readFileSync(join(levelsDir, `chapter-${n}.json`), 'utf8')) as Pack,
+// Read from the authored plan, not the manifest: `npm run levels -- --from` rewrites the
+// manifest, and a list built from the packs on disk would absorb an orphaned pack instead
+// of letting the stale-pack test below catch it.
+const packs: Pack[] = CHAPTERS.map(
+  (chapter) => JSON.parse(readFileSync(join(levelsDir, `chapter-${chapter.n}.json`), 'utf8')) as Pack,
 );
 const allLevels = packs.flatMap((pack) => pack.levels);
 
 /**
- * The game is arranged in five-chapter arcs, each teaching one mechanic on deliberately
- * gentle boards before testing it: water (chapters 1-5) is the base rules, then hidden
- * tokens; stone (chapters 6-10) is anchors. Two more arcs are planned. Chunking the pack
- * list rather than hardcoding chapter numbers keeps this working unchanged once chapters
- * 11-20 arrive.
+ * The game is arranged in five-chapter arcs. The first two each teach one mechanic on
+ * deliberately gentle boards before testing it: water (chapters 1-5) is the base rules,
+ * then hidden tokens; stone (chapters 6-10) is anchors. Forge (11-15) and light (16-20)
+ * add no rule - each chapter poses a different shape of problem with the same pieces.
+ * Chunking the pack list rather than hardcoding chapter numbers holds every arc to the
+ * same curve.
  */
 const ARC_SIZE = 5;
 function arcsOf<T>(items: T[]): T[][] {
@@ -48,6 +54,15 @@ function arcsOf<T>(items: T[]): T[][] {
   return arcs;
 }
 const arcs = arcsOf(packs);
+
+/** Level 10 of every chapter from here on is a gate, a deliberate spike. */
+const FIRST_GATED_CHAPTER = 11;
+/**
+ * How far a gate must stand above its chapter's second-hardest level. Difficulty's
+ * dominant term is 6 x log2(nodes + 1), so eight points is slightly more than one doubling
+ * of search effort - a spike a player feels, not a board that tops its chapter by a point.
+ */
+const GATE_MARGIN = 8;
 
 // The opening level of each chapter - fixed and deterministic, not random. These are the
 // smallest, quickest boards a chapter has, which keeps a full solve() cheap; a random or
@@ -79,14 +94,35 @@ describe('level packs', () => {
     expect(onDisk).toEqual(packs.map((p) => `chapter-${p.chapter}.json`).sort());
   });
 
-  it('ships ten chapters of ten levels', () => {
-    expect(packs).toHaveLength(10);
+  it('ships fifteen chapters of ten levels', () => {
+    expect(packs).toHaveLength(15);
     for (const pack of packs) expect(pack.levels, pack.name).toHaveLength(10);
   });
 
-  it('numbers levels 1..100 with no gaps or repeats', () => {
+  it('numbers levels 1..150 with no gaps or repeats', () => {
     const ids = allLevels.map((l) => l.id).sort((a, b) => a - b);
-    expect(ids).toEqual(Array.from({ length: 100 }, (_, i) => i + 1));
+    expect(ids).toEqual(Array.from({ length: 150 }, (_, i) => i + 1));
+  });
+
+  it('registers every planned chapter with the app', () => {
+    // Metro needs literal require paths, so the app's pack list is written out by hand
+    // and cannot be derived. A chapter missing from it generates, passes every test in
+    // this file, and never reaches a player.
+    const source = readFileSync(join(here, '..', 'src', 'data', 'levels.ts'), 'utf8');
+    const registered = [...source.matchAll(/require\('\.\.\/\.\.\/assets\/levels\/chapter-(\d+)\.json'\)/g)].map(
+      (match) => Number(match[1]),
+    );
+    expect(registered).toEqual(CHAPTERS.map((chapter) => chapter.n));
+  });
+
+  it('gives every chapter an accent of its own', () => {
+    // The app looks accents up modulo the list's length, so a chapter past the end of it
+    // does not fail - it quietly wears an earlier chapter's colour.
+    const colors = CHAPTERS.map((chapter) => chapter.color);
+    expect(new Set(colors).size).toBe(colors.length);
+    for (const chapter of CHAPTERS) {
+      expect(chapter.color, chapter.name).toBeLessThan(chapterColors.length);
+    }
   });
 
   it('deals every colour exactly capacity times', () => {
@@ -270,6 +306,19 @@ describe('the authored curve', () => {
       expect(climax, `${pack.name} has no climax`).toBeDefined();
       const hardest = Math.max(...pack.levels.map((l) => l.difficulty));
       expect(climax!.difficulty, `${pack.name}'s climax is not its hardest level`).toBe(hardest);
+    }
+  });
+
+  it('makes every gate stand clear of its chapter', () => {
+    // Topping the chapter is not enough for a gate - Core's climax once did that by a
+    // single point, and a spike nobody can feel is just the last level. The climax test
+    // above already proves each chapter has one and that it is the hardest.
+    for (const pack of packs.filter((p) => p.chapter >= FIRST_GATED_CHAPTER)) {
+      const difficulties = pack.levels.map((l) => l.difficulty).sort((a, b) => b - a);
+      expect(
+        difficulties[0]! - difficulties[1]!,
+        `${pack.name}'s gate (${difficulties[0]}) is not ${GATE_MARGIN} clear of its next-hardest level (${difficulties[1]})`,
+      ).toBeGreaterThanOrEqual(GATE_MARGIN);
     }
   });
 

@@ -22,6 +22,11 @@ const packs: Pack[] = [
   require('../../assets/levels/chapter-8.json'),
   require('../../assets/levels/chapter-9.json'),
   require('../../assets/levels/chapter-10.json'),
+  require('../../assets/levels/chapter-11.json'),
+  require('../../assets/levels/chapter-12.json'),
+  require('../../assets/levels/chapter-13.json'),
+  require('../../assets/levels/chapter-14.json'),
+  require('../../assets/levels/chapter-15.json'),
 ];
 
 export const chapters = packs.map((pack) => ({

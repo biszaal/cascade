@@ -69,6 +69,41 @@
       "color": 9,
       "levels": 10,
       "parTotal": 471
+    },
+    {
+      "chapter": 11,
+      "name": "Smelt",
+      "color": 10,
+      "levels": 10,
+      "parTotal": 249
+    },
+    {
+      "chapter": 12,
+      "name": "Ore",
+      "color": 11,
+      "levels": 10,
+      "parTotal": 362
+    },
+    {
+      "chapter": 13,
+      "name": "Anvil",
+      "color": 12,
+      "levels": 10,
+      "parTotal": 396
+    },
+    {
+      "chapter": 14,
+      "name": "Temper",
+      "color": 13,
+      "levels": 10,
+      "parTotal": 406
+    },
+    {
+      "chapter": 15,
+      "name": "Alloy",
+      "color": 14,
+      "levels": 10,
+      "parTotal": 509
     }
   ]
 }

@@ -281,6 +281,111 @@ export const CHAPTERS: ChapterPlan[] = [
       { n: 10, beat: 'climax', intensity: 1.0, pick: 1.0, spec: spec(9, 5, 2, 4, 4, 3, true), note: 'The floor of the world. Nine colours, none of them visible, and only three anchors - a board this open asks more than one that is mostly decided.' },
     ],
   },
+
+  // The forge arc, chapters 11-15. No new rule: each chapter poses a different shape of
+  // problem with the pieces the player already has, and level 10 of each is a gate that
+  // stands clear of everything before it.
+  //
+  // The spec ordered the arc Ore, Smelt, Anvil, Temper, Alloy. Measured gates at 8M nodes
+  // put wide-and-shallow Smelt's ceiling at 181 (nine colours, capacity 3, the most fog a
+  // three-deep lane can hold) against uneven-fog Ore's 250-254, and the peak must rise
+  // through an arc - so Smelt opens it and Ore follows. Each name moved with its identity.
+  {
+    n: 11,
+    name: 'Smelt',
+    color: 10,
+    levels: [
+      { n: 1, beat: 'rest', intensity: 0.20, spec: spec(7, 3, 2, 0, 1, 1), note: 'Wide and shallow. Seven colours, three deep: mistakes are cheap and quick to undo.' },
+      { n: 2, beat: 'build', intensity: 0.35, spec: spec(7, 3, 2, 1, 2, 1, true), note: 'The same width, with the anchor buried.' },
+      { n: 3, beat: 'build', intensity: 0.45, spec: spec(8, 3, 2, 0, 1, 2), note: 'Eight colours across short lanes.' },
+      { n: 4, beat: 'rest', intensity: 0.25, spec: spec(7, 3, 2, 1, 1, 1), note: 'A breath: one face-down token per lane.' },
+      { n: 5, beat: 'build', intensity: 0.55, spec: spec(8, 3, 2, 1, 2, 2, true), note: 'Two buried anchors among eight colours.' },
+      { n: 6, beat: 'build', intensity: 0.65, spec: spec(9, 3, 2, 1, 1, 2, true), note: 'The full palette, three deep.' },
+      { n: 7, beat: 'tight', intensity: 0.50, pick: 0.95, spec: spec(9, 3, 1, 1, 2, 2, true), note: 'Nine short lanes and one free one. Busy, and over fast.' },
+      { n: 8, beat: 'build', intensity: 0.75, spec: spec(9, 3, 2, 2, 2, 3, true), note: 'Every lane as dark as three-deep allows.' },
+      { n: 9, beat: 'rest', intensity: 0.45, spec: spec(8, 3, 2, 0, 1, 2), note: 'Shallow and mostly visible, before the gate.' },
+      // Measured at this slot, 24 candidates at 8M nodes: 181, p90 174, median 160. One
+      // buried anchor rather than three keeps the board from settling its own lanes.
+      { n: 10, beat: 'climax', intensity: 0.85, pick: 1.0, spec: spec(9, 3, 2, 2, 2, 1, true), note: 'Gate. Nine colours, every lane half-dark, one anchor you have to dig for.' },
+    ],
+  },
+  {
+    n: 12,
+    name: 'Ore',
+    color: 11,
+    levels: [
+      { n: 1, beat: 'rest', intensity: 0.45, spec: spec(6, 4, 2, 0, 3, 2), note: 'Uneven fog. Some lanes read plainly, some not at all - plan outward from what you can see.' },
+      { n: 2, beat: 'build', intensity: 0.55, spec: spec(7, 4, 2, 0, 3, 2), note: 'Seven colours, with the clear lanes as your footing.' },
+      { n: 3, beat: 'build', intensity: 0.62, spec: spec(7, 5, 2, 0, 4, 2), note: 'Five deep: the dark lanes hide up to four.' },
+      { n: 4, beat: 'rest', intensity: 0.40, spec: spec(6, 4, 2, 0, 3, 3), note: 'Three anchors in sight, so most of the board is already decided.' },
+      { n: 5, beat: 'build', intensity: 0.68, spec: spec(8, 4, 2, 0, 3, 2), note: 'Eight colours.' },
+      { n: 6, beat: 'tight', intensity: 0.55, pick: 0.95, spec: spec(7, 4, 1, 0, 3, 2), note: 'One free lane, and you cannot see into half the others.' },
+      { n: 7, beat: 'build', intensity: 0.74, spec: spec(8, 5, 2, 0, 4, 3), note: 'Deep lanes, some clear, some black.' },
+      { n: 8, beat: 'build', intensity: 0.80, spec: spec(9, 4, 2, 0, 3, 2), note: 'The full palette over uneven fog.' },
+      { n: 9, beat: 'rest', intensity: 0.50, spec: spec(7, 4, 2, 0, 3, 3), note: 'A readable board before the gate.' },
+      { n: 10, beat: 'climax', intensity: 0.90, pick: 1.0, spec: spec(8, 5, 2, 0, 4, 2), note: 'Gate. Eight colours five deep, and only the fog decides which lanes you can read.' },
+    ],
+  },
+  {
+    n: 13,
+    name: 'Anvil',
+    color: 12,
+    levels: [
+      { n: 1, beat: 'rest', intensity: 0.45, spec: spec(5, 5, 2, 2, 3, 2, true), note: 'Deep and narrow. Few colours, but a wrong token buries four.' },
+      { n: 2, beat: 'build', intensity: 0.55, spec: spec(6, 5, 2, 2, 3, 2, true), note: 'Six colours, five deep.' },
+      { n: 3, beat: 'tight', intensity: 0.50, pick: 0.95, spec: spec(6, 5, 1, 2, 3, 2, true), note: 'One free lane under a five-deep stack.' },
+      { n: 4, beat: 'build', intensity: 0.62, spec: spec(6, 5, 2, 3, 4, 2, true), note: 'The fog sinks to the bottom of every lane.' },
+      { n: 5, beat: 'rest', intensity: 0.40, spec: spec(5, 5, 2, 2, 3, 1, true), note: 'Five colours again, briefly.' },
+      { n: 6, beat: 'build', intensity: 0.70, spec: spec(7, 5, 2, 2, 3, 2, true), note: 'Seven colours - as wide as this chapter gets.' },
+      { n: 7, beat: 'tight', intensity: 0.58, pick: 0.95, spec: spec(7, 5, 1, 3, 4, 3, true), note: 'Tight and deep at once.' },
+      { n: 8, beat: 'build', intensity: 0.76, spec: spec(7, 5, 2, 3, 4, 2, true), note: 'Seven colours, nearly all of them face-down.' },
+      { n: 9, beat: 'rest', intensity: 0.55, spec: spec(6, 5, 2, 2, 3, 2, true), note: 'Room to breathe before the gate.' },
+      // Measured at this slot, 24 candidates at 8M nodes: 237, p90 229, median 220.
+      { n: 10, beat: 'climax', intensity: 0.92, pick: 1.0, spec: spec(7, 5, 2, 4, 4, 1, true), note: 'Gate. Seven colours, the deepest fog a lane can hold, and one buried anchor.' },
+    ],
+  },
+  {
+    n: 14,
+    name: 'Temper',
+    color: 13,
+    levels: [
+      { n: 1, beat: 'rest', intensity: 0.50, spec: spec(9, 3, 2, 2, 2, 6), note: 'Mostly determined: six of nine lanes are anchored, and every other lane is fogged.' },
+      { n: 2, beat: 'build', intensity: 0.58, spec: spec(9, 4, 2, 3, 3, 6), note: 'Four deep. The anchors tell you where; the fog hides how.' },
+      { n: 3, beat: 'build', intensity: 0.64, spec: spec(8, 5, 2, 4, 4, 5), note: 'Five anchors of eight, over the deepest fog.' },
+      { n: 4, beat: 'rest', intensity: 0.45, spec: spec(9, 3, 2, 2, 2, 7), note: 'Seven anchors. Almost nothing is left to decide.' },
+      { n: 5, beat: 'build', intensity: 0.70, spec: spec(9, 5, 2, 4, 4, 7), note: 'Seven anchors, nine colours, five deep.' },
+      { n: 6, beat: 'tight', intensity: 0.60, pick: 0.95, spec: spec(9, 4, 1, 3, 3, 6), note: 'One free lane, and six lanes that will never move.' },
+      { n: 7, beat: 'build', intensity: 0.74, spec: spec(8, 4, 2, 3, 3, 5), note: 'Every destination known, the order anything but.' },
+      { n: 8, beat: 'build', intensity: 0.80, spec: spec(9, 5, 2, 4, 4, 7), note: 'The deepest fog, held in place by seven anchors.' },
+      { n: 9, beat: 'rest', intensity: 0.55, spec: spec(8, 3, 2, 2, 2, 5), note: 'Short lanes before the gate.' },
+      // Temper's anchors stay in sight. Measured at this slot, 24 candidates at 8M nodes,
+      // with six anchors buried the gate reached 307 and seven reached 303 - above Alloy's
+      // 291, which must top the arc. In sight, six anchors reached 251, between Anvil and
+      // Alloy where the curve needs it: visible anchors lift the fog off their own lanes.
+      { n: 10, beat: 'climax', intensity: 0.94, pick: 1.0, spec: spec(9, 5, 2, 4, 4, 6), note: 'Gate. Nine colours, six anchors, and fog as deep as it goes on every lane they do not hold.' },
+    ],
+  },
+  {
+    n: 15,
+    name: 'Alloy',
+    color: 14,
+    levels: [
+      { n: 1, beat: 'rest', intensity: 0.55, spec: spec(7, 4, 2, 3, 3, 1, true), note: 'Barely determined. One buried anchor, and fog over nearly every token.' },
+      { n: 2, beat: 'build', intensity: 0.62, spec: spec(8, 4, 2, 3, 3, 1, true), note: 'Eight colours and almost nothing to hold on to.' },
+      { n: 3, beat: 'build', intensity: 0.70, spec: spec(7, 5, 2, 3, 4, 1, true), note: 'Five deep: the discovery takes longer.' },
+      { n: 4, beat: 'tight', intensity: 0.60, pick: 0.95, spec: spec(8, 5, 1, 3, 4, 1, true), note: 'One free lane, blind.' },
+      { n: 5, beat: 'build', intensity: 0.76, spec: spec(9, 4, 2, 3, 3, 1, true), note: 'Nine colours.' },
+      { n: 6, beat: 'build', intensity: 0.80, spec: spec(8, 5, 2, 3, 4, 1, true), note: '' },
+      { n: 7, beat: 'tight', intensity: 0.66, pick: 0.95, spec: spec(9, 5, 1, 3, 4, 1, true), note: 'Nine colours, one free lane, and you can see almost none of it.' },
+      { n: 8, beat: 'build', intensity: 0.86, spec: spec(9, 5, 2, 3, 4, 1, true), note: 'The hardest ordinary board of the forge.' },
+      { n: 9, beat: 'rest', intensity: 0.60, spec: spec(7, 4, 2, 3, 3, 1, true), note: 'A smaller board before the last gate of the arc.' },
+      // The forge arc's summit, and it must clear the stone arc's 284. Measured at this
+      // slot, 24 candidates at 8M nodes: 291, p90 284, median 276. Fog 3-4 instead of a
+      // flat 4 topped out at 279. The spec keeps the hardest outliers in reserve for the
+      // light arc, so this aims only just past the stone arc.
+      { n: 10, beat: 'climax', intensity: 1.0, pick: 1.0, spec: spec(9, 5, 2, 4, 4, 1, true), note: 'Gate. Nine colours, every lane as dark as it goes, one buried anchor. The top of the forge.' },
+    ],
+  },
 ];
 
 export const TOTAL_LEVELS = CHAPTERS.reduce((sum, c) => sum + c.levels.length, 0);
