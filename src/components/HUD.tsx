@@ -10,6 +10,7 @@ interface HUDProps {
   moves: number;
   par: number;
   hintsRemaining: number;
+  undosLeft: number;
   canUndo: boolean;
   onBack: () => void;
   onUndo: () => void;
@@ -26,6 +27,7 @@ export function HUD({
   moves,
   par,
   hintsRemaining,
+  undosLeft,
   canUndo,
   onBack,
   onUndo,
@@ -72,7 +74,15 @@ export function HUD({
       </Text>
 
       <View style={styles.controls}>
-        <Control label="Undo" onPress={onUndo} disabled={!canUndo}>
+        {/* The count is shown but not spoken as part of the name, so the control is still
+            simply "Undo" to VoiceOver and to the UI tests. */}
+        <Control
+          label={`Undo ${undosLeft}`}
+          accessibilityLabel="Undo"
+          accessibilityValue={`${undosLeft} left`}
+          onPress={onUndo}
+          disabled={!canUndo}
+        >
           <UndoIcon color={canUndo ? surface.ink : surface.graphite} />
         </Control>
         <Control label="Restart" onPress={onRestart}>
@@ -88,11 +98,15 @@ export function HUD({
 
 function Control({
   label,
+  accessibilityLabel = label,
+  accessibilityValue,
   onPress,
   disabled,
   children,
 }: {
   label: string;
+  accessibilityLabel?: string;
+  accessibilityValue?: string;
   onPress: () => void;
   disabled?: boolean;
   children: React.ReactNode;
@@ -103,7 +117,8 @@ function Control({
       disabled={disabled}
       hitSlop={8}
       accessibilityRole="button"
-      accessibilityLabel={label}
+      accessibilityLabel={accessibilityLabel}
+      accessibilityValue={accessibilityValue ? { text: accessibilityValue } : undefined}
       accessibilityState={{ disabled: !!disabled }}
       style={[styles.control, disabled && styles.controlDisabled]}
     >

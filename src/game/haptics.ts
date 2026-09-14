@@ -54,3 +54,44 @@ export const tapWin = () => {
   safely(() => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success));
   play('win');
 };
+
+/**
+ * The board has dead-ended. Fired as the out-of-moves sheet appears rather than when the
+ * last token lands, so the player hears it at the moment they are told.
+ */
+export const tapStuck = () => {
+  safely(() => Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning));
+  play('stuck');
+};
+
+/** A move is taken back. */
+export const tapUndo = () => {
+  safely(() => Haptics.selectionAsync());
+  play('undo');
+};
+
+/** The level starts over. */
+export const tapRestart = () => {
+  safely(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light));
+  play('restart');
+};
+
+/** A star stamps onto the win sheet. */
+export const tapStar = () => {
+  safely(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light));
+  play('star');
+};
+
+/** A hint lights up a move. */
+export const tapHint = () => {
+  safely(() => Haptics.selectionAsync());
+  play('hint');
+};
+
+/**
+ * Any button. Sound only: a buzz on every menu press would dull the haptics that mean
+ * something on the board.
+ */
+export const tapButton = () => {
+  play('tap');
+};

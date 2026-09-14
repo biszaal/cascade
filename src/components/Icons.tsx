@@ -1,4 +1,4 @@
-import Svg, { Path } from 'react-native-svg';
+import Svg, { Path, Rect } from 'react-native-svg';
 import { surface } from '@/design/tokens';
 
 interface IconProps {
@@ -81,6 +81,22 @@ export function LockIcon({ size = 16, color = surface.graphite }: IconProps) {
         strokeLinecap="round"
         strokeLinejoin="round"
       />
+    </Svg>
+  );
+}
+
+/** A filled padlock, for badges too small for the stroked LockIcon to read. */
+export function PadlockSolidIcon({ size = 12, color = surface.ink }: IconProps) {
+  return (
+    <Svg width={size} height={size} viewBox="0 0 24 24">
+      <Path
+        d="M8 11V8a4 4 0 018 0v3"
+        stroke={color}
+        strokeWidth={3.2}
+        strokeLinecap="round"
+        fill="none"
+      />
+      <Rect x={4.5} y={10} width={15} height={11.5} rx={2.5} fill={color} />
     </Svg>
   );
 }

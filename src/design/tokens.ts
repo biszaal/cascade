@@ -1,3 +1,5 @@
+import type { TextStyle } from 'react-native';
+
 /**
  * Code mirror of DESIGN.md. That document is the source of truth; if you change a
  * value here, change it there too.
@@ -102,24 +104,29 @@ export const radius = {
   pill: 999,
 } as const;
 
+/** One rounded, friendly family for the whole game - titles, body and numbers alike. */
 export const font = {
-  display: 'Outfit_600SemiBold',
-  displayBold: 'Outfit_700Bold',
-  body: 'Outfit_400Regular',
-  bodyMedium: 'Outfit_500Medium',
-  /** Every numeral in the app. Tabular figures stop counters jittering as they tick. */
-  mono: 'JetBrainsMono_500Medium',
-  monoBold: 'JetBrainsMono_700Bold',
+  display: 'Fredoka_600SemiBold',
+  displayBold: 'Fredoka_700Bold',
+  body: 'Fredoka_400Regular',
+  bodyMedium: 'Fredoka_500Medium',
+  /** Every numeral in the app. Kept as its own role so numbers can be restyled in one place. */
+  mono: 'Fredoka_600SemiBold',
+  monoBold: 'Fredoka_700Bold',
 } as const;
 
+/** Tabular figures stop counters jittering as they tick, wherever the platform supports them. */
+const tabular: TextStyle['fontVariant'] = ['tabular-nums'];
+
+// A rounded face crowds when it is tracked tight, so display sizes sit at natural spacing.
 export const type = {
-  hero: { fontFamily: font.displayBold, fontSize: 44, lineHeight: 48, letterSpacing: -1.2 },
-  title: { fontFamily: font.display, fontSize: 28, lineHeight: 34, letterSpacing: -0.6 },
-  heading: { fontFamily: font.display, fontSize: 20, lineHeight: 26, letterSpacing: -0.3 },
+  hero: { fontFamily: font.displayBold, fontSize: 44, lineHeight: 50, letterSpacing: 0 },
+  title: { fontFamily: font.display, fontSize: 28, lineHeight: 34, letterSpacing: 0 },
+  heading: { fontFamily: font.display, fontSize: 20, lineHeight: 26, letterSpacing: 0 },
   body: { fontFamily: font.body, fontSize: 16, lineHeight: 24 },
   label: { fontFamily: font.bodyMedium, fontSize: 13, lineHeight: 18, letterSpacing: 0.4 },
-  numeral: { fontFamily: font.mono, fontSize: 16, lineHeight: 20 },
-  numeralLarge: { fontFamily: font.monoBold, fontSize: 32, lineHeight: 36 },
+  numeral: { fontFamily: font.mono, fontSize: 16, lineHeight: 20, fontVariant: tabular },
+  numeralLarge: { fontFamily: font.monoBold, fontSize: 32, lineHeight: 36, fontVariant: tabular },
 } as const;
 
 /** Premium, weighty. Never linear easing. */
@@ -154,6 +161,10 @@ export const duration = {
   /** Before the first star stamps, and between each stamp after it. */
   stampLead: 120,
   stampGap: 100,
+  /** Before the out-of-moves sheet covers the board, so the last pour visibly lands. */
+  stuckDelay: 450,
+  /** One swing of the glum token's wobble on that sheet. */
+  stuckWobble: 900,
 } as const;
 
 /** One soft shadow, tinted to the paper hue. Never a dark halo. */

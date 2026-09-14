@@ -1,21 +1,21 @@
 import { useEffect } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { AppState, Pressable, Text, View } from 'react-native';
 import { Stack, type ErrorBoundaryProps } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as SplashScreen from 'expo-splash-screen';
 import { useFonts } from 'expo-font';
 import {
-  Outfit_400Regular,
-  Outfit_500Medium,
-  Outfit_600SemiBold,
-  Outfit_700Bold,
-} from '@expo-google-fonts/outfit';
-import { JetBrainsMono_500Medium, JetBrainsMono_700Bold } from '@expo-google-fonts/jetbrains-mono';
+  Fredoka_400Regular,
+  Fredoka_500Medium,
+  Fredoka_600SemiBold,
+  Fredoka_700Bold,
+} from '@expo-google-fonts/fredoka';
 import { surface } from '@/design/tokens';
 import { useProgress } from '@/state/progress';
 import { setHapticsEnabled } from '@/game/haptics';
-import { setSoundEnabled, release as releaseSound } from '@/game/sound';
+import { preloadSounds, setSoundEnabled, release as releaseSound } from '@/game/sound';
+import { pauseMusic, resumeMusic, setMusicEnabled } from '@/game/music';
 import { ensureSession } from '@/supabase/auth';
 import { flushPending, pullRemote } from '@/data/sync';
 
@@ -71,18 +71,17 @@ export function ErrorBoundary({ retry }: ErrorBoundaryProps) {
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
-    Outfit_400Regular,
-    Outfit_500Medium,
-    Outfit_600SemiBold,
-    Outfit_700Bold,
-    JetBrainsMono_500Medium,
-    JetBrainsMono_700Bold,
+    Fredoka_400Regular,
+    Fredoka_500Medium,
+    Fredoka_600SemiBold,
+    Fredoka_700Bold,
   });
 
   const hydrate = useProgress((s) => s.hydrate);
   const loaded = useProgress((s) => s.loaded);
   const hapticsEnabled = useProgress((s) => s.hapticsEnabled);
   const soundEnabled = useProgress((s) => s.soundEnabled);
+  const musicEnabled = useProgress((s) => s.musicEnabled);
 
   useEffect(() => {
     // Sign in anonymously, then reconcile with the cloud - all in the background. None of
@@ -109,7 +108,27 @@ export default function RootLayout() {
     // Hand the native players back when the player turns sound off, rather than holding
     // an audio session open for something they have said they do not want.
     if (!soundEnabled) releaseSound();
-  }, [soundEnabled]);
+    // Otherwise load them as soon as the saved preference is known, so the first pour is
+    // heard on time.
+    else if (loaded) preloadSounds();
+  }, [soundEnabled, loaded]);
+
+  useEffect(() => {
+    // Wait for the saved preference: starting on the default would play a bar of music at
+    // someone who switched it off last time.
+    if (!loaded) return;
+    setMusicEnabled(musicEnabled);
+  }, [loaded, musicEnabled]);
+
+  useEffect(() => {
+    // Background playback is off, so pause explicitly rather than letting the OS cut the tune
+    // mid-note, and pick it back up when the player returns.
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') resumeMusic();
+      else pauseMusic();
+    });
+    return () => subscription.remove();
+  }, []);
 
   useEffect(() => {
     if (fontsLoaded && loaded) SplashScreen.hideAsync().catch(() => {});

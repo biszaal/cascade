@@ -61,7 +61,10 @@ final class CascadeUITests: XCTestCase {
     /// token actually travelled.
     func testB_oneTapMovesOneToken() {
         let app = launchApp()
-        enterFirstLevel(app)
+        // Open level 1 directly. "Continue" lands on whatever level saved progress has reached,
+        // and the lane 2 -> lane 4 pour below is only legal on level 1's board.
+        open(app, "cascade://play/1")
+        XCTAssertTrue(lane(app, 1).waitForExistence(timeout: 30), "Level 1 board never appeared")
 
         // Undo starts disabled; after one legal pour it must become enabled.
         let undo = app.buttons["Undo"]
@@ -268,9 +271,9 @@ final class CascadeUITests: XCTestCase {
     /// The App Store screenshot tour, and a release check that holds whether or not a backend is
     /// configured.
     ///
-    /// Run it against a Release build so the shots carry no developer tooling. Online features come
-    /// and go together: the daily leaderboard and Settings' sync control are either both present
-    /// (a backend is configured) or both absent, and no screen ever shows backend setup text.
+    /// Run it against a Release build so the shots carry no developer tooling. Whether a backend is
+    /// configured is read from Settings' sync control (the daily leaderboard only appears once the
+    /// daily board is solved), and no screen ever shows backend setup text.
     func testG_storeTour() {
         XCUIDevice.shared.orientation = .portrait
         let app = launchApp()
@@ -307,22 +310,15 @@ final class CascadeUITests: XCTestCase {
 
         open(app, "cascade://daily")
         XCTAssertTrue(lane(app, 1).waitForExistence(timeout: 30), "Daily board never appeared")
-        // Whether this build has a backend decides what Settings must show below.
-        let online = app.staticTexts["TODAY'S BOARD"].exists
         XCTAssertEqual(
             app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] 'supabase'")).count, 0,
             "Players must never be shown backend setup text"
         )
-        attach(online ? "verify-daily-online" : "verify-daily-offline")
+        attach("verify-daily")
 
         open(app, "cascade://settings")
         XCTAssertTrue(app.staticTexts["Haptics"].waitForExistence(timeout: 15), "Settings never appeared")
-        XCTAssertEqual(
-            app.buttons["Sync now"].exists, online,
-            online
-                ? "The daily leaderboard is on, so Settings must offer sync too"
-                : "The daily leaderboard is off, so Settings must not offer sync"
-        )
+        let online = app.buttons["Sync now"].exists
         XCTAssertEqual(
             app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] 'not configured'")).count, 0,
             "Players must never be shown backend setup text"

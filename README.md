@@ -102,10 +102,12 @@ which walks backwards from the finished position and is solvable by construction
 
 ## Sound and feel
 
-Sound effects are synthesised by `scripts/generate-sounds.mjs` rather than sourced: short
-struck-wood knocks, licence-free and about 130KB in total. Haptics and sound fire from one
-call per game event so they cannot drift apart. The audio session respects the ringer
-switch and mixes with other audio rather than interrupting it.
+Sound effects and music are synthesised by `scripts/generate-sounds.mjs` rather than sourced:
+cartoon bloops, boinks and bells, plus a 53-second music-box loop rendered circularly so it has
+no seam. Licence-free, about 2.7MB in total, almost all of it the music. Haptics and sound fire
+from one call per game event so they cannot drift apart. Music has its own switch in Settings
+and pauses when the app leaves the foreground. The audio session respects the ringer switch
+and mixes with other audio rather than interrupting it.
 
 ## Accessibility
 

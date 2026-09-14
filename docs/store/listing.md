@@ -35,13 +35,13 @@ Ten chapters across two worlds, each introducing a new idea on a gentle board be
 • Stone — plan around anchored tokens that never move, so their lanes can only ever finish in one colour.
 
 EVERY MOVE COUNTS
-Solve a level in fewer moves to earn more stars. Undo freely, restart any time, and use a hint when you're truly stuck.
+Solve a level in fewer moves to earn more stars. Take back a few moves, restart any time, and use a hint when you're truly stuck.
 
 A NEW PUZZLE EVERY DAY
 The daily challenge gives everyone the same board each day, with a leaderboard for the fewest moves.
 
 MADE TO FEEL GOOD
-Tactile animations, soft wooden sound effects and gentle haptics — never a timer, never a rush.
+Bouncy animations, playful sound effects, a calm soundtrack and gentle haptics — never a timer, never a rush.
 
 FOR EVERYONE
 • Plays fully offline

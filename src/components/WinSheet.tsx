@@ -11,6 +11,7 @@ import Animated, {
 import Svg, { Path } from 'react-native-svg';
 import { duration, radius, space, spring, surface, type } from '@/design/tokens';
 import { Button } from './Button';
+import * as haptics from '@/game/haptics';
 import { metricsFor } from '@/game/responsive';
 
 interface WinSheetProps {
@@ -37,10 +38,14 @@ function StampedStar({ filled, index }: { filled: boolean; index: number }) {
       scale.value = withTiming(1, { duration: duration.sheet });
       return;
     }
+    const delay = duration.stampLead + index * duration.stampGap;
     scale.value = withDelay(
-      duration.stampLead + index * duration.stampGap,
+      delay,
       withSequence(withSpring(1.28, { damping: 11, stiffness: 280 }), withSpring(1, spring.default)),
     );
+    // The ding shares the stamp's delay, so each star is heard as it lands.
+    const ding = setTimeout(haptics.tapStar, delay);
+    return () => clearTimeout(ding);
   }, [filled, index, scale]);
 
   const style = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
@@ -101,7 +106,8 @@ export function WinSheet({
 
           <View style={styles.actions}>
             {hasNext ? <Button label="Next level" onPress={onNext} /> : null}
-            <Button label="Play again" variant="outline" onPress={onReplay} />
+            {/* Replaying restarts the level, which plays its own swoosh. */}
+            <Button label="Play again" variant="outline" onPress={onReplay} silent />
             <Button label="Back to chapter" variant="quiet" onPress={onExit} />
           </View>
         </View>

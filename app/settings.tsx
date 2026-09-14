@@ -15,8 +15,10 @@ export default function Settings() {
   const metrics = metricsFor(width, height);
   const haptics = useProgress((s) => s.hapticsEnabled);
   const sound = useProgress((s) => s.soundEnabled);
+  const music = useProgress((s) => s.musicEnabled);
   const setHaptics = useProgress((s) => s.setHaptics);
   const setSound = useProgress((s) => s.setSound);
+  const setMusic = useProgress((s) => s.setMusic);
   const reset = useProgress((s) => s.reset);
   const dirty = useProgress((s) => s.dirty);
   const [syncing, setSyncing] = useState(false);
@@ -45,10 +47,17 @@ export default function Settings() {
               trackColor={{ true: surface.accent, false: surface.inactive }}
             />
           </Row>
-          <Row label="Sound" description="Soft wooden clicks as tokens land">
+          <Row label="Sound" description="Playful pops and boops as tokens move">
             <Switch
               value={sound}
               onValueChange={setSound}
+              trackColor={{ true: surface.accent, false: surface.inactive }}
+            />
+          </Row>
+          <Row label="Music" description="A calm tune in the background">
+            <Switch
+              value={music}
+              onValueChange={setMusic}
               trackColor={{ true: surface.accent, false: surface.inactive }}
             />
           </Row>

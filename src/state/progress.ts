@@ -21,6 +21,7 @@ export interface ProgressState {
   hintsResetOn: string;
   hapticsEnabled: boolean;
   soundEnabled: boolean;
+  musicEnabled: boolean;
   loaded: boolean;
   /** Rows changed since the last successful sync. */
   dirty: number[];
@@ -30,6 +31,7 @@ export interface ProgressState {
   spendHint: () => boolean;
   setHaptics: (value: boolean) => void;
   setSound: (value: boolean) => void;
+  setMusic: (value: boolean) => void;
   clearDirty: (ids: number[]) => void;
   reset: () => Promise<void>;
 
@@ -49,13 +51,22 @@ interface Persisted {
   hintsResetOn: string;
   hapticsEnabled: boolean;
   soundEnabled: boolean;
+  musicEnabled: boolean;
   dirty: number[];
 }
 
 export const useProgress = create<ProgressState>((set, get) => {
   function persist(): void {
-    const { results, hintsRemaining, hintsResetOn, hapticsEnabled, soundEnabled, dirty } = get();
-    const payload: Persisted = { results, hintsRemaining, hintsResetOn, hapticsEnabled, soundEnabled, dirty };
+    const { results, hintsRemaining, hintsResetOn, hapticsEnabled, soundEnabled, musicEnabled, dirty } = get();
+    const payload: Persisted = {
+      results,
+      hintsRemaining,
+      hintsResetOn,
+      hapticsEnabled,
+      soundEnabled,
+      musicEnabled,
+      dirty,
+    };
     AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(payload)).catch(() => {});
   }
 
@@ -65,6 +76,7 @@ export const useProgress = create<ProgressState>((set, get) => {
     hintsResetOn: today(),
     hapticsEnabled: true,
     soundEnabled: true,
+    musicEnabled: true,
     loaded: false,
     dirty: [],
 
@@ -81,6 +93,7 @@ export const useProgress = create<ProgressState>((set, get) => {
             hintsResetOn: today(),
             hapticsEnabled: saved.hapticsEnabled ?? true,
             soundEnabled: saved.soundEnabled ?? true,
+            musicEnabled: saved.musicEnabled ?? true,
             dirty: saved.dirty ?? [],
           });
         }
@@ -120,6 +133,11 @@ export const useProgress = create<ProgressState>((set, get) => {
 
     setSound: (value) => {
       set({ soundEnabled: value });
+      persist();
+    },
+
+    setMusic: (value) => {
+      set({ musicEnabled: value });
       persist();
     },
 

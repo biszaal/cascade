@@ -203,6 +203,6 @@ const styles = StyleSheet.create({
   scroll: { alignItems: 'center', paddingVertical: space.lg, paddingBottom: space.huge },
   node: { position: 'absolute', alignItems: 'center' },
   nodeButton: { borderWidth: 2, alignItems: 'center', justifyContent: 'center' },
-  nodeNumber: { ...type.numeral, fontFamily: 'JetBrainsMono_700Bold', fontSize: 15 },
+  nodeNumber: { ...type.numeralLarge, fontSize: 15, lineHeight: 20 },
   nodeStars: { marginTop: 5, height: 12 },
 });

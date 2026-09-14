@@ -24,6 +24,12 @@ import * as haptics from '@/game/haptics';
  * pour would look like tokens vanishing and reappearing rather than travelling.
  */
 
+/**
+ * Takebacks per attempt at a level. Restarting refills them, so the limit shapes how an
+ * attempt is played without ever locking anyone out of the level itself.
+ */
+export const UNDO_ALLOWANCE = 5;
+
 interface Snapshot {
   state: GameState;
   ids: number[][];
@@ -46,6 +52,10 @@ export interface SessionState {
   /** True while the player is still following the level's precomputed optimal line. */
   onOptimalPath: boolean;
   elapsedFrom: number;
+  /** Takebacks left in this attempt. */
+  undosLeft: number;
+  /** The board has no legal move left and is not solved. */
+  stuck: boolean;
 
   load: (level: Level) => void;
   tapLane: (index: number) => void;
@@ -81,6 +91,8 @@ export const useSession = create<SessionState>((set, get) => ({
   hint: null,
   onOptimalPath: true,
   elapsedFrom: 0,
+  undosLeft: UNDO_ALLOWANCE,
+  stuck: false,
 
   load: (level) => {
     const state = createState(level.config);
@@ -97,6 +109,8 @@ export const useSession = create<SessionState>((set, get) => ({
       hint: null,
       onOptimalPath: true,
       elapsedFrom: Date.now(),
+      undosLeft: UNDO_ALLOWANCE,
+      stuck: false,
     });
   },
 
@@ -169,6 +183,9 @@ export const useSession = create<SessionState>((set, get) => ({
       expected.count === move.count;
 
     const won = isSolved(next);
+    // Decided once per move rather than on every render: finding a dead end tries every
+    // lane pair, and the answer only changes when the board does.
+    const stuck = !won && isStuck(next);
 
     if (justCompleted.length > 0) haptics.tapComplete();
     else haptics.tapPlace();
@@ -184,14 +201,15 @@ export const useSession = create<SessionState>((set, get) => ({
       hint: null,
       onOptimalPath: stillOnPath,
       status: won ? 'won' : 'playing',
+      stuck,
     });
   },
 
   undo: () => {
-    const history = get().history;
+    const { history, undosLeft } = get();
     const previous = history[history.length - 1];
-    if (!previous) return;
-    haptics.tapLift();
+    if (!previous || undosLeft <= 0) return;
+    haptics.tapUndo();
     set({
       state: previous.state,
       ids: previous.ids,
@@ -201,6 +219,8 @@ export const useSession = create<SessionState>((set, get) => ({
       justCompleted: [],
       hint: null,
       status: 'playing',
+      undosLeft: undosLeft - 1,
+      stuck: false,
       // Once a move has been taken back the precomputed line no longer describes play.
       onOptimalPath: false,
     });
@@ -208,13 +228,16 @@ export const useSession = create<SessionState>((set, get) => ({
 
   restart: () => {
     const level = get().level;
-    if (level) get().load(level);
+    if (!level) return;
+    haptics.tapRestart();
+    get().load(level);
   },
 
   requestHint: () => {
     const { state, level, moves, onOptimalPath } = get();
     if (!state || !level) return null;
     const move = hintMove(state, { movesPlayed: moves, solution: level.solution, onPath: onOptimalPath });
+    if (move) haptics.tapHint();
     set({ hint: move, selected: move ? move.from : null });
     return move;
   },
@@ -228,9 +251,9 @@ export const useSession = create<SessionState>((set, get) => ({
   },
 }));
 
-/** True when the board has no legal move left and is not solved. */
-export function sessionIsStuck(state: GameState | null): boolean {
-  return state ? isStuck(state) : false;
+/** Whether the player can take a move back right now. */
+export function canUndo(session: Pick<SessionState, 'history' | 'undosLeft'>): boolean {
+  return session.history.length > 0 && session.undosLeft > 0;
 }
 
 /** How many tokens would travel if the held lane poured into `to`. */

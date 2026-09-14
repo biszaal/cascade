@@ -1,7 +1,8 @@
 import React, { useCallback } from 'react';
 import { Pressable, StyleSheet, Text, View, type ViewStyle } from 'react-native';
 import Animated, { useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
-import { radius, space, spring, surface, type } from '@/design/tokens';
+import { font, radius, space, spring, surface, type } from '@/design/tokens';
+import * as haptics from '@/game/haptics';
 
 interface ButtonProps {
   label: string;
@@ -10,10 +11,12 @@ interface ButtonProps {
   disabled?: boolean;
   icon?: React.ReactNode;
   style?: ViewStyle;
+  /** The action plays its own sound, so the press should not add a tap on top of it. */
+  silent?: boolean;
 }
 
 /** Flat, no glow. Presses translate down a point - a tactile push, not an opacity fade. */
-export function Button({ label, onPress, variant = 'primary', disabled, icon, style }: ButtonProps) {
+export function Button({ label, onPress, variant = 'primary', disabled, icon, style, silent }: ButtonProps) {
   const pressed = useSharedValue(0);
 
   const animatedStyle = useAnimatedStyle(() => ({
@@ -26,6 +29,10 @@ export function Button({ label, onPress, variant = 'primary', disabled, icon, st
   const up = useCallback(() => {
     pressed.value = withSpring(0, spring.snappy);
   }, [pressed]);
+  const press = useCallback(() => {
+    if (!silent) haptics.tapButton();
+    onPress();
+  }, [onPress, silent]);
 
   const palette = {
     primary: { bg: surface.accent, fg: surface.chalk, border: 'transparent' },
@@ -36,7 +43,7 @@ export function Button({ label, onPress, variant = 'primary', disabled, icon, st
   return (
     <Animated.View style={[animatedStyle, style]}>
       <Pressable
-        onPress={onPress}
+        onPress={press}
         onPressIn={down}
         onPressOut={up}
         disabled={disabled}
@@ -67,5 +74,5 @@ const styles = StyleSheet.create({
     gap: space.sm,
   },
   icon: { alignItems: 'center', justifyContent: 'center' },
-  label: { ...type.body, fontFamily: 'Outfit_600SemiBold', letterSpacing: 0.2 },
+  label: { ...type.body, fontFamily: font.display, letterSpacing: 0.2 },
 });

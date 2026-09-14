@@ -4,10 +4,11 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Board } from '@/components/Board';
 import { HUD } from '@/components/HUD';
+import { StuckSheet } from '@/components/StuckSheet';
 import { WinSheet } from '@/components/WinSheet';
 import { space, surface, type } from '@/design/tokens';
 import { getLevel, totalLevels } from '@/data/levels';
-import { useSession, sessionIsStuck } from '@/state/session';
+import { canUndo, useSession } from '@/state/session';
 import { useProgress } from '@/state/progress';
 import { starsFor } from '@/game/scoring';
 import { metricsFor } from '@/game/responsive';
@@ -71,7 +72,7 @@ export default function Play() {
     240,
     height - HUD_HEIGHT - (metrics.isTablet ? space.huge * 2 : space.xxl),
   );
-  const stuck = sessionIsStuck(session.state);
+  const undoable = canUndo(session);
   // Only on the very first level, only before the first move, and only for someone who
   // has never finished anything. After that the levels teach by constraint.
   const showFirstRunHint = level.id === 1 && session.moves === 0 && !hasPlayedBefore;
@@ -86,7 +87,8 @@ export default function Play() {
           moves={session.moves}
           par={level.par}
           hintsRemaining={hintsRemaining}
-          canUndo={session.history.length > 0}
+          undosLeft={session.undosLeft}
+          canUndo={undoable}
           onBack={() => router.back()}
           onUndo={session.undo}
           onRestart={session.restart}
@@ -113,17 +115,23 @@ export default function Play() {
       </View>
 
       {/* One shared slot for the footer line, so showing or hiding it never shifts the
-          board. A dead end is stated inline rather than in a modal, because undo is
-          already right there. */}
+          board. */}
       <View style={styles.footer}>
-        {stuck ? (
-          <Text style={styles.stuck}>No moves left — undo, or restart the board.</Text>
-        ) : showFirstRunHint ? (
+        {showFirstRunHint ? (
           <Text style={styles.coach}>Tap a lane to lift its top piece, then tap another to drop it.</Text>
         ) : (
-          <Text style={styles.stuckPlaceholder} />
+          <Text style={styles.footerPlaceholder} />
         )}
       </View>
+
+      <StuckSheet
+        visible={session.stuck}
+        undosLeft={session.undosLeft}
+        canUndo={undoable}
+        onUndo={session.undo}
+        onRestart={session.restart}
+        onExit={() => router.back()}
+      />
 
       <WinSheet
         visible={session.status === 'won'}
@@ -147,9 +155,8 @@ const styles = StyleSheet.create({
   hud: { paddingTop: space.sm, alignSelf: 'center' },
   boardArea: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: space.base },
   footer: { minHeight: 30, alignItems: 'center', justifyContent: 'center', paddingBottom: space.sm },
-  stuck: { ...type.label, color: surface.accent },
   coach: { ...type.label, color: surface.graphite },
-  stuckPlaceholder: { height: 18 },
+  footerPlaceholder: { height: 18 },
   missing: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   missingText: { ...type.body, color: surface.graphite },
 });

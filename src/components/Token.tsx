@@ -9,7 +9,8 @@ import Animated, {
   withSpring,
   withTiming,
 } from 'react-native-reanimated';
-import { duration, font, hiddenToken, spring, tokenColors } from '@/design/tokens';
+import { duration, font, hiddenToken, spring, surface, tokenColors } from '@/design/tokens';
+import { PadlockSolidIcon } from './Icons';
 
 interface TokenProps {
   colorId: number;
@@ -119,37 +120,51 @@ function TokenView({ colorId, faceDown, anchored, size, x, y, lifted, celebrate,
   const palette = tokenColors[colorId % tokenColors.length]!;
   const fill = faceDown ? hiddenToken.fill : palette.fill;
   const rim = faceDown ? hiddenToken.shade : palette.shade;
+  const badge = Math.max(12, Math.round(size * 0.36));
 
   return (
     <Animated.View
       style={[
         styles.token,
         { width: size, height: size, borderRadius: size / 2, backgroundColor: fill, borderColor: rim },
-        // An anchor can never move, so it is keyed by shape rather than by colour - the
-        // palette is colourblind-safe on purpose, and a tint or opacity change would
-        // vanish for exactly the players who need the cue most, and under high-contrast
-        // settings too. Squaring the bottom corners seats the disc flat against the
-        // lane, like a piece keyed into a socket, while the top stays a disc.
-        anchored
-          ? { borderBottomLeftRadius: size * 0.08, borderBottomRightRadius: size * 0.08 }
-          : null,
         animatedStyle,
       ]}
       pointerEvents="none"
     >
-      {anchored ? (
-        // The bar reuses `rim` rather than a fresh colour: it is already face-down aware
-        // (hiddenToken.shade vs. the palette shade), so a hidden anchor still reads as
-        // keyed without giving its colour away.
-        <View style={[styles.key, { width: size * 0.42, bottom: size * 0.13, backgroundColor: rim }]} />
-      ) : null}
       {faceDown ? (
         <Text
-          style={[styles.unknown, { fontSize: size * 0.5, lineHeight: size * 0.62 }]}
+          style={[
+            styles.unknown,
+            { fontSize: size * 0.5, lineHeight: size * 0.62 },
+            // Lifted a touch on an anchor so the question mark clears the padlock badge.
+            anchored ? { marginBottom: size * 0.1 } : null,
+          ]}
           allowFontScaling={false}
         >
           ?
         </Text>
+      ) : null}
+      {anchored ? (
+        // An anchor can never move, so it is marked by a shape rather than by colour - the
+        // palette is colourblind-safe on purpose, and a tint or opacity change would vanish
+        // for exactly the players who need the cue most. A padlock says "stays put" outright.
+        // The badge ring reuses `rim`, which is already face-down aware, so a hidden anchor
+        // still reads as locked without giving its colour away.
+        <View
+          style={[
+            styles.badge,
+            {
+              width: badge,
+              height: badge,
+              borderRadius: badge / 2,
+              // Seated on the disc's lower edge. Offsets are measured inside the 2pt rim.
+              bottom: -Math.round(size * 0.05) - 2,
+              borderColor: rim,
+            },
+          ]}
+        >
+          <PadlockSolidIcon size={Math.round(badge * 0.6)} color={surface.ink} />
+        </View>
       ) : null}
     </Animated.View>
   );
@@ -165,14 +180,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  // The short inset bar that keys an anchored base - a bracket pinning the disc down,
-  // not a sticker on top of it. Fixed height like the rim, so it reads as part of the
-  // same printed material at any token size.
-  key: {
+  // A small round lock tag, cut from the board's own felt so it reads on every colour.
+  badge: {
     position: 'absolute',
     alignSelf: 'center',
-    height: 3,
-    borderRadius: 1.5,
+    backgroundColor: surface.board,
+    borderWidth: 1.5,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   // A question mark states "unknown" outright, which a bare dot only implied. Kept in the
   // muted mark colour so a face-down piece still recedes behind the coloured ones.
