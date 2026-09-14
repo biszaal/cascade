@@ -1,7 +1,7 @@
 {
   "configVersion": 0,
   "apple": {
-    "version": "1.0.0",
+    "version": "1.0.1",
     "copyright": "2026 Biszaal Tech Ltd.",
     "categories": [
       [
@@ -30,7 +30,7 @@
           "calm",
           "strategy"
         ],
-        "releaseNotes": "Welcome to Cascade.",
+        "releaseNotes": "What's new in 1.0.1\n\n• Out of moves? A new prompt lets you undo (5 per level) or restart.\n• A fun new look with rounded, friendly lettering.\n• Playful sound effects and a calm soundtrack — switch music off in Settings.\n• Locked tokens now wear a padlock, so they're easier to spot.\n• The daily challenge fits on one screen.",
         "supportUrl": "https://www.biszaaltech.com/games/cascade",
         "marketingUrl": "https://www.biszaaltech.com/games/cascade",
         "privacyPolicyUrl": "https://www.biszaaltech.com/games/cascade/privacy"
