@@ -70,6 +70,12 @@ export const hiddenToken = {
  * fails silently rather than loudly - a chapter beyond the end of this list does not
  * error, it just quietly wears an earlier chapter's accent. Keep this at least as long as
  * the number of chapters that exist.
+ *
+ * Twenty accents cannot all be told apart under colour-vision deficiency, and they do not
+ * need to be: an accent never identifies a chapter on its own, it always sits beside the
+ * chapter's name. So each one is distinct in normal vision from its neighbours and from the
+ * nine token fills, and neighbouring chapters differ in lightness as well as hue. Any screen
+ * that shows an accent without the chapter's name breaks that, and must add the name.
  */
 export const chapterColors = [
   '#E69F00',
@@ -82,6 +88,18 @@ export const chapterColors = [
   '#56B4E9', // Okabe-Ito sky blue
   '#8C5A3C', // umber
   '#7D4E8C', // plum
+  // Forge, chapters 11-15: warm metal.
+  '#F2956B', // ember
+  '#7C6F4A', // bronze
+  '#A8B4BE', // iron
+  '#3F6E8C', // tempered steel
+  '#E8C170', // brass
+  // Light, chapters 16-20: from a banked coal up to open sky.
+  '#9E3B2F', // coal red
+  '#6C8FD6', // blue flame
+  '#FFF0B8', // white gold
+  '#B9A1E8', // corona violet
+  '#DDEBFA', // pale sky
 ] as const;
 
 /** 4pt base scale. */
