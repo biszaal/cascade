@@ -56,13 +56,13 @@ src/components/         Board, Lane, Token, HUD, WinSheet
 src/state/              session (one playthrough) and progress (persisted)
 src/data/               level packs, Supabase sync, daily challenge
 scripts/                build-time level generation + pack validation
-assets/levels/          the 180 generated levels, committed
+assets/levels/          the 200 generated levels, committed
 supabase/migrations/    schema and row level security
 ```
 
 ## Levels
 
-50 levels across five chapters, generated offline and committed. Never generated at
+200 levels across twenty chapters, generated offline and committed. Never generated at
 runtime, so par is exact and a level is identical on every device forever. More chapters
 can be added by extending the plan; the pipeline does not change.
 
@@ -80,15 +80,22 @@ boards are therefore short and tight rather than hard, and the plan labels them 
 instead of pretending they are difficulty peaks.
 
 ```
-npm run levels      # regenerate every pack (~1 minute)
-npm run browse      # render every level to level-browser.html for review
-npm run sounds      # regenerate the sound set
+npm run levels                # regenerate every pack, one process per chapter
+npm run levels -- --from 16   # regenerate chapters 16 and above only
+npm run browse                # render every level to level-browser.html for review
+npm run sounds                # regenerate the sound set
 ```
 
-`npm run browse` writes a single page showing all 50 boards with their pacing chart,
+Chapters 11-20 search far harder than 1-10 (8M nodes, pools of up to 48 candidates), so
+generation is measured in minutes per chapter: on a 10-core laptop a forge chapter took up
+to 7 minutes and a light chapter up to 14, with chapters running side by side. `--from`
+writes exactly what a full run would, because every chapter's seeds and ids are fixed by the
+plan.
+
+`npm run browse` writes a single page showing all 200 boards with their pacing chart,
 board shape and design note. It is how the curve gets reviewed: a table of numbers cannot
-tell you whether fifty levels feel different from one another, and fifty boards side by
-side can.
+tell you whether two hundred levels feel different from one another, and the boards side
+by side can.
 
 Generation deals a shuffled board, solves it with IDA*, and scores difficulty mostly from
 **nodes expanded** - search effort predicts human difficulty far better than solution

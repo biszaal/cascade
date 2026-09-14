@@ -1,7 +1,7 @@
 # Chapters 11-20: the forge and light arcs
 
 **Date:** 2026-09-13
-**Status:** design approved, not yet implemented
+**Status:** implemented; see "As shipped" at the end for where measurement changed the design
 **Depends on:** branch `anchored-tokens` merged to master (chapters 6-10, anchored tokens)
 
 ## Problem
@@ -294,3 +294,39 @@ Extend; do not weaken:
 | Gates feel like ordinary climaxes | Clear-margin test (≥ 8) plus a `rest` at level 9 |
 | Bundle size | ~12 KB per chapter; twenty chapters is well under a megabyte |
 | Twenty accents cannot all be colourblind-distinct | Accents are decorative beside the chapter name; neighbours differ in lightness |
+
+## As shipped
+
+The plan (`docs/superpowers/plans/2026-09-14-chapters-11-20.md`) measured every gate at its
+production seeds before authoring. Two results changed what this spec says, both within the
+latitude it gave.
+
+**Smelt opens the forge arc, and Ore follows.** Capacity 3 with nine colours and the most fog
+a three-deep lane holds peaked at 181; uneven-fog Ore peaked at 250-254. The peak must rise
+through an arc, so the two identities swapped, each name moving with it. The forge arc is
+Smelt, Ore, Anvil, Temper, Alloy.
+
+**Burying anchors raises the ceiling.** "Fewer anchors make a board harder" holds while the
+anchors stay in sight, because every visible anchor lifts the fog off its own lane. At the
+deepest fog with anchors buried, it inverts. At 8M nodes across the light gate slots, one
+buried anchor peaked at 293-301, two at 299-302, and six at 303-315. So:
+
+- **Temper keeps its anchors in sight.** Buried, its gate reached 307, above Alloy, which
+  must top the arc. In sight it reached 251, between Anvil and Alloy.
+- **The light gates escalate by burying more anchors**, which gave the light arc more
+  headroom than the ceiling measurements above predicted. The game's summit is 315, not
+  300-305.
+
+Gates as shipped:
+
+| Chapter | Gate | Chapter | Gate |
+|---|---|---|---|
+| 11 Smelt | 181 | 16 Ember | 279 |
+| 12 Ore | 232 | 17 Spark | 300 |
+| 13 Anvil | 237 | 18 Flare | 303 |
+| 14 Temper | 251 | 19 Corona | 306 |
+| 15 Alloy | 291 | 20 Zenith | 315 |
+
+Ember's gate keeps two anchors in sight so it sits under Spark's. `npm run levels` also gained
+`--jobs`, and runs one process per chapter, because chapters share nothing and the new
+budgets would otherwise take hours on one core.

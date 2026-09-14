@@ -2,36 +2,24 @@
  * Render every shipped level as a single HTML page. Run with `npm run browse`.
  *
  * This exists to make the curve reviewable at a glance. A list of numbers cannot tell you
- * whether fifty levels feel different from each other; fifty boards side by side can, and
- * the pacing chart above them shows whether the sawtooth is actually there.
+ * whether two hundred levels feel different from each other; the boards side by side can,
+ * and the pacing chart above them shows whether the sawtooth is actually there.
  */
 import { readFileSync, writeFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import type { Level } from '../src/engine/types';
+import { chapterColors as CHAPTER_COLORS, tokenColors as TOKENS } from '../src/design/tokens';
+import { CHAPTERS } from './level-plan';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const levelsDir = join(here, '..', 'assets', 'levels');
 const out = join(here, '..', 'level-browser.html');
 
 interface Pack { chapter: number; name: string; color: number; levels: Level[] }
-const packs: Pack[] = [1, 2, 3, 4, 5].map(
-  (n) => JSON.parse(readFileSync(join(levelsDir, `chapter-${n}.json`), 'utf8')) as Pack,
+const packs: Pack[] = CHAPTERS.map(
+  (chapter) => JSON.parse(readFileSync(join(levelsDir, `chapter-${chapter.n}.json`), 'utf8')) as Pack,
 );
-
-// Mirrors src/design/tokens.ts. Kept in sync by eye; this is a dev tool, not shipped.
-const TOKENS = [
-  { name: 'Vermilion', fill: '#D55E00', shade: '#A34700' },
-  { name: 'Sky', fill: '#1A6FB5', shade: '#0E4E84' },
-  { name: 'Emerald', fill: '#009E73', shade: '#007355' },
-  { name: 'Saffron', fill: '#E69F00', shade: '#B07A00' },
-  { name: 'Magenta', fill: '#CC79A7', shade: '#9E5480' },
-  { name: 'Indigo', fill: '#5A57C4', shade: '#403DA0' },
-  { name: 'Cyan', fill: '#8FD4F5', shade: '#5AA8CE' },
-  { name: 'Clay', fill: '#A97046', shade: '#7E5232' },
-  { name: 'Slate', fill: '#8A9099', shade: '#666C75' },
-];
-const CHAPTER_COLORS = ['#E69F00', '#009E73', '#D55E00', '#5A57C4', '#CC79A7'];
 
 const BEAT_COLOR: Record<string, string> = {
   teach: '#8FD4F5',
