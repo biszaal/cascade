@@ -94,14 +94,14 @@ describe('level packs', () => {
     expect(onDisk).toEqual(packs.map((p) => `chapter-${p.chapter}.json`).sort());
   });
 
-  it('ships fifteen chapters of ten levels', () => {
-    expect(packs).toHaveLength(15);
+  it('ships twenty chapters of ten levels', () => {
+    expect(packs).toHaveLength(20);
     for (const pack of packs) expect(pack.levels, pack.name).toHaveLength(10);
   });
 
-  it('numbers levels 1..150 with no gaps or repeats', () => {
+  it('numbers levels 1..200 with no gaps or repeats', () => {
     const ids = allLevels.map((l) => l.id).sort((a, b) => a - b);
-    expect(ids).toEqual(Array.from({ length: 150 }, (_, i) => i + 1));
+    expect(ids).toEqual(Array.from({ length: 200 }, (_, i) => i + 1));
   });
 
   it('registers every planned chapter with the app', () => {

@@ -386,6 +386,114 @@ export const CHAPTERS: ChapterPlan[] = [
       { n: 10, beat: 'climax', intensity: 1.0, pick: 1.0, spec: spec(9, 5, 2, 4, 4, 1, true), note: 'Gate. Nine colours, every lane as dark as it goes, one buried anchor. The top of the forge.' },
     ],
   },
+
+  // The light arc, chapters 16-20. Its gates search 48 candidates each, and must climb
+  // past the forge's 291 by its last chapter.
+  //
+  // Measured on this project, at the deepest fog a five-deep lane holds, burying more
+  // anchors makes a gate HARDER, not easier: at 8M nodes, one buried anchor peaked at
+  // 293-301 across these slots, two at 299-302, six at 303-315. Fewer anchors made boards
+  // harder only while those anchors stayed in sight, where every anchor lifts the fog off
+  // its own lane. So the light gates escalate by burying more anchors, not fewer.
+  {
+    n: 16,
+    name: 'Ember',
+    color: 15,
+    levels: [
+      { n: 1, beat: 'tight', intensity: 0.50, pick: 0.9, spec: spec(6, 5, 1, 3, 4, 2, true), note: 'The vice. One free lane, from the very first move.' },
+      { n: 2, beat: 'build', intensity: 0.60, spec: spec(7, 4, 2, 3, 3, 2, true), note: 'Room returns, briefly.' },
+      { n: 3, beat: 'tight', intensity: 0.56, pick: 0.95, spec: spec(7, 5, 1, 3, 4, 2, true), note: 'Seven colours pressed into one free lane.' },
+      { n: 4, beat: 'build', intensity: 0.66, spec: spec(8, 4, 2, 3, 3, 2, true), note: '' },
+      { n: 5, beat: 'tight', intensity: 0.58, pick: 0.95, spec: spec(8, 4, 1, 3, 3, 2, true), note: 'Short lanes, no slack.' },
+      { n: 6, beat: 'build', intensity: 0.74, spec: spec(8, 5, 2, 3, 4, 2, true), note: 'Five deep with two free lanes - the most room this chapter gives.' },
+      { n: 7, beat: 'tight', intensity: 0.62, pick: 0.95, spec: spec(9, 4, 1, 3, 3, 2, true), note: 'The full palette in the vice.' },
+      { n: 8, beat: 'tight', intensity: 0.66, pick: 0.95, spec: spec(8, 5, 1, 3, 4, 3, true), note: 'Deep, blind, and one free lane.' },
+      { n: 9, beat: 'rest', intensity: 0.50, spec: spec(7, 3, 2, 1, 2, 2, true), note: 'The vice opens before the gate.' },
+      // The arc's opening gate must sit under Spark's. Measured at this slot, 48 candidates
+      // at 8M nodes: one buried anchor 301, fog 3-4 290, two anchors in sight 279.
+      { n: 10, beat: 'climax', intensity: 0.85, pick: 1.0, spec: spec(9, 5, 2, 4, 4, 2), note: 'Gate. Out of the vice at last - and into nine colours under the deepest fog.' },
+    ],
+  },
+  {
+    n: 17,
+    name: 'Spark',
+    color: 16,
+    levels: [
+      { n: 1, beat: 'rest', intensity: 0.50, spec: spec(9, 3, 2, 0, 1, 2), note: 'Full palette, on every board in this chapter. Short lanes to start.' },
+      { n: 2, beat: 'build', intensity: 0.60, spec: spec(9, 4, 2, 2, 3, 2, true), note: 'Nine colours, four deep.' },
+      { n: 3, beat: 'build', intensity: 0.66, spec: spec(9, 4, 2, 3, 3, 1, true), note: 'One anchor to hold nine colours.' },
+      { n: 4, beat: 'tight', intensity: 0.58, pick: 0.95, spec: spec(9, 4, 1, 2, 3, 2, true), note: 'Nine colours, one free lane.' },
+      { n: 5, beat: 'build', intensity: 0.72, spec: spec(9, 5, 2, 2, 3, 2, true), note: 'Five deep, with the fog kept shallow.' },
+      { n: 6, beat: 'rest', intensity: 0.50, spec: spec(9, 3, 2, 2, 2, 2, true), note: 'Short lanes again.' },
+      { n: 7, beat: 'build', intensity: 0.78, spec: spec(9, 5, 2, 3, 4, 2, true), note: 'The fog sinks deeper.' },
+      { n: 8, beat: 'build', intensity: 0.82, spec: spec(9, 5, 2, 3, 4, 3, true), note: 'Three buried anchors among nine colours.' },
+      { n: 9, beat: 'rest', intensity: 0.55, spec: spec(9, 4, 2, 1, 2, 2), note: 'Anchors in sight before the gate.' },
+      // Measured at this slot, 48 candidates at 8M nodes: 300. Two buried anchors reached
+      // 302, which Flare's gate (303) would clear by too little to trust a retune.
+      { n: 10, beat: 'climax', intensity: 0.88, pick: 1.0, spec: spec(9, 5, 2, 4, 4, 1, true), note: 'Gate. Nine colours, the deepest fog, one anchor somewhere underneath.' },
+    ],
+  },
+  {
+    n: 18,
+    name: 'Flare',
+    color: 17,
+    levels: [
+      { n: 1, beat: 'tight', intensity: 0.55, pick: 0.95, spec: spec(8, 5, 1, 3, 4, 3, true), note: 'Reverse-walked: short, cramped, exact.' },
+      { n: 2, beat: 'tight', intensity: 0.58, pick: 0.95, spec: spec(9, 4, 1, 3, 3, 3, true), note: 'Nine colours, one free lane.' },
+      { n: 3, beat: 'build', intensity: 0.72, spec: spec(9, 5, 2, 3, 4, 4, true), note: 'Room to work, and a long way to go.' },
+      { n: 4, beat: 'tight', intensity: 0.64, pick: 0.95, spec: spec(9, 5, 1, 4, 4, 3, true), note: 'The tightest shape there is, as dark as it goes.' },
+      { n: 5, beat: 'tight', intensity: 0.60, pick: 0.95, spec: spec(7, 5, 1, 4, 4, 4, true), note: 'Fewer colours, four of them buried in place.' },
+      { n: 6, beat: 'build', intensity: 0.80, spec: spec(9, 5, 2, 3, 4, 5, true), note: 'Five buried anchors.' },
+      { n: 7, beat: 'tight', intensity: 0.66, pick: 0.95, spec: spec(8, 4, 1, 3, 3, 4, true), note: '' },
+      // Reverse-walked boards cap short: nine colours, capacity 5 and one free lane
+      // measured 174 at most. So Flare's identity lives in its tight beats, and its builds
+      // and gate are dealt with two free lanes so its peak can still clear Spark's.
+      { n: 8, beat: 'tight', intensity: 0.70, pick: 1.0, spec: spec(9, 5, 1, 4, 4, 2, true), note: 'The hardest tight board the generator can find.' },
+      { n: 9, beat: 'rest', intensity: 0.50, spec: spec(7, 3, 2, 2, 2, 3, true), note: 'Short and shallow before the gate.' },
+      // Measured at this slot, 48 candidates at 8M nodes: six buried anchors 303, two 301.
+      { n: 10, beat: 'climax', intensity: 0.92, pick: 1.0, spec: spec(9, 5, 2, 4, 4, 6, true), note: 'Gate. Two free lanes after a chapter of one - and six buried anchors to use them on.' },
+    ],
+  },
+  {
+    n: 19,
+    name: 'Corona',
+    color: 18,
+    levels: [
+      { n: 1, beat: 'rest', intensity: 0.55, spec: spec(8, 4, 2, 1, 2, 3, true), note: 'Compound: every lever in this game, one at a time and then together.' },
+      { n: 2, beat: 'build', intensity: 0.66, spec: spec(9, 4, 2, 3, 3, 4, true), note: 'Four buried anchors.' },
+      { n: 3, beat: 'tight', intensity: 0.60, pick: 0.95, spec: spec(9, 5, 1, 4, 4, 4, true), note: 'One free lane, nine colours, the deepest fog.' },
+      { n: 4, beat: 'build', intensity: 0.74, spec: spec(8, 5, 2, 4, 4, 4, true), note: '' },
+      { n: 5, beat: 'rest', intensity: 0.55, spec: spec(9, 3, 2, 2, 2, 4, true), note: 'Shallow, briefly.' },
+      { n: 6, beat: 'build', intensity: 0.80, spec: spec(9, 5, 2, 3, 4, 5, true), note: 'Five buried anchors, five deep.' },
+      { n: 7, beat: 'tight', intensity: 0.70, pick: 1.0, spec: spec(9, 5, 1, 4, 4, 5, true), note: 'Tight, deep, blind and anchored at once.' },
+      { n: 8, beat: 'build', intensity: 0.84, spec: spec(9, 5, 2, 4, 4, 3, true), note: 'The hardest ordinary board of the arc so far.' },
+      { n: 9, beat: 'rest', intensity: 0.60, spec: spec(8, 4, 2, 3, 3, 3, true), note: 'A smaller board before the gate.' },
+      // Measured at this slot, 48 candidates at 8M nodes: seven buried anchors 306, six 305.
+      { n: 10, beat: 'climax', intensity: 0.96, pick: 1.0, spec: spec(9, 5, 2, 4, 4, 7, true), note: 'Gate. Seven of nine lanes anchored, and not one anchor in sight.' },
+    ],
+  },
+  {
+    n: 20,
+    name: 'Zenith',
+    color: 19,
+    levels: [
+      // Zenith is the summit, but it still keeps six board shapes and the house rests at
+      // levels 6 and 9, so its ordinary levels pick high in their pools rather than all
+      // sharing the one hardest shape.
+      { n: 1, beat: 'rest', intensity: 0.70, spec: spec(8, 5, 2, 4, 4, 3, true), note: 'The summit. Even the opening board is dark to the bottom.' },
+      { n: 2, beat: 'build', intensity: 0.86, spec: spec(9, 5, 2, 4, 4, 2, true), note: '' },
+      { n: 3, beat: 'build', intensity: 0.84, spec: spec(9, 4, 2, 3, 3, 4, true), note: 'Four deep, four buried anchors.' },
+      { n: 4, beat: 'tight', intensity: 0.80, pick: 1.0, spec: spec(9, 5, 1, 4, 4, 3, true), note: 'The hardest tight board of the game.' },
+      { n: 5, beat: 'build', intensity: 0.90, spec: spec(9, 5, 2, 4, 4, 5, true), note: 'Five buried anchors.' },
+      { n: 6, beat: 'rest', intensity: 0.70, spec: spec(9, 3, 2, 2, 2, 5, true), note: 'Shallow, and still nine colours.' },
+      { n: 7, beat: 'tight', intensity: 0.82, pick: 1.0, spec: spec(9, 4, 1, 3, 3, 4, true), note: '' },
+      { n: 8, beat: 'build', intensity: 0.94, spec: spec(9, 5, 2, 4, 4, 7, true), note: 'Seven buried anchors. The last ordinary board.' },
+      { n: 9, beat: 'rest', intensity: 0.70, spec: spec(8, 4, 2, 3, 3, 4, true), note: 'One breath before the last level in the game.' },
+      // The hardest board in the game. Measured at this slot, 48 candidates at 8M nodes:
+      // six buried anchors 315, seven 303, one 293.
+      { n: 10, beat: 'climax', intensity: 1.0, pick: 1.0, spec: spec(9, 5, 2, 4, 4, 6, true), note: 'Gate, and the end. Nine colours, six buried anchors, fog to the floor of every lane.' },
+    ],
+  },
 ];
 
 export const TOTAL_LEVELS = CHAPTERS.reduce((sum, c) => sum + c.levels.length, 0);

@@ -104,6 +104,41 @@
       "color": 14,
       "levels": 10,
       "parTotal": 509
+    },
+    {
+      "chapter": 16,
+      "name": "Ember",
+      "color": 15,
+      "levels": 10,
+      "parTotal": 389
+    },
+    {
+      "chapter": 17,
+      "name": "Spark",
+      "color": 16,
+      "levels": 10,
+      "parTotal": 516
+    },
+    {
+      "chapter": 18,
+      "name": "Flare",
+      "color": 17,
+      "levels": 10,
+      "parTotal": 457
+    },
+    {
+      "chapter": 19,
+      "name": "Corona",
+      "color": 18,
+      "levels": 10,
+      "parTotal": 541
+    },
+    {
+      "chapter": 20,
+      "name": "Zenith",
+      "color": 19,
+      "levels": 10,
+      "parTotal": 579
     }
   ]
 }
