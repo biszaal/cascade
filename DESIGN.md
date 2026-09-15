@@ -208,7 +208,8 @@ Info.plist rather than at runtime.
 - **Music** — a slow music-box tune over soft pads (72 BPM, C major pentatonic, 53s),
   rendered circularly so it loops without a seam. It plays well under the effects, has its
   own switch in Settings, and pauses whenever the app leaves the foreground. Sound and music
-  both respect the ringer switch and mix with whatever else is playing.
+  both play even with the phone on silent - only the game's own switches mute them - and mix
+  with whatever else is playing.
 - Animate `transform` and `opacity` **only**. Never `width`, `height`, `top`, or `left`.
 
 **Interaction model:** tap a lane to lift, tap a second lane to pour, tap the lifted lane

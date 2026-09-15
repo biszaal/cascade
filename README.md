@@ -106,8 +106,9 @@ Sound effects and music are synthesised by `scripts/generate-sounds.mjs` rather 
 cartoon bloops, boinks and bells, plus a 53-second music-box loop rendered circularly so it has
 no seam. Licence-free, about 2.7MB in total, almost all of it the music. Haptics and sound fire
 from one call per game event so they cannot drift apart. Music has its own switch in Settings
-and pauses when the app leaves the foreground. The audio session respects the ringer switch
-and mixes with other audio rather than interrupting it.
+and pauses when the app leaves the foreground. Sound and music play even with the phone on
+silent - only the game's own switches mute them - and mix with other audio rather than
+interrupting it.
 
 ## Accessibility
 

@@ -60,9 +60,10 @@ export function setSoundEnabled(value: boolean): void {
 export function configureAudio(): void {
   if (configured) return;
   configured = true;
-  // Respect the ringer switch - people play puzzle games in public - and mix rather than
-  // interrupt, so a podcast keeps playing underneath.
-  setAudioModeAsync({ playsInSilentMode: false, interruptionMode: 'mixWithOthers' }).catch(() => {});
+  // Play whether or not the phone is on silent: the game's own Sound and Music switches are
+  // the only thing that mutes it. Mix rather than interrupt, so a podcast keeps playing
+  // underneath.
+  setAudioModeAsync({ playsInSilentMode: true, interruptionMode: 'mixWithOthers' }).catch(() => {});
 }
 
 function pool(): Record<SoundName, AudioPlayer[]> | null {
