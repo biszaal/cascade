@@ -36,6 +36,8 @@ export default function Play() {
 
   useEffect(() => {
     if (level) session.load(level);
+    // A level opened after midnight should offer today's hints, not yesterday's leftovers.
+    useProgress.getState().refreshHints();
     recorded.current = null;
     setIsBest(false);
     // Loading is keyed on the level id alone; re-running on every store change would
@@ -93,8 +95,10 @@ export default function Play() {
           onUndo={session.undo}
           onRestart={session.restart}
           onHint={() => {
-            if (!spendHint()) return;
-            session.requestHint();
+            // Only charge for a hint that was actually given - a board that cannot be
+            // solved gets none.
+            if (hintsRemaining <= 0) return;
+            if (session.requestHint()) spendHint();
           }}
         />
       </View>

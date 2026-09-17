@@ -31,8 +31,9 @@ interface StuckSheetProps {
 /**
  * The board has dead-ended: say so plainly, and offer the two ways out.
  *
- * Undo clears the dead end, so the sheet closes itself - there is no dismiss button,
- * because a board with no moves has nothing left to look at.
+ * Undo that clears the dead end closes the sheet itself, and one that does not leaves it
+ * up with an undo fewer - there is no dismiss button, because a board with no way forward
+ * has nothing left to play.
  */
 export function StuckSheet({ visible, undosLeft, canUndo, onUndo, onRestart, onExit }: StuckSheetProps) {
   const [shown, setShown] = useState(false);
@@ -95,7 +96,7 @@ function Card({ undosLeft, canUndo, onUndo, onRestart }: Omit<StuckSheetProps, '
       </Animated.View>
 
       <Text style={styles.title}>Out of moves!</Text>
-      <Text style={styles.body}>No piece can move. Take a move back, or start the level over.</Text>
+      <Text style={styles.body}>No move left can finish this board. Take a move back, or start the level over.</Text>
 
       {/* Both actions play their own sound (undo's whoop, restart's swoosh), so the buttons
           stay silent rather than tapping over them. */}

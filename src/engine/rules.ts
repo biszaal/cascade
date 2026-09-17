@@ -13,12 +13,18 @@ export function createState(config: LevelConfig): GameState {
     colorCount: config.colorCount,
     lanes: config.lanes.map((tokens, i) => {
       const copy = [...tokens];
-      return {
+      const lane: LaneState = {
         tokens: copy,
         hidden: clampHidden(config.hidden[i] ?? 0, copy.length),
         // An empty lane has no base to anchor, so the flag is meaningless there.
         anchored: (config.anchored?.[i] ?? false) && copy.length > 0,
       };
+      // A lane dealt already full and single-coloured is finished and can never be lifted,
+      // so it starts face-up exactly as one completed in play does. Left face-down it sits
+      // locked behind a "?" for no visible reason, while its finished border gives the
+      // hidden colour away regardless.
+      if (isLaneComplete(lane, config.capacity)) lane.hidden = 0;
+      return lane;
     }),
   };
 }
@@ -171,6 +177,24 @@ export function undoMoveInPlace(state: GameState, undo: UndoRecord): void {
   dest.hidden = undo.toHidden;
 }
 
+/**
+ * An earlier position, with everything the player has since seen left face-up.
+ *
+ * A takeback returns the tokens but cannot un-see a reveal, so a token uncovered by the
+ * move being taken back stays face-up. Only the top of a lane ever changes between two
+ * positions, so a token face-up in `seen` is the same token at the same slot in `earlier`
+ * - which is why the smaller hidden count is always the right one. The solver's
+ * undoMoveInPlace must keep restoring hidden counts exactly; this is the player's undo.
+ */
+export function keepRevealed(earlier: GameState, seen: GameState): GameState {
+  const next = cloneState(earlier);
+  next.lanes.forEach((lane, i) => {
+    const seenHidden = seen.lanes[i]?.hidden ?? lane.hidden;
+    lane.hidden = clampHidden(Math.min(lane.hidden, seenHidden), lane.tokens.length);
+  });
+  return next;
+}
+
 /** Immutable apply, for the UI and for tests. */
 export function applyMove(state: GameState, move: Move): GameState {
   const next = cloneState(state);
@@ -184,11 +208,6 @@ export function isSolved(state: GameState): boolean {
     if (!isLaneComplete(lane, state.capacity)) return false;
   }
   return true;
-}
-
-/** True when no legal move remains and the board is not solved. */
-export function isStuck(state: GameState): boolean {
-  return !isSolved(state) && legalMoves(state).length === 0;
 }
 
 export function countHidden(state: GameState): number {

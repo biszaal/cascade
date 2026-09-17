@@ -8,11 +8,11 @@ import {
   createState,
   isLaneComplete,
   isSolved,
-  isStuck,
+  keepRevealed,
   moveFor,
   topRun,
 } from '@/engine/rules';
-import { hintMove } from '@/engine/solver';
+import { hintMove, isDeadEnd } from '@/engine/solver';
 import { starsFor } from '@/game/scoring';
 import * as haptics from '@/game/haptics';
 
@@ -54,7 +54,7 @@ export interface SessionState {
   elapsedFrom: number;
   /** Takebacks left in this attempt. */
   undosLeft: number;
-  /** The board has no legal move left and is not solved. */
+  /** No sequence of moves from here can solve the board - including one that only shuttles. */
   stuck: boolean;
 
   load: (level: Level) => void;
@@ -183,9 +183,9 @@ export const useSession = create<SessionState>((set, get) => ({
       expected.count === move.count;
 
     const won = isSolved(next);
-    // Decided once per move rather than on every render: finding a dead end tries every
-    // lane pair, and the answer only changes when the board does.
-    const stuck = !won && isStuck(next);
+    // Decided once per move rather than on every render: finding a dead end walks every
+    // position the board can still reach, and the answer only changes when the board does.
+    const stuck = !won && isDeadEnd(next);
 
     if (justCompleted.length > 0) haptics.tapComplete();
     else haptics.tapPlace();
@@ -206,12 +206,13 @@ export const useSession = create<SessionState>((set, get) => ({
   },
 
   undo: () => {
-    const { history, undosLeft } = get();
+    const { history, undosLeft, state } = get();
     const previous = history[history.length - 1];
     if (!previous || undosLeft <= 0) return;
     haptics.tapUndo();
     set({
-      state: previous.state,
+      // Otherwise undo would be a free peek: move, look at what was underneath, take it back.
+      state: state ? keepRevealed(previous.state, state) : previous.state,
       ids: previous.ids,
       moves: previous.moves,
       history: history.slice(0, -1),
@@ -220,7 +221,9 @@ export const useSession = create<SessionState>((set, get) => ({
       hint: null,
       status: 'playing',
       undosLeft: undosLeft - 1,
-      stuck: false,
+      // A dead end can run several moves deep - the other half of a shuttle is just as
+      // stuck - so one takeback does not necessarily clear it.
+      stuck: isDeadEnd(previous.state),
       // Once a move has been taken back the precomputed line no longer describes play.
       onOptimalPath: false,
     });

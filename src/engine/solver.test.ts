@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { solve, heuristic, canonicalKey } from './solver';
+import { solve, heuristic, canonicalKey, hintMove, isDeadEnd } from './solver';
 import { createState, replay, isSolved, applyMove, applyMoveInPlace, moveFor } from './rules';
 import { mulberry32, shuffle } from './rng';
 import { reverseBoard } from './generator';
@@ -178,6 +178,44 @@ describe('solve', () => {
     expect(result.solved).toBe(true);
     expect(result.moves.length).toBeGreaterThan(0);
     expect(isSolved(replay(afterOne, result.moves)!)).toBe(true);
+  });
+});
+
+/**
+ * Level 38 eight moves in, as a player reported it: one green token can go back and forth
+ * between lanes 4 and 5, and nothing else can move at all. It has a legal move, so it is
+ * not stuck in the narrow sense - but it can never be solved.
+ */
+function shuttleBoard(): GameState {
+  const state = board(5, [[4], [0, 3, 2, 5, 3], [0, 4, 2, 0, 3], [1, 3, 1, 0, 0], [1, 4, 4, 2, 2], [5, 3, 4, 2], [1, 1], [5, 5, 5]]);
+  state.lanes.forEach((lane, i) => (lane.hidden = [0, 2, 2, 2, 2, 2, 0, 0][i]!));
+  return state;
+}
+
+describe('dead ends', () => {
+  it('calls a board with no legal move a dead end', () => {
+    expect(isDeadEnd(board(2, [[0, 1], [1, 0]]))).toBe(true);
+  });
+
+  it('calls a board whose only moves shuttle one token back and forth a dead end', () => {
+    expect(isDeadEnd(shuttleBoard())).toBe(true);
+  });
+
+  it('does not call a solvable board a dead end', () => {
+    const start = board(4, [[0, 1, 2, 0], [1, 2, 0, 1], [2, 0, 1, 2], [], []]);
+    expect(isDeadEnd(start)).toBe(false);
+    expect(isDeadEnd(board(4, [[0, 0, 0], [0], []]))).toBe(false);
+  });
+
+  it('gives the benefit of the doubt when the board is too big to rule out', () => {
+    // Solvable, but not within two positions. Running out of budget proves nothing, so it
+    // must never read as stuck - a false alarm would cover a live board with the sheet.
+    const start = board(4, [[0, 1, 2, 0], [1, 2, 0, 1], [2, 0, 1, 2], [], []]);
+    expect(isDeadEnd(start, 2)).toBe(false);
+  });
+
+  it('offers no hint on a dead end rather than a pointless shuffle', () => {
+    expect(hintMove(shuttleBoard())).toBeNull();
   });
 });
 

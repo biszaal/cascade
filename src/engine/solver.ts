@@ -1,5 +1,5 @@
 import type { GameState, Move } from './types';
-import { applyMoveInPlace, canMove, isSolved, moveFor, topColor, undoMoveInPlace } from './rules';
+import { applyMoveInPlace, canMove, cloneState, isSolved, moveFor, topColor, undoMoveInPlace } from './rules';
 
 /**
  * IDA* solver.
@@ -214,13 +214,54 @@ export function solve(state: GameState, options: SolveOptions = {}): SolveResult
 const FOUND = -1;
 const INFINITY = Number.MAX_SAFE_INTEGER;
 
+const DEAD_END_BUDGET = 500;
+
+/**
+ * True when no sequence of moves from here can ever solve the board.
+ *
+ * A board with no legal move is the obvious case, but not the only one: a player can be
+ * left with one token that shuttles between two lanes while nothing else can move, which
+ * has a move and still goes nowhere. So this walks every position reachable from here,
+ * and only calls it a dead end once that walk runs out of board without finding a solve.
+ *
+ * Running out of budget first proves nothing, so it answers false - a live board must
+ * never be covered by the out-of-moves sheet. Real dead ends reach only a handful of
+ * positions, so the budget only ever cuts off boards with plenty of play left in them.
+ */
+export function isDeadEnd(state: GameState, maxPositions = DEAD_END_BUDGET): boolean {
+  const working = cloneState(state);
+  const seen = new Set<string>();
+  return !canReachSolve();
+
+  /** Whether a solve is reachable from the working position, counting "gave up" as yes. */
+  function canReachSolve(): boolean {
+    if (isSolved(working)) return true;
+    const key = canonicalKey(working);
+    if (seen.has(key)) return false;
+    if (seen.size >= maxPositions) return true;
+    seen.add(key);
+
+    for (let from = 0; from < working.lanes.length; from++) {
+      for (let to = 0; to < working.lanes.length; to++) {
+        if (!canMove(working, from, to)) continue;
+        const undo = applyMoveInPlace(working, moveFor(working, from, to));
+        const found = canReachSolve();
+        undoMoveInPlace(working, undo);
+        if (found) return true;
+      }
+    }
+    return false;
+  }
+}
+
 /**
  * A single next move for the hint button.
  *
  * `known` is the level's precomputed optimal line. When the player is still on it, the
  * hint is a free array lookup; once they have deviated we pay for a bounded re-solve,
  * and if even that runs out of budget we fall back to any move that does not make the
- * board worse - a weak hint beats a spinner that never resolves.
+ * board worse - a weak hint beats a spinner that never resolves. A board the search
+ * proves unsolvable gets no hint at all.
  */
 export function hintMove(
   state: GameState,
@@ -233,6 +274,11 @@ export function hintMove(
 
   const result = solve(state, { maxNodes: 150_000 });
   if (result.solved && result.moves.length > 0) return result.moves[0]!;
+
+  // A search that ran out of board rather than budget has proven no move leads anywhere,
+  // and the fallback would only walk the player round in circles - on a shuttle it
+  // suggests the same token there and back forever.
+  if (!result.exhausted) return null;
 
   return fallbackMove(state);
 }

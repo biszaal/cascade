@@ -12,6 +12,7 @@ import {
   undoMoveInPlace,
   isSolved,
   cloneState,
+  keepRevealed,
   moveFor,
 } from './rules';
 import type { GameState } from './types';
@@ -198,6 +199,34 @@ describe('in-place move and undo, which the solver relies on', () => {
   });
 });
 
+describe("the player's undo", () => {
+  it('leaves a token face-up after the move that revealed it is taken back', () => {
+    const state = board(4, [[1, 2, 3], [3], []], [2, 0, 0]);
+    const after = applyMove(state, moveFor(state, 0, 2));
+    expect(after.lanes[0]!.hidden).toBe(1);
+    const back = keepRevealed(state, after);
+    expect(back.lanes[0]!.tokens).toEqual([1, 2, 3]);
+    expect(back.lanes[0]!.hidden).toBe(1);
+    expect(back.lanes[2]!.tokens).toEqual([]);
+  });
+
+  it('keeps a lane face-up after taking back the move that completed it', () => {
+    const state = board(4, [[1, 1, 1], [1]], [2, 0]);
+    const after = applyMove(state, moveFor(state, 1, 0));
+    const back = keepRevealed(state, after);
+    expect(back.lanes[0]!.tokens).toEqual([1, 1, 1]);
+    expect(back.lanes[0]!.hidden).toBe(0);
+  });
+
+  it('uncovers nothing the move did not', () => {
+    // Lane 1 still has a face-up token over its hidden one after giving up its top.
+    const state = board(4, [[1, 2, 3], [0, 3, 3], []], [2, 1, 0]);
+    const after = applyMove(state, moveFor(state, 1, 0));
+    expect(after.lanes[1]!.hidden).toBe(1);
+    expect(JSON.stringify(keepRevealed(state, after))).toBe(JSON.stringify(state));
+  });
+});
+
 describe('win detection', () => {
   it('accepts a board of full single-coloured lanes plus empties', () => {
     expect(isSolved(board(4, [[0, 0, 0, 0], [1, 1, 1, 1], []]))).toBe(true);
@@ -227,6 +256,13 @@ describe('state construction', () => {
   it('clamps a hidden count that would leave the top face-down', () => {
     const state = board(4, [[0, 1, 2]], [3]);
     expect(state.lanes[0]!.hidden).toBe(2);
+  });
+
+  it('deals an already-finished lane face-up, since it can never be lifted', () => {
+    const state = board(4, [[0, 0, 0, 0], [1, 2, 1]], [1, 2]);
+    expect(state.lanes[0]!.hidden).toBe(0);
+    expect(canLift(state.lanes[0]!, 4)).toBe(false);
+    expect(state.lanes[1]!.hidden).toBe(2);
   });
 
   it('deep-clones, so mutating the copy leaves the original alone', () => {
