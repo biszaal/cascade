@@ -56,5 +56,38 @@ Welcome to Cascade.
 
 ## App Review notes
 
-No sign-in is required: the game creates an anonymous account automatically for the daily
-leaderboard and result backup. Every level, including the daily puzzle, also works fully offline.
+Paste the block below into both the Resolution Center reply and **App Review Information →
+Notes** (4,000-character limit). Fill in the bracketed recording details first.
+
+```text
+1. SCREEN RECORDING
+Attached. Recorded on an [iPhone model] running iOS [version], using build [1.0.x (n)] installed from TestFlight. It starts at launch and shows playing and solving levels, the daily challenge and its leaderboard, and Settings, including deleting the account.
+
+2. PURPOSE AND AUDIENCE
+Cascade: Colour Sorting is a single-player logic puzzle for a general audience (rated 4+), aimed at teens and adults who enjoy calm, thoughtful puzzles. Each board has lanes of coloured tokens, and the goal is to finish with one colour per lane while moving only one token at a time. The value is a relaxing, no-pressure puzzle for short sessions: no timers, lives, ads or purchases. A solver checks that every level can be solved before release, and the solver's move count sets the par for the star rating.
+
+3. SETUP AND ACCESS
+No login, credentials, sample files or setup are needed.
+- Launch the app. The home screen shows Start playing (Continue after the first level), Chapters, Daily challenge and Settings.
+- Tap Start playing. Tap a lane to lift its top token, then tap another lane to place it on a matching colour or in an empty lane. Undo, Restart and Hint sit below the board. Solving a level awards up to three stars.
+- Chapters and levels unlock in order. Chapters 4-5 add face-down tokens, and chapters 6-10 (the Stone world) add anchored tokens that never move.
+- Daily challenge: every player gets the same board each day. Once it is solved, that day's leaderboard (fewest moves) appears.
+- Settings: switches for haptics, sound and music, plus Sync now and Delete my data.
+Everything except the leaderboard and sync works offline.
+
+Accounts, user content and payments:
+- There is no registration or login. When the app first opens with a connection, it quietly creates an anonymous account so results can be backed up and entered on the daily leaderboard. The account holds no email, name or phone number.
+- Players never type anything. Leaderboard names are generated (for example "Player 1234") and can't be changed, so the app has no user-generated content.
+- There is no paid content: no in-app purchases, subscriptions or ads.
+- Account deletion is in the app: Settings > Delete my data > Delete. It deletes the anonymous account and all of its results from our server, then clears progress on the device. The recording shows it.
+
+4. EXTERNAL SERVICES
+- Supabase (supabase.com): anonymous authentication and a Postgres database hosted in Ireland (AWS eu-west-1). It is used only to back up level results and serve the daily leaderboard.
+- No other runtime services: no analytics, advertising, tracking, crash reporting, payment or AI services.
+
+5. REGIONAL DIFFERENCES
+None. The app works the same in every region. The daily board changes at 00:00 UTC for all players worldwide, and there is one global leaderboard. The app is in English.
+
+6. REGULATED INDUSTRY / THIRD-PARTY MATERIAL
+Not applicable. Cascade is a puzzle game outside any regulated industry. All levels, artwork, sound effects and music are original to Biszaal Tech Ltd., and the audio is synthesised by our own code. The only third-party asset is the Fredoka font, used under the SIL Open Font License.
+```

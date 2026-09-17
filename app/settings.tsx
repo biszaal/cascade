@@ -6,6 +6,7 @@ import { radius, space, surface, type } from '@/design/tokens';
 import { useProgress } from '@/state/progress';
 import { BackIcon } from '@/components/Icons';
 import { isSupabaseConfigured } from '@/supabase/client';
+import { deleteAccount } from '@/supabase/auth';
 import { flushPending, pullRemote } from '@/data/sync';
 import { metricsFor } from '@/game/responsive';
 
@@ -22,6 +23,7 @@ export default function Settings() {
   const reset = useProgress((s) => s.reset);
   const dirty = useProgress((s) => s.dirty);
   const [syncing, setSyncing] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   return (
     <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
@@ -91,25 +93,73 @@ export default function Settings() {
           </Section>
         ) : null}
 
-        <Section title="Progress">
-          <Row label="Reset everything" description="Clears every star and best score on this device">
-            <Pressable
-              onPress={() =>
-                Alert.alert(
-                  'Reset progress?',
-                  'Every star and best score on this device will be erased. This cannot be undone.',
-                  [
-                    { text: 'Cancel', style: 'cancel' },
-                    { text: 'Reset', style: 'destructive', onPress: () => void reset() },
-                  ],
-                )
-              }
-              style={[styles.smallButton, styles.smallButtonDanger]}
+        {/* With a backend, the player has an anonymous account, so resetting must delete it too
+            (App Store guideline 5.1.1(v)). The server goes first: if it cannot be reached, the
+            device keeps its progress rather than being wiped while the online copy survives. */}
+        {isSupabaseConfigured ? (
+          <Section title="Your data">
+            <Row
+              label="Delete my data"
+              description="Erases progress on this device, and your online account and leaderboard results"
             >
-              <Text style={[styles.smallButtonLabel, styles.smallButtonLabelDanger]}>Reset</Text>
-            </Pressable>
-          </Row>
-        </Section>
+              <Pressable
+                disabled={deleting}
+                accessibilityRole="button"
+                accessibilityLabel="Delete my data"
+                onPress={() =>
+                  Alert.alert(
+                    'Delete your data?',
+                    'Your stars and best scores on this device, your anonymous online account and your leaderboard results will be deleted. This cannot be undone.',
+                    [
+                      { text: 'Cancel', style: 'cancel' },
+                      {
+                        text: 'Delete',
+                        style: 'destructive',
+                        onPress: async () => {
+                          setDeleting(true);
+                          const deleted = await deleteAccount().catch(() => false);
+                          if (deleted) await reset();
+                          setDeleting(false);
+                          Alert.alert(
+                            deleted ? 'Data deleted' : "Couldn't delete your data",
+                            deleted
+                              ? 'Your progress and online account have been deleted.'
+                              : 'Check your internet connection and try again. Nothing was deleted.',
+                          );
+                        },
+                      },
+                    ],
+                  )
+                }
+                style={[styles.smallButton, styles.smallButtonDanger, deleting && styles.smallButtonOff]}
+              >
+                <Text style={[styles.smallButtonLabel, styles.smallButtonLabelDanger]}>
+                  {deleting ? 'Deleting' : 'Delete'}
+                </Text>
+              </Pressable>
+            </Row>
+          </Section>
+        ) : (
+          <Section title="Progress">
+            <Row label="Reset everything" description="Clears every star and best score on this device">
+              <Pressable
+                onPress={() =>
+                  Alert.alert(
+                    'Reset progress?',
+                    'Every star and best score on this device will be erased. This cannot be undone.',
+                    [
+                      { text: 'Cancel', style: 'cancel' },
+                      { text: 'Reset', style: 'destructive', onPress: () => void reset() },
+                    ],
+                  )
+                }
+                style={[styles.smallButton, styles.smallButtonDanger]}
+              >
+                <Text style={[styles.smallButtonLabel, styles.smallButtonLabelDanger]}>Reset</Text>
+              </Pressable>
+            </Row>
+          </Section>
+        )}
 
         <Text style={styles.about}>
           Every level was solved by a search before it shipped. Par is that solution's length, plus

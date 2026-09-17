@@ -326,6 +326,39 @@ final class CascadeUITests: XCTestCase {
         attach(online ? "verify-settings-online" : "verify-settings-offline")
     }
 
+    /// In-app account deletion, which App Store guideline 5.1.1(v) requires of any app that creates
+    /// accounts. Destructive: it deletes this simulator's anonymous account and wipes its progress.
+    ///
+    /// Needs a backend-configured build, a network connection, and migration 0003 applied. Cancel is
+    /// checked first, so a player who backs out of the confirmation loses nothing.
+    func testH_deleteMyData() {
+        let app = launchApp()
+        open(app, "cascade://settings")
+
+        let deleteButton = app.buttons["Delete my data"]
+        XCTAssertTrue(deleteButton.waitForExistence(timeout: 15), "Delete my data is missing - is a backend configured?")
+
+        deleteButton.tap()
+        let confirm = app.alerts["Delete your data?"]
+        XCTAssertTrue(confirm.waitForExistence(timeout: 5), "No confirmation before deleting")
+        attach("verify-delete-confirm")
+        confirm.buttons["Cancel"].tap()
+        XCTAssertFalse(app.alerts["Data deleted"].waitForExistence(timeout: 3), "Cancel must not delete")
+
+        deleteButton.tap()
+        XCTAssertTrue(confirm.waitForExistence(timeout: 5))
+        confirm.buttons["Delete"].tap()
+
+        let deleted = app.alerts["Data deleted"]
+        let failed = app.alerts["Couldn't delete your data"]
+        XCTAssertTrue(
+            deleted.waitForExistence(timeout: 20) || failed.exists,
+            "Nothing told the player how the deletion went"
+        )
+        attach("verify-delete-result")
+        XCTAssertTrue(deleted.exists, "Deletion failed - is migration 0003 applied, and is the simulator online?")
+    }
+
     /// Rotation: the thing that cannot be checked without a device.
     func testC_rotationRelaysOutTheBoard() {
         let app = launchApp()

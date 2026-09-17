@@ -32,6 +32,7 @@ npm run ios          # build and install onto a simulator
 | `testD_dailyBoardSurvivesRotation` | Nine lanes stay present and reachable across a rotation, exercising the one-row / two-row decision that a five-lane level cannot. |
 | `testE_orientationContract` | **iPad rotates to landscape; iPhone stays portrait.** This is the only way to prove the per-idiom `Info.plist` orientation keys actually work. |
 | `testF_anchoredLevel` | A deep link into an anchored level announces the anchor and its colour, and once excavated down to a lone anchor, tapping it refuses the lift and leaves the move counter untouched. |
+| `testH_deleteMyData` | **Destructive.** Settings › Delete my data asks first, Cancel deletes nothing, and Delete removes the anonymous account (App Store guideline 5.1.1(v)). Needs a network and migration `0003`, and wipes the simulator's progress. |
 | `testG_storeTour` | Captures the App Store screenshots from a Release build, free of the status-bar back-link a URL leaves behind. Also checks that online features come and go together - the daily leaderboard and Settings' sync control are both present or both absent - and that no screen shows backend setup text. |
 
 Run `testE` on both a phone and a tablet - it asserts the opposite outcome on each.

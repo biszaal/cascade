@@ -159,7 +159,9 @@ locked by row level security to its owning user; the daily leaderboard is served
 `SECURITY DEFINER` function, which is deliberately the only path that returns another
 player's row.
 
-Apply `supabase/migrations/0001_init.sql` to your project.
+Apply the files in `supabase/migrations/` to your project, in order. `0003` adds
+`delete_my_account`, which Settings › Delete my data calls: App Store guideline 5.1.1(v) requires
+in-app deletion for any app that creates accounts, anonymous ones included.
 
 ### Known gap
 

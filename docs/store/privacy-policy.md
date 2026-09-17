@@ -1,6 +1,6 @@
 # Privacy Policy — Cascade: Colour Sorting
 
-**Effective date:** 13 September 2026
+**Effective date:** 14 September 2026
 **Developer:** Biszaal Tech Ltd.
 **Contact:** biszaalgames@gmail.com
 
@@ -38,9 +38,11 @@ player name, moves, and time — to players of the game.
 
 ## Keeping and deleting it
 
-Your account and results are kept until you ask us to delete them. Email
-**biszaalgames@gmail.com** with the player name shown for you on the daily leaderboard. Deleting
-the game loses the account on your device, and reinstalling starts a new one.
+Your account and results are kept until you delete them. In the game, open **Settings › Delete my
+data**: it deletes your anonymous account, your level and daily results, and your progress on the
+device. You can also email **biszaalgames@gmail.com** with the player name shown for you on the
+daily leaderboard, and we will delete them for you. Deleting the game loses the account on your
+device, and reinstalling starts a new one.
 
 ## Children
 
