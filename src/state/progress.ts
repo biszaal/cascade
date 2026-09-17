@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { DAILY_HINT_ALLOWANCE, hintsFor, localDay } from '@/game/hints';
 
 /**
  * Local progress is the source of truth. The app is fully playable with no network and
@@ -7,7 +8,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
  */
 
 const STORAGE_KEY = 'cascade.progress.v1';
-const DAILY_HINT_ALLOWANCE = 5;
 
 export interface LevelResult {
   stars: number;
@@ -29,6 +29,8 @@ export interface ProgressState {
   hydrate: () => Promise<void>;
   recordResult: (levelId: number, stars: number, moves: number, timeMs: number) => void;
   spendHint: () => boolean;
+  /** Refill today's hints if the day has turned since they were last counted. */
+  refreshHints: () => void;
   setHaptics: (value: boolean) => void;
   setSound: (value: boolean) => void;
   setMusic: (value: boolean) => void;
@@ -39,10 +41,6 @@ export interface ProgressState {
   chapterStars: (firstLevelId: number, count: number) => number;
   isUnlocked: (levelId: number, firstLevelId: number) => boolean;
   highestUnlocked: () => number;
-}
-
-function today(): string {
-  return new Date().toISOString().slice(0, 10);
 }
 
 interface Persisted {
@@ -73,7 +71,7 @@ export const useProgress = create<ProgressState>((set, get) => {
   return {
     results: {},
     hintsRemaining: DAILY_HINT_ALLOWANCE,
-    hintsResetOn: today(),
+    hintsResetOn: localDay(),
     hapticsEnabled: true,
     soundEnabled: true,
     musicEnabled: true,
@@ -85,12 +83,11 @@ export const useProgress = create<ProgressState>((set, get) => {
         const raw = await AsyncStorage.getItem(STORAGE_KEY);
         if (raw) {
           const saved = JSON.parse(raw) as Partial<Persisted>;
-          const stale = saved.hintsResetOn !== today();
+          const day = localDay();
           set({
             results: saved.results ?? {},
-            // Hints refill once a day, at no cost - they are a courtesy, not a currency.
-            hintsRemaining: stale ? DAILY_HINT_ALLOWANCE : saved.hintsRemaining ?? DAILY_HINT_ALLOWANCE,
-            hintsResetOn: today(),
+            hintsRemaining: hintsFor(saved.hintsRemaining, saved.hintsResetOn, day),
+            hintsResetOn: day,
             hapticsEnabled: saved.hapticsEnabled ?? true,
             soundEnabled: saved.soundEnabled ?? true,
             musicEnabled: saved.musicEnabled ?? true,
@@ -120,10 +117,23 @@ export const useProgress = create<ProgressState>((set, get) => {
     },
 
     spendHint: () => {
+      get().refreshHints();
       if (get().hintsRemaining <= 0) return false;
       set({ hintsRemaining: get().hintsRemaining - 1 });
       persist();
       return true;
+    },
+
+    refreshHints: () => {
+      // Hydrate does its own refill, and persisting before it has run would write an empty
+      // profile over the player's saved one.
+      if (!get().loaded) return;
+      const day = localDay();
+      if (get().hintsResetOn === day) return;
+      // An app left alive in the background can outlast midnight, so the day is checked
+      // again here rather than only at launch.
+      set({ hintsRemaining: hintsFor(get().hintsRemaining, get().hintsResetOn, day), hintsResetOn: day });
+      persist();
     },
 
     setHaptics: (value) => {
@@ -147,7 +157,7 @@ export const useProgress = create<ProgressState>((set, get) => {
     },
 
     reset: async () => {
-      set({ results: {}, dirty: [], hintsRemaining: DAILY_HINT_ALLOWANCE, hintsResetOn: today() });
+      set({ results: {}, dirty: [], hintsRemaining: DAILY_HINT_ALLOWANCE, hintsResetOn: localDay() });
       await AsyncStorage.removeItem(STORAGE_KEY).catch(() => {});
     },
 

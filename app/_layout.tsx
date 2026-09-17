@@ -14,6 +14,7 @@ import {
 import { surface } from '@/design/tokens';
 import { useProgress } from '@/state/progress';
 import { setHapticsEnabled } from '@/game/haptics';
+import { msUntilNextDay } from '@/game/hints';
 import { preloadSounds, setSoundEnabled, release as releaseSound } from '@/game/sound';
 import { pauseMusic, resumeMusic, setMusicEnabled } from '@/game/music';
 import { ensureSession } from '@/supabase/auth';
@@ -124,11 +125,31 @@ export default function RootLayout() {
     // Background playback is off, so pause explicitly rather than letting the OS cut the tune
     // mid-note, and pick it back up when the player returns.
     const subscription = AppState.addEventListener('change', (state) => {
-      if (state === 'active') resumeMusic();
-      else pauseMusic();
+      if (state === 'active') {
+        resumeMusic();
+        // iOS can keep the app alive in the background for days, so launch alone would
+        // leave yesterday's empty hint count showing after midnight.
+        useProgress.getState().refreshHints();
+      } else pauseMusic();
     });
     return () => subscription.remove();
   }, []);
+
+  useEffect(() => {
+    // Refill on the stroke of midnight for someone still playing, so a Hint button greyed
+    // out at 23:59 lights up without leaving the level. Timers stop in the background,
+    // which is what the foreground check above is for.
+    if (!loaded) return;
+    let timer: ReturnType<typeof setTimeout>;
+    const schedule = () => {
+      timer = setTimeout(() => {
+        useProgress.getState().refreshHints();
+        schedule();
+      }, msUntilNextDay());
+    };
+    schedule();
+    return () => clearTimeout(timer);
+  }, [loaded]);
 
   useEffect(() => {
     if (fontsLoaded && loaded) SplashScreen.hideAsync().catch(() => {});
