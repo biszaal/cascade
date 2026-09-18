@@ -1,6 +1,8 @@
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { DAILY_HINT_ALLOWANCE, hintsFor, localDay } from '@/game/hints';
+import { DAILY_HINT_ALLOWANCE, hintsFor } from '@/game/hints';
+import { localDay } from '@/game/day';
+import { afterSolving, NO_STREAK } from '@/game/streak';
 
 /**
  * Local progress is the source of truth. The app is fully playable with no network and
@@ -19,6 +21,10 @@ export interface ProgressState {
   results: Record<number, LevelResult>;
   hintsRemaining: number;
   hintsResetOn: string;
+  /** The UTC day of the last daily board solved, '' if none. See src/game/streak.ts. */
+  dailyLastDay: string;
+  dailyStreak: number;
+  dailyBest: number;
   hapticsEnabled: boolean;
   soundEnabled: boolean;
   musicEnabled: boolean;
@@ -31,6 +37,8 @@ export interface ProgressState {
   spendHint: () => boolean;
   /** Refill today's hints if the day has turned since they were last counted. */
   refreshHints: () => void;
+  /** Record that `day`'s daily board was solved. Idempotent on the same board. */
+  recordDailySolve: (day: string) => void;
   setHaptics: (value: boolean) => void;
   setSound: (value: boolean) => void;
   setMusic: (value: boolean) => void;
@@ -43,10 +51,25 @@ export interface ProgressState {
   highestUnlocked: () => number;
 }
 
+/**
+ * What survives a relaunch.
+ *
+ * A new field here has to be added in four places, and the fourth is the one that gets
+ * missed: this interface, the initial state, `persist()`'s destructure, and `hydrate()`'s
+ * defaulted read - plus `reset()` if Delete my data should clear it.
+ *
+ * There is deliberately no schema version. `hydrate` reads a `Partial` and defaults every
+ * field, so an older save simply arrives without the new keys and gets their defaults; that
+ * is the migration, and it holds for any additive change. A version would only start
+ * earning its keep if a field's meaning changed, and the key is already versioned by name.
+ */
 interface Persisted {
   results: Record<number, LevelResult>;
   hintsRemaining: number;
   hintsResetOn: string;
+  dailyLastDay: string;
+  dailyStreak: number;
+  dailyBest: number;
   hapticsEnabled: boolean;
   soundEnabled: boolean;
   musicEnabled: boolean;
@@ -55,11 +78,17 @@ interface Persisted {
 
 export const useProgress = create<ProgressState>((set, get) => {
   function persist(): void {
-    const { results, hintsRemaining, hintsResetOn, hapticsEnabled, soundEnabled, musicEnabled, dirty } = get();
+    const {
+      results, hintsRemaining, hintsResetOn, dailyLastDay, dailyStreak, dailyBest,
+      hapticsEnabled, soundEnabled, musicEnabled, dirty,
+    } = get();
     const payload: Persisted = {
       results,
       hintsRemaining,
       hintsResetOn,
+      dailyLastDay,
+      dailyStreak,
+      dailyBest,
       hapticsEnabled,
       soundEnabled,
       musicEnabled,
@@ -72,6 +101,9 @@ export const useProgress = create<ProgressState>((set, get) => {
     results: {},
     hintsRemaining: DAILY_HINT_ALLOWANCE,
     hintsResetOn: localDay(),
+    dailyLastDay: NO_STREAK.lastDay,
+    dailyStreak: NO_STREAK.current,
+    dailyBest: NO_STREAK.best,
     hapticsEnabled: true,
     soundEnabled: true,
     musicEnabled: true,
@@ -88,6 +120,9 @@ export const useProgress = create<ProgressState>((set, get) => {
             results: saved.results ?? {},
             hintsRemaining: hintsFor(saved.hintsRemaining, saved.hintsResetOn, day),
             hintsResetOn: day,
+            dailyLastDay: saved.dailyLastDay ?? NO_STREAK.lastDay,
+            dailyStreak: saved.dailyStreak ?? NO_STREAK.current,
+            dailyBest: saved.dailyBest ?? NO_STREAK.best,
             hapticsEnabled: saved.hapticsEnabled ?? true,
             soundEnabled: saved.soundEnabled ?? true,
             musicEnabled: saved.musicEnabled ?? true,
@@ -136,6 +171,14 @@ export const useProgress = create<ProgressState>((set, get) => {
       persist();
     },
 
+    recordDailySolve: (day) => {
+      const { dailyStreak: current, dailyBest: best, dailyLastDay: lastDay } = get();
+      const next = afterSolving({ current, best, lastDay }, day);
+      if (next.lastDay === lastDay && next.current === current && next.best === best) return;
+      set({ dailyStreak: next.current, dailyBest: next.best, dailyLastDay: next.lastDay });
+      persist();
+    },
+
     setHaptics: (value) => {
       set({ hapticsEnabled: value });
       persist();
@@ -157,7 +200,15 @@ export const useProgress = create<ProgressState>((set, get) => {
     },
 
     reset: async () => {
-      set({ results: {}, dirty: [], hintsRemaining: DAILY_HINT_ALLOWANCE, hintsResetOn: localDay() });
+      set({
+        results: {},
+        dirty: [],
+        hintsRemaining: DAILY_HINT_ALLOWANCE,
+        hintsResetOn: localDay(),
+        dailyLastDay: NO_STREAK.lastDay,
+        dailyStreak: NO_STREAK.current,
+        dailyBest: NO_STREAK.best,
+      });
       await AsyncStorage.removeItem(STORAGE_KEY).catch(() => {});
     },
 

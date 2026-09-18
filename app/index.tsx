@@ -10,6 +10,8 @@ import { chapters, getLevel, totalLevels } from '@/data/levels';
 import { chapterColors } from '@/design/tokens';
 import { StarRow } from '@/components/StarRow';
 import { metricsFor } from '@/game/responsive';
+import { streakOn, streakTag } from '@/game/streak';
+import { utcDay } from '@/game/day';
 
 export default function Home() {
   const router = useRouter();
@@ -17,6 +19,9 @@ export default function Home() {
   const metrics = metricsFor(width, height);
   const results = useProgress((s) => s.results);
   const totalStars = useProgress((s) => s.totalStars());
+  const dailyStreak = useProgress((s) => s.dailyStreak);
+  const dailyBest = useProgress((s) => s.dailyBest);
+  const dailyLastDay = useProgress((s) => s.dailyLastDay);
 
   const completed = Object.keys(results).length;
   const nextLevelId = Math.min(completed + 1, totalLevels);
@@ -24,6 +29,17 @@ export default function Home() {
   const nextChapter = chapters.find((c) => c.chapter === nextLevel?.chapter);
   const accent = chapterColors[(nextChapter?.color ?? 0) % chapterColors.length]!;
   const lastResult = completed > 0 ? results[completed] : undefined;
+
+  // A live streak is worth mentioning only while today's board is still unplayed; once it is
+  // solved the number belongs on the daily screen, where it was just earned. This reads the
+  // UTC day directly rather than through data/daily, which would drag the Supabase client
+  // and the level generator into Home's module graph for one string.
+  const today = utcDay();
+  const streakDays = streakOn({ current: dailyStreak, best: dailyBest, lastDay: dailyLastDay }, today);
+  const dailyLabel =
+    dailyLastDay !== today && streakDays > 0
+      ? `Daily challenge · ${streakTag(streakDays)}`
+      : 'Daily challenge';
 
   return (
     <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
@@ -89,7 +105,7 @@ export default function Home() {
             disabled={!nextLevel}
           />
           <Button label="Chapters" variant="outline" onPress={() => router.push('/chapters')} />
-          <Button label="Daily challenge" variant="outline" onPress={() => router.push('/daily')} />
+          <Button label={dailyLabel} variant="outline" onPress={() => router.push('/daily')} />
           <Button label="Settings" variant="quiet" onPress={() => router.push('/settings')} />
         </Animated.View>
       </View>

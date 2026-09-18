@@ -107,6 +107,31 @@ intended intensity is shipped.
 not slow to solve, actually impossible. Those boards are therefore built by `reverseBoard`,
 which walks backwards from the finished position and is solvable by construction.
 
+## The daily streak
+
+Consecutive daily boards solved, counted in **UTC days** - the clock the board itself is
+keyed on. Hints refill at the player's local midnight, which is right for a courtesy tied to
+their own day, but the streak counts boards, and there is exactly one board per UTC day. On a
+local clock the count would be wrong in both directions: east of Greenwich the board turns
+over mid-evening, so one local day can hold two boards; west of it two local days can hold
+solves of the same one. It also agrees with the server, which only accepts a daily result
+dated UTC today or yesterday.
+
+A run holds through the whole day after it was last extended, because that board has not been
+missed yet. A stamp one day *ahead* holds it too - that is a device clock a few hours fast
+across midnight, the same case `hintsFor` defends against - and anything further ahead ends
+the run. Nothing can be farmed by winding a clock forward, because extending a run still needs
+consecutive days.
+
+`streakOn` never writes: a lapsed run simply reads zero and the next solve starts a new one,
+so there is no midnight timer and no write path to get wrong. There are deliberately no
+freezes and no repair; a thing you earn, hold and spend is a currency, and this game does not
+have one.
+
+The streak is **device-local and never synced**. There is no column for it, syncing it would
+be new data collection, and a client-reported streak is forgeable anyway. It does not follow
+the player to a second device.
+
 ## Sound and feel
 
 Sound effects and music are synthesised by `scripts/generate-sounds.mjs` rather than sourced:

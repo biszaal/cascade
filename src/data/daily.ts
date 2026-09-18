@@ -1,4 +1,5 @@
 import { supabase } from '@/supabase/client';
+import { utcDay } from '@/game/day';
 import { ensureSession } from '@/supabase/auth';
 import { tryCandidate } from '@/engine/generator';
 import type { Level } from '@/engine/types';
@@ -11,8 +12,8 @@ import type { Level } from '@/engine/types';
  * The leaderboard is the only part that needs a network.
  */
 
-export function todayKey(): string {
-  return new Date().toISOString().slice(0, 10);
+export function todayKey(now = new Date()): string {
+  return utcDay(now);
 }
 
 export function seedForDate(date: string): number {
@@ -70,7 +71,7 @@ export interface LeaderboardRow {
   isSelf: boolean;
 }
 
-export async function submitDailyResult(moves: number, timeMs: number): Promise<void> {
+export async function submitDailyResult(moves: number, timeMs: number, date = todayKey()): Promise<void> {
   if (!supabase) return;
   const userId = await ensureSession();
   if (!userId) return;
@@ -78,7 +79,7 @@ export async function submitDailyResult(moves: number, timeMs: number): Promise<
   await supabase
     .from('daily_results')
     .upsert(
-      { date: todayKey(), user_id: userId, moves, time_ms: timeMs },
+      { date, user_id: userId, moves, time_ms: timeMs },
       { onConflict: 'date,user_id' },
     );
 }
@@ -88,11 +89,11 @@ export async function submitDailyResult(moves: number, timeMs: number): Promise<
  * level security can stay strict: a player may read only their own row, and the function
  * is the single audited place that returns anybody else's.
  */
-export async function fetchLeaderboard(): Promise<LeaderboardRow[]> {
+export async function fetchLeaderboard(date = todayKey()): Promise<LeaderboardRow[]> {
   if (!supabase) return [];
   const userId = await ensureSession();
 
-  const { data, error } = await supabase.rpc('daily_leaderboard', { for_date: todayKey() });
+  const { data, error } = await supabase.rpc('daily_leaderboard', { for_date: date });
   if (error || !data) return [];
 
   return (data as Array<{ rank: number; display_name: string; moves: number; time_ms: number; user_id: string }>).map(

@@ -12,6 +12,8 @@ import { starsFor } from '@/game/scoring';
 import { buildDailyLevel, fetchLeaderboard, submitDailyResult, todayKey, type LeaderboardRow } from '@/data/daily';
 import { isSupabaseConfigured } from '@/supabase/client';
 import { metricsFor } from '@/game/responsive';
+import { useProgress } from '@/state/progress';
+import { describeStreak, streakOn } from '@/game/streak';
 
 /** As many leaderboard rows as fit under the result on the smallest phone, without scrolling. */
 const LEADERBOARD_ROWS = 5;
@@ -23,13 +25,21 @@ export default function Daily() {
   // The seed comes from the UTC date, so this is the same board for everyone, generated
   // on the device - it works with no network at all.
   const metrics = metricsFor(width, height);
-  const level = useMemo(() => buildDailyLevel(), []);
+  // One date for the whole visit. The board is built once, so the submission, the
+  // leaderboard and the streak have to be keyed on the same day it was built for - reading
+  // the clock again in each of them files a solve under the wrong date for anyone who left
+  // the app open across UTC midnight.
+  const date = useMemo(() => todayKey(), []);
+  const level = useMemo(() => buildDailyLevel(date), [date]);
   const session = useSession();
   const [board, setBoard] = useState<LeaderboardRow[]>([]);
   const [loadingBoard, setLoadingBoard] = useState(isSupabaseConfigured);
   // The space left for the board once everything else on the page has taken its share.
   const [boardBox, setBoardBox] = useState<{ width: number; height: number } | null>(null);
   const submitted = useRef(false);
+  const dailyStreak = useProgress((s) => s.dailyStreak);
+  const dailyBest = useProgress((s) => s.dailyBest);
+  const dailyLastDay = useProgress((s) => s.dailyLastDay);
 
   useEffect(() => {
     if (level) session.load(level);
@@ -39,25 +49,28 @@ export default function Daily() {
 
   useEffect(() => {
     if (!isSupabaseConfigured) return;
-    fetchLeaderboard()
+    fetchLeaderboard(date)
       .then(setBoard)
       .catch(() => {})
       .finally(() => setLoadingBoard(false));
-  }, []);
+  }, [date]);
 
   useEffect(() => {
     if (session.status !== 'won' || !level || submitted.current) return;
     submitted.current = true;
     const timeMs = Date.now() - session.elapsedFrom;
+    // Local and unconditional: the streak counts boards solved, and it must hold up with no
+    // network and no account.
+    useProgress.getState().recordDailySolve(date);
     // The leaderboard is shown the moment the board is solved, so it reads as loading until
     // it includes this result, rather than briefly claiming nobody has finished.
     if (isSupabaseConfigured) setLoadingBoard(true);
-    submitDailyResult(session.moves, timeMs)
-      .then(() => fetchLeaderboard())
+    submitDailyResult(session.moves, timeMs, date)
+      .then(() => fetchLeaderboard(date))
       .then(setBoard)
       .catch(() => {})
       .finally(() => setLoadingBoard(false));
-  }, [session.status, session.moves, session.elapsedFrom, level]);
+  }, [session.status, session.moves, session.elapsedFrom, level, date]);
 
   if (!level || !session.state) {
     return (
@@ -72,6 +85,7 @@ export default function Daily() {
 
   const won = session.status === 'won';
   const stars = won ? starsFor(session.moves, level.par) : 0;
+  const streak = describeStreak(streakOn({ current: dailyStreak, best: dailyBest, lastDay: dailyLastDay }, date));
   const undoable = canUndo(session);
 
   return (
@@ -81,8 +95,12 @@ export default function Daily() {
       {/* One screen, never scrolled. While playing, the board takes whatever height is left;
           the leaderboard only appears once the board is solved and its space is free. */}
       <View style={[styles.content, { maxWidth: Math.max(metrics.contentWidth, metrics.boardWidth) }]}>
-        <View style={styles.summary}>
-          <Text style={styles.date}>{todayKey()}</Text>
+        <View
+          style={styles.summary}
+          accessible
+          accessibilityLabel={[date, streak, `Par ${level.par}.`].filter(Boolean).join('. ')}
+        >
+          <Text style={styles.date}>{streak ? `${date}  ·  ${streak.toUpperCase()}` : date}</Text>
           <Text style={styles.headline}>One board. Everyone plays the same one.</Text>
           <View style={styles.counters}>
             <Counter label="MOVES" value={session.moves} />
@@ -98,6 +116,7 @@ export default function Daily() {
               <Text style={styles.wonText}>
                 Solved in {session.moves} {session.moves === 1 ? 'move' : 'moves'}
               </Text>
+              {streak ? <Text style={styles.wonStreak}>{streak}</Text> : null}
             </View>
 
             {/* The leaderboard needs a backend. Without one the section is left out entirely
@@ -270,6 +289,7 @@ const styles = StyleSheet.create({
     borderColor: surface.hairline,
   },
   wonText: { ...type.body, color: surface.ink },
+  wonStreak: { ...type.body, color: surface.graphite },
 
   leaderboard: { gap: space.sm },
   sectionTitle: { ...type.label, fontSize: 10, letterSpacing: 1.4, color: surface.graphite },

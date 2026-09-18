@@ -14,7 +14,7 @@ import {
 import { surface } from '@/design/tokens';
 import { useProgress } from '@/state/progress';
 import { setHapticsEnabled } from '@/game/haptics';
-import { msUntilNextDay } from '@/game/hints';
+import { msUntilNextDay } from '@/game/day';
 import { preloadSounds, setSoundEnabled, release as releaseSound } from '@/game/sound';
 import { pauseMusic, resumeMusic, setMusicEnabled } from '@/game/music';
 import { ensureSession } from '@/supabase/auth';

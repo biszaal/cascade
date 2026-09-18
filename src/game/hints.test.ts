@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { DAILY_HINT_ALLOWANCE, hintsFor, localDay, msUntilNextDay } from './hints';
+import { DAILY_HINT_ALLOWANCE, hintsFor } from './hints';
 
 describe('daily hints', () => {
   it('allows five a day', () => {
@@ -28,17 +28,5 @@ describe('daily hints', () => {
 
   it('refills rather than locking out a clock wound further ahead', () => {
     expect(hintsFor(0, '2027-03-01', '2026-09-15')).toBe(5);
-  });
-});
-
-describe('local day', () => {
-  it('turns over at local midnight', () => {
-    expect(localDay(new Date(2026, 8, 15, 23, 59))).toBe('2026-09-15');
-    expect(localDay(new Date(2026, 8, 16, 0, 1))).toBe('2026-09-16');
-  });
-
-  it('counts down to the next local midnight', () => {
-    expect(msUntilNextDay(new Date(2026, 8, 15, 23, 59))).toBe(60_000);
-    expect(msUntilNextDay(new Date(2026, 11, 31, 12, 0))).toBe(12 * 3_600_000);
   });
 });

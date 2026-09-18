@@ -1,23 +1,7 @@
+import { dayAfter } from './day';
+
 /** Hints per day. They refill at no cost - a courtesy, not a currency. */
 export const DAILY_HINT_ALLOWANCE = 5;
-
-/** The player's own calendar day, so hints refill at their midnight rather than at UTC's. */
-export function localDay(now = new Date()): string {
-  const month = String(now.getMonth() + 1).padStart(2, '0');
-  const date = String(now.getDate()).padStart(2, '0');
-  return `${now.getFullYear()}-${month}-${date}`;
-}
-
-/** How long until the player's next local midnight. */
-export function msUntilNextDay(now = new Date()): number {
-  const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
-  return midnight.getTime() - now.getTime();
-}
-
-function dayAfter(day: string): string {
-  const [year, month, date] = day.split('-').map(Number);
-  return localDay(new Date(year!, month! - 1, date! + 1));
-}
 
 /**
  * Hints left on `day`: whatever remains from earlier that day, or a full allowance on a new one.
