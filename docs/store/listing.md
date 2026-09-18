@@ -1,4 +1,4 @@
-# App Store listing — Cascade: Colour Sorting (1.0)
+# App Store listing — Cascade: Colour Sorting (1.1)
 
 Source of truth for the store copy. `store.config.json` pushes the same text through
 `eas metadata:push`. Screenshots and App Privacy answers are not supported by EAS Metadata and
@@ -15,7 +15,7 @@ must be set in App Store Connect by hand (see the release checklist).
 
 ## Promotional text (170)
 
-100 hand-built levels across two worlds. Sort colours one token at a time, dig through face-down tokens, and plan around anchors that never move.
+200 hand-built levels across four worlds. Sort colours one token at a time, dig through face-down tokens, and plan around anchors that never move.
 
 ## Keywords (100 characters total)
 
@@ -28,11 +28,13 @@ separately, so repeating them wastes the limit.
 
 Cascade is a calm, thoughtful colour-sorting puzzle. Every lane should end up holding a single colour — but you move only one token at a time, and every move counts.
 
-100 HAND-BUILT LEVELS
-Ten chapters across two worlds, each introducing a new idea on a gentle board before testing it on a hard one.
+200 HAND-BUILT LEVELS
+Twenty chapters across four worlds, each introducing a new idea on a gentle board before testing it on a hard one.
 
 • Water — learn to sort, then dig through face-down tokens you can't see until you reach them.
 • Stone — plan around anchored tokens that never move, so their lanes can only ever finish in one colour.
+• Forge — the same rules rearranged: boards that are wide and shallow, deep and narrow, or fogged unevenly so you plan outward from what you can already see.
+• Light — the ten hardest chapters, ending on the hardest board in the game.
 
 EVERY MOVE COUNTS
 Solve a level in fewer moves to earn more stars. Take back a few moves, restart any time, and use a hint when you're truly stuck.
@@ -50,9 +52,13 @@ FOR EVERYONE
 • Full VoiceOver support
 • Designed for iPhone and iPad
 
-## What's new (1.0)
+## What's new (1.1.0)
 
-Welcome to Cascade.
+• A hundred new levels. Two new worlds, Forge and Light, take Cascade to 200 and end on the hardest board in the game.
+• In the new chapters every tenth level is a gate: a deliberate spike, with a gentler level just before it.
+• Hints now refill at your own midnight rather than UTC's.
+• You can delete everything the game has stored, from Settings.
+• One Undertow level had its par corrected from 16 to 15.
 
 ## App Review notes
 
@@ -61,7 +67,7 @@ Notes** (4,000-character limit). Fill in the bracketed recording details first.
 
 ```text
 1. SCREEN RECORDING
-Attached. Recorded on an [iPhone model] running iOS [version], using build [1.0.x (n)] installed from TestFlight. It starts at launch and shows playing and solving levels, the daily challenge and its leaderboard, and Settings, including deleting the account.
+Attached. Recorded on an [iPhone model] running iOS [version], using build [1.1.0 (n)] installed from TestFlight. It starts at launch and shows playing and solving levels, the daily challenge and its leaderboard, and Settings, including deleting the account.
 
 2. PURPOSE AND AUDIENCE
 Cascade: Colour Sorting is a single-player logic puzzle for a general audience (rated 4+), aimed at teens and adults who enjoy calm, thoughtful puzzles. Each board has lanes of coloured tokens, and the goal is to finish with one colour per lane while moving only one token at a time. The value is a relaxing, no-pressure puzzle for short sessions: no timers, lives, ads or purchases. A solver checks that every level can be solved before release, and the solver's move count sets the par for the star rating.
@@ -70,7 +76,7 @@ Cascade: Colour Sorting is a single-player logic puzzle for a general audience (
 No login, credentials, sample files or setup are needed.
 - Launch the app. The home screen shows Start playing (Continue after the first level), Chapters, Daily challenge and Settings.
 - Tap Start playing. Tap a lane to lift its top token, then tap another lane to place it on a matching colour or in an empty lane. Undo, Restart and Hint sit below the board. Solving a level awards up to three stars.
-- Chapters and levels unlock in order. Chapters 4-5 add face-down tokens, and chapters 6-10 (the Stone world) add anchored tokens that never move.
+- Chapters and levels unlock in order. Chapters 4-5 add face-down tokens, and chapters 6-10 (the Stone world) add anchored tokens that never move. Chapters 11-20 (Forge and Light) add no new rule: they rearrange the existing ones into harder boards, and every tenth level is a deliberate difficulty spike.
 - Daily challenge: every player gets the same board each day. Once it is solved, that day's leaderboard (fewest moves) appears.
 - Settings: switches for haptics, sound and music, plus Sync now and Delete my data.
 Everything except the leaderboard and sync works offline.

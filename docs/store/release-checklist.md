@@ -68,11 +68,11 @@ Order: home, sorting, face-down tokens, anchors, anchors and fog, chapters. The
 - **Release:** manual. `store.config.json` sets `automaticRelease: false`, so an approved build
   waits for you to release it.
 
-## Known limits of 1.0
+## Known limits of 1.1
 
 - Daily leaderboard scores are client-reported and can be forged. The planned fix is an edge
   function that replays a submitted move list against the engine before accepting it.
 - Chapters 1-5 contain three duplicate board pairs (levels 1/2, 23/26, 35/38), kept because
   removing them would reprice levels already scored against.
-- Chapters 11-20 are specced (`docs/superpowers/specs/2026-09-13-chapters-11-20-design.md`)
-  but not built. They ship as a content update.
+- One Undertow level (39) was repriced from par 16 to 15 in 1.1.0, when a lane dealt already
+  finished stopped counting as fog. Stored stars are unaffected; only a replay is rescored.

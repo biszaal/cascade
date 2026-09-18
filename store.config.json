@@ -1,7 +1,7 @@
 {
   "configVersion": 0,
   "apple": {
-    "version": "1.0.1",
+    "version": "1.1.0",
     "copyright": "2026 Biszaal Tech Ltd.",
     "categories": [
       [
@@ -13,8 +13,8 @@
       "en-US": {
         "title": "Cascade: Colour Sorting",
         "subtitle": "Calm colour-sorting puzzles",
-        "promoText": "100 hand-built levels across two worlds. Sort colours one token at a time, dig through face-down tokens, and plan around anchors that never move.",
-        "description": "Cascade is a calm, thoughtful colour-sorting puzzle. Every lane should end up holding a single colour — but you move only one token at a time, and every move counts.\n\n100 HAND-BUILT LEVELS\nTen chapters across two worlds, each introducing a new idea on a gentle board before testing it on a hard one.\n\n• Water — learn to sort, then dig through face-down tokens you can't see until you reach them.\n• Stone — plan around anchored tokens that never move, so their lanes can only ever finish in one colour.\n\nEVERY MOVE COUNTS\nSolve a level in fewer moves to earn more stars. Take back a few moves, restart any time, and use a hint when you're truly stuck.\n\nA NEW PUZZLE EVERY DAY\nThe daily challenge gives everyone the same board each day, with a leaderboard for the fewest moves.\n\nMADE TO FEEL GOOD\nBouncy animations, playful sound effects, a calm soundtrack and gentle haptics — never a timer, never a rush.\n\nFOR EVERYONE\n• Plays fully offline\n• No ads, no in-app purchases, no sign-up\n• Colourblind-friendly palette with shape cues\n• Full VoiceOver support\n• Designed for iPhone and iPad",
+        "promoText": "200 hand-built levels across four worlds. Sort colours one token at a time, dig through face-down tokens, and plan around anchors that never move.",
+        "description": "Cascade is a calm, thoughtful colour-sorting puzzle. Every lane should end up holding a single colour — but you move only one token at a time, and every move counts.\n\n200 HAND-BUILT LEVELS\nTwenty chapters across four worlds, each introducing a new idea on a gentle board before testing it on a hard one.\n\n• Water — learn to sort, then dig through face-down tokens you can't see until you reach them.\n• Stone — plan around anchored tokens that never move, so their lanes can only ever finish in one colour.\n• Forge — the same rules rearranged: boards that are wide and shallow, deep and narrow, or fogged unevenly so you plan outward from what you can already see.\n• Light — the ten hardest chapters, ending on the hardest board in the game.\n\nEVERY MOVE COUNTS\nSolve a level in fewer moves to earn more stars. Take back a few moves, restart any time, and use a hint when you're truly stuck.\n\nA NEW PUZZLE EVERY DAY\nThe daily challenge gives everyone the same board each day, with a leaderboard for the fewest moves.\n\nMADE TO FEEL GOOD\nBouncy animations, playful sound effects, a calm soundtrack and gentle haptics — never a timer, never a rush.\n\nFOR EVERYONE\n• Plays fully offline\n• No ads, no in-app purchases, no sign-up\n• Colourblind-friendly palette with shape cues\n• Full VoiceOver support\n• Designed for iPhone and iPad",
         "keywords": [
           "sort",
           "color",
@@ -30,7 +30,7 @@
           "calm",
           "strategy"
         ],
-        "releaseNotes": "What's new in 1.0.1\n\n• Out of moves? A new prompt lets you undo (5 per level) or restart.\n• A fun new look with rounded, friendly lettering.\n• Playful sound effects and a calm soundtrack — switch music off in Settings.\n• Locked tokens now wear a padlock, so they're easier to spot.\n• The daily challenge fits on one screen.",
+        "releaseNotes": "What's new in 1.1.0\n\n• A hundred new levels. Two new worlds, Forge and Light, take Cascade to 200 and end on the hardest board in the game.\n• In the new chapters every tenth level is a gate: a deliberate spike, with a gentler level just before it.\n• Hints now refill at your own midnight rather than UTC's.\n• You can delete everything the game has stored, from Settings.\n• One Undertow level had its par corrected from 16 to 15.",
         "supportUrl": "https://www.biszaaltech.com/games/cascade",
         "marketingUrl": "https://www.biszaaltech.com/games/cascade",
         "privacyPolicyUrl": "https://www.biszaaltech.com/games/cascade/privacy"
