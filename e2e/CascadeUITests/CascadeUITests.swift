@@ -308,6 +308,17 @@ final class CascadeUITests: XCTestCase {
             ready: app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Spring'")).firstMatch
         )
 
+        // Twenty chapters now. The pack list in src/data/levels.ts is written out by hand
+        // because Metro needs literal require paths, so a chapter can be added to assets and
+        // silently never loaded. Scrolling to the last one is the cheapest guard against that.
+        app.swipeUp()
+        app.swipeUp()
+        XCTAssertTrue(
+            app.buttons.matching(NSPredicate(format: "label BEGINSWITH 'Zenith'")).firstMatch
+                .waitForExistence(timeout: 10),
+            "Chapter list never reached Zenith - a level pack is missing from src/data/levels.ts"
+        )
+
         open(app, "cascade://daily")
         XCTAssertTrue(lane(app, 1).waitForExistence(timeout: 30), "Daily board never appeared")
         XCTAssertEqual(
@@ -357,6 +368,26 @@ final class CascadeUITests: XCTestCase {
         )
         attach("verify-delete-result")
         XCTAssertTrue(deleted.exists, "Deletion failed - is migration 0003 applied, and is the simulator online?")
+    }
+
+    /// The records screen. Reads only; needs no network and deletes nothing, so it runs in the
+    /// default suite.
+    func testI_records() {
+        let app = launchApp()
+        open(app, "cascade://achievements")
+
+        XCTAssertTrue(app.staticTexts["Records"].waitForExistence(timeout: 15), "Records never appeared")
+
+        // Every row is one accessibility label built by describeRecord, so this asserts against
+        // the exact string VoiceOver reads - the test and the screen reader fail together rather
+        // than the app growing a label that exists only for automation.
+        let unearned = app.descendants(matching: .any)
+            .matching(NSPredicate(format: "label CONTAINS 'not yet earned'"))
+        XCTAssertGreaterThan(
+            unearned.count, 0,
+            "No record announced itself as unearned, so the rows are not describing themselves"
+        )
+        attach("verify-records")
     }
 
     /// Rotation: the thing that cannot be checked without a device.

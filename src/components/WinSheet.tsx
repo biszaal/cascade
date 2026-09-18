@@ -1,17 +1,7 @@
-import { useEffect } from 'react';
 import { Modal, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
-import Animated, {
-  useAnimatedStyle,
-  useSharedValue,
-  withDelay,
-  withSequence,
-  withSpring,
-  withTiming,
-} from 'react-native-reanimated';
-import Svg, { Path } from 'react-native-svg';
-import { duration, radius, space, spring, surface, type } from '@/design/tokens';
+import { radius, space, surface, type } from '@/design/tokens';
 import { Button } from './Button';
-import * as haptics from '@/game/haptics';
+import { StampedStar } from './StampedStar';
 import { metricsFor } from '@/game/responsive';
 
 interface WinSheetProps {
@@ -24,39 +14,6 @@ interface WinSheetProps {
   onNext: () => void;
   onReplay: () => void;
   onExit: () => void;
-}
-
-const STAR =
-  'M12 2.4l2.9 5.9 6.5.95-4.7 4.58 1.11 6.47L12 17.35l-5.81 3.05 1.11-6.47L2.6 9.25l6.5-.95L12 2.4z';
-
-/** Each star stamps in with an overshoot, in sequence, rather than all appearing at once. */
-function StampedStar({ filled, index }: { filled: boolean; index: number }) {
-  const scale = useSharedValue(0);
-
-  useEffect(() => {
-    if (!filled) {
-      scale.value = withTiming(1, { duration: duration.sheet });
-      return;
-    }
-    const delay = duration.stampLead + index * duration.stampGap;
-    scale.value = withDelay(
-      delay,
-      withSequence(withSpring(1.28, { damping: 11, stiffness: 280 }), withSpring(1, spring.default)),
-    );
-    // The ding shares the stamp's delay, so each star is heard as it lands.
-    const ding = setTimeout(haptics.tapStar, delay);
-    return () => clearTimeout(ding);
-  }, [filled, index, scale]);
-
-  const style = useAnimatedStyle(() => ({ transform: [{ scale: scale.value }] }));
-
-  return (
-    <Animated.View style={style}>
-      <Svg width={44} height={44} viewBox="0 0 24 24">
-        <Path d={STAR} fill={filled ? surface.accent : surface.inactive} />
-      </Svg>
-    </Animated.View>
-  );
 }
 
 export function WinSheet({

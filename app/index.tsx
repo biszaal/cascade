@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, useWindowDimensions } from 'react-native';
+import { Pressable, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeInDown } from 'react-native-reanimated';
@@ -9,8 +9,10 @@ import { useProgress } from '@/state/progress';
 import { chapters, getLevel, totalLevels } from '@/data/levels';
 import { chapterColors } from '@/design/tokens';
 import { StarRow } from '@/components/StarRow';
+import { ChevronIcon } from '@/components/Icons';
 import { metricsFor } from '@/game/responsive';
 import { streakOn, streakTag } from '@/game/streak';
+import { earnedIds } from '@/game/achievements';
 import { utcDay } from '@/game/day';
 
 export default function Home() {
@@ -22,6 +24,7 @@ export default function Home() {
   const dailyStreak = useProgress((s) => s.dailyStreak);
   const dailyBest = useProgress((s) => s.dailyBest);
   const dailyLastDay = useProgress((s) => s.dailyLastDay);
+  const seenRecords = useProgress((s) => s.seenRecords);
 
   const completed = Object.keys(results).length;
   const nextLevelId = Math.min(completed + 1, totalLevels);
@@ -40,6 +43,13 @@ export default function Home() {
     dailyLastDay !== today && streakDays > 0
       ? `Daily challenge · ${streakTag(streakDays)}`
       : 'Daily challenge';
+
+  // A record earned but not yet looked at. The dot on the chevron is the whole notification:
+  // the win sheet already stamps three stars and plays a fanfare, and stacking a badge on top
+  // of that is the celebration pile-on this game is built to avoid.
+  const unseenRecords = earnedIds({ results, totalLevels, chapters, dailyBest }).some(
+    (id) => !seenRecords.includes(id),
+  );
 
   return (
     <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
@@ -65,10 +75,26 @@ export default function Home() {
           </Text>
         </Animated.View>
 
-        <Animated.View entering={FadeInDown.delay(duration.enterStagger).duration(duration.enter)} style={styles.stats}>
-          <Stat label="SOLVED" value={`${completed}`} suffix={`/${totalLevels}`} />
-          <View style={styles.statDivider} />
-          <Stat label="STARS" value={`${totalStars}`} suffix={`/${totalLevels * 3}`} />
+        <Animated.View entering={FadeInDown.delay(duration.enterStagger).duration(duration.enter)}>
+          {/* The summary was already here and inert; making it the way in to Records costs no
+              vertical space, where a fifth button would push the actions off a small phone. */}
+          <Pressable
+            onPress={() => router.push('/achievements')}
+            style={styles.stats}
+            accessibilityRole="button"
+            accessibilityLabel="Records"
+            accessibilityValue={{
+              text: `${completed} of ${totalLevels} solved, ${totalStars} of ${totalLevels * 3} stars`,
+            }}
+          >
+            <Stat label="SOLVED" value={`${completed}`} suffix={`/${totalLevels}`} />
+            <View style={styles.statDivider} />
+            <Stat label="STARS" value={`${totalStars}`} suffix={`/${totalLevels * 3}`} />
+            <View style={styles.statsChevron}>
+              <ChevronIcon />
+              {unseenRecords ? <View style={styles.statsDot} /> : null}
+            </View>
+          </Pressable>
         </Animated.View>
 
         <View style={metrics.isTablet ? styles.spacerFixed : styles.spacer} />
@@ -137,6 +163,16 @@ const styles = StyleSheet.create({
 
   stats: { flexDirection: 'row', alignItems: 'center', gap: space.lg, marginTop: space.xl },
   statDivider: { width: 1, height: 34, backgroundColor: surface.hairline },
+  statsChevron: { marginLeft: 'auto', width: 24, height: 24, alignItems: 'center', justifyContent: 'center' },
+  statsDot: {
+    position: 'absolute',
+    top: 1,
+    right: 0,
+    width: 7,
+    height: 7,
+    borderRadius: 4,
+    backgroundColor: surface.accent,
+  },
   statLabel: { ...type.label, fontSize: 10, letterSpacing: 1.2, color: surface.graphite },
   statValueRow: { flexDirection: 'row', alignItems: 'baseline', gap: 2 },
   statValue: { ...type.numeralLarge, color: surface.ink },

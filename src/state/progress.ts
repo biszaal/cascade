@@ -25,6 +25,12 @@ export interface ProgressState {
   dailyLastDay: string;
   dailyStreak: number;
   dailyBest: number;
+  /**
+   * Records the player has already been shown stamping in. A "have you been told" record,
+   * not an "is it earned" one - every record is derived, so losing this costs an animation
+   * and never a record.
+   */
+  seenRecords: string[];
   hapticsEnabled: boolean;
   soundEnabled: boolean;
   musicEnabled: boolean;
@@ -39,6 +45,8 @@ export interface ProgressState {
   refreshHints: () => void;
   /** Record that `day`'s daily board was solved. Idempotent on the same board. */
   recordDailySolve: (day: string) => void;
+  /** Mark records as shown, so they stamp in once and are simply there after that. */
+  markRecordsSeen: (ids: string[]) => void;
   setHaptics: (value: boolean) => void;
   setSound: (value: boolean) => void;
   setMusic: (value: boolean) => void;
@@ -70,6 +78,7 @@ interface Persisted {
   dailyLastDay: string;
   dailyStreak: number;
   dailyBest: number;
+  seenRecords: string[];
   hapticsEnabled: boolean;
   soundEnabled: boolean;
   musicEnabled: boolean;
@@ -79,7 +88,7 @@ interface Persisted {
 export const useProgress = create<ProgressState>((set, get) => {
   function persist(): void {
     const {
-      results, hintsRemaining, hintsResetOn, dailyLastDay, dailyStreak, dailyBest,
+      results, hintsRemaining, hintsResetOn, dailyLastDay, dailyStreak, dailyBest, seenRecords,
       hapticsEnabled, soundEnabled, musicEnabled, dirty,
     } = get();
     const payload: Persisted = {
@@ -89,6 +98,7 @@ export const useProgress = create<ProgressState>((set, get) => {
       dailyLastDay,
       dailyStreak,
       dailyBest,
+      seenRecords,
       hapticsEnabled,
       soundEnabled,
       musicEnabled,
@@ -104,6 +114,7 @@ export const useProgress = create<ProgressState>((set, get) => {
     dailyLastDay: NO_STREAK.lastDay,
     dailyStreak: NO_STREAK.current,
     dailyBest: NO_STREAK.best,
+    seenRecords: [],
     hapticsEnabled: true,
     soundEnabled: true,
     musicEnabled: true,
@@ -123,6 +134,7 @@ export const useProgress = create<ProgressState>((set, get) => {
             dailyLastDay: saved.dailyLastDay ?? NO_STREAK.lastDay,
             dailyStreak: saved.dailyStreak ?? NO_STREAK.current,
             dailyBest: saved.dailyBest ?? NO_STREAK.best,
+            seenRecords: saved.seenRecords ?? [],
             hapticsEnabled: saved.hapticsEnabled ?? true,
             soundEnabled: saved.soundEnabled ?? true,
             musicEnabled: saved.musicEnabled ?? true,
@@ -179,6 +191,14 @@ export const useProgress = create<ProgressState>((set, get) => {
       persist();
     },
 
+    markRecordsSeen: (ids) => {
+      const seen = get().seenRecords;
+      const added = ids.filter((id) => !seen.includes(id));
+      if (added.length === 0) return;
+      set({ seenRecords: [...seen, ...added] });
+      persist();
+    },
+
     setHaptics: (value) => {
       set({ hapticsEnabled: value });
       persist();
@@ -208,6 +228,7 @@ export const useProgress = create<ProgressState>((set, get) => {
         dailyLastDay: NO_STREAK.lastDay,
         dailyStreak: NO_STREAK.current,
         dailyBest: NO_STREAK.best,
+        seenRecords: [],
       });
       await AsyncStorage.removeItem(STORAGE_KEY).catch(() => {});
     },

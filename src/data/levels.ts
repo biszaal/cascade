@@ -40,6 +40,12 @@ export const chapters = packs.map((pack) => ({
   color: pack.color,
   levelCount: pack.levels.length,
   firstLevelId: pack.levels[0]?.id ?? 1,
+  // Derived rather than listed, so a regenerated pack can never leave these lying. Both are
+  // all-or-nothing per chapter as the curve is authored - chapters 1-3, 6 and 7 hold no
+  // face-down token at all, and 1-5 no anchor - which is what lets the records screen say
+  // "a level with face-down tokens" from the chapter alone.
+  hasFog: pack.levels.every((level) => (level.config.hidden ?? []).some((n) => n > 0)),
+  hasAnchors: pack.levels.every((level) => (level.config.anchored ?? []).some(Boolean)),
 }));
 
 export const totalLevels = packs.reduce((sum, pack) => sum + pack.levels.length, 0);

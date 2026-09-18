@@ -132,6 +132,24 @@ The streak is **device-local and never synced**. There is no column for it, sync
 be new data collection, and a client-reported streak is forgeable anyway. It does not follow
 the player to a second device.
 
+## Records
+
+`src/game/achievements.ts` is a list of records and a pure predicate each, over a snapshot of
+what progress already stores. Nothing is written when one is earned, so a record cannot be
+lost, desynced or missed because an event did not fire. The cost is that there is no unlock
+date, and nothing earned before the screen shipped has an unlock *moment*.
+
+The one thing written is `seenRecords`, which is a "have you been told" record rather than an
+"is it earned" one - losing it costs an animation, never a record.
+
+What is left out is as deliberate as what is in. Nothing is timed, because the store promises
+"never a timer, never a rush". Nothing rewards finishing without hints or undos, because
+rewarding abstinence turns a courtesy back into a currency. No session counts, tap counts or
+days opened - fake round statistics, which `DESIGN.md` bans outright.
+
+The set is tested by earning it: one case asserts an empty snapshot earns nothing and a
+maximal one earns everything, which is what catches a record that can never be earned at all.
+
 ## Sound and feel
 
 Sound effects and music are synthesised by `scripts/generate-sounds.mjs` rather than sourced:
