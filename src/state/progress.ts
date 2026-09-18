@@ -11,6 +11,9 @@ import { afterSolving, NO_STREAK } from '@/game/streak';
 
 const STORAGE_KEY = 'cascade.progress.v1';
 
+/** Evening, when someone is most likely to have a few minutes for a board. */
+const DEFAULT_REMINDER_HOUR = 20;
+
 export interface LevelResult {
   stars: number;
   bestMoves: number;
@@ -31,6 +34,10 @@ export interface ProgressState {
    * and never a record.
    */
   seenRecords: string[];
+  /** Opt-in daily reminder. False until the OS has actually granted permission. */
+  remindersEnabled: boolean;
+  reminderHour: number;
+  reminderMinute: number;
   hapticsEnabled: boolean;
   soundEnabled: boolean;
   musicEnabled: boolean;
@@ -47,6 +54,7 @@ export interface ProgressState {
   recordDailySolve: (day: string) => void;
   /** Mark records as shown, so they stamp in once and are simply there after that. */
   markRecordsSeen: (ids: string[]) => void;
+  setReminder: (enabled: boolean, hour?: number, minute?: number) => void;
   setHaptics: (value: boolean) => void;
   setSound: (value: boolean) => void;
   setMusic: (value: boolean) => void;
@@ -79,6 +87,9 @@ interface Persisted {
   dailyStreak: number;
   dailyBest: number;
   seenRecords: string[];
+  remindersEnabled: boolean;
+  reminderHour: number;
+  reminderMinute: number;
   hapticsEnabled: boolean;
   soundEnabled: boolean;
   musicEnabled: boolean;
@@ -89,6 +100,7 @@ export const useProgress = create<ProgressState>((set, get) => {
   function persist(): void {
     const {
       results, hintsRemaining, hintsResetOn, dailyLastDay, dailyStreak, dailyBest, seenRecords,
+      remindersEnabled, reminderHour, reminderMinute,
       hapticsEnabled, soundEnabled, musicEnabled, dirty,
     } = get();
     const payload: Persisted = {
@@ -99,6 +111,9 @@ export const useProgress = create<ProgressState>((set, get) => {
       dailyStreak,
       dailyBest,
       seenRecords,
+      remindersEnabled,
+      reminderHour,
+      reminderMinute,
       hapticsEnabled,
       soundEnabled,
       musicEnabled,
@@ -115,6 +130,9 @@ export const useProgress = create<ProgressState>((set, get) => {
     dailyStreak: NO_STREAK.current,
     dailyBest: NO_STREAK.best,
     seenRecords: [],
+    remindersEnabled: false,
+    reminderHour: DEFAULT_REMINDER_HOUR,
+    reminderMinute: 0,
     hapticsEnabled: true,
     soundEnabled: true,
     musicEnabled: true,
@@ -135,6 +153,9 @@ export const useProgress = create<ProgressState>((set, get) => {
             dailyStreak: saved.dailyStreak ?? NO_STREAK.current,
             dailyBest: saved.dailyBest ?? NO_STREAK.best,
             seenRecords: saved.seenRecords ?? [],
+            remindersEnabled: saved.remindersEnabled ?? false,
+            reminderHour: saved.reminderHour ?? DEFAULT_REMINDER_HOUR,
+            reminderMinute: saved.reminderMinute ?? 0,
             hapticsEnabled: saved.hapticsEnabled ?? true,
             soundEnabled: saved.soundEnabled ?? true,
             musicEnabled: saved.musicEnabled ?? true,
@@ -199,6 +220,15 @@ export const useProgress = create<ProgressState>((set, get) => {
       persist();
     },
 
+    setReminder: (enabled, hour, minute) => {
+      set({
+        remindersEnabled: enabled,
+        reminderHour: hour ?? get().reminderHour,
+        reminderMinute: minute ?? get().reminderMinute,
+      });
+      persist();
+    },
+
     setHaptics: (value) => {
       set({ hapticsEnabled: value });
       persist();
@@ -229,6 +259,9 @@ export const useProgress = create<ProgressState>((set, get) => {
         dailyStreak: NO_STREAK.current,
         dailyBest: NO_STREAK.best,
         seenRecords: [],
+        remindersEnabled: false,
+        reminderHour: DEFAULT_REMINDER_HOUR,
+        reminderMinute: 0,
       });
       await AsyncStorage.removeItem(STORAGE_KEY).catch(() => {});
     },

@@ -1,6 +1,6 @@
 # Privacy Policy — Cascade: Colour Sorting
 
-**Effective date:** 14 September 2026
+**Effective date:** 18 September 2026
 **Developer:** Biszaal Tech Ltd.
 **Contact:** biszaalgames@gmail.com
 
@@ -24,7 +24,15 @@ no tracking.
 - **Daily results**: your number of moves and time for that day's puzzle.
 
 Results finished offline stay on your device and are sent when the game next connects. Your
-settings and hints never leave your device.
+settings, hints and daily streak never leave your device.
+
+## Reminders
+
+If you turn on the daily reminder in **Settings › Daily**, the game asks your phone for permission
+to show notifications and schedules them on the device. Nothing is sent anywhere: there is no push
+server, each reminder is created and delivered entirely by your own phone, and the game learns
+nothing about whether you saw or opened one. Turning the switch off cancels every reminder it has
+scheduled.
 
 ## Who processes it
 

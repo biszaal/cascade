@@ -150,6 +150,23 @@ days opened - fake round statistics, which `DESIGN.md` bans outright.
 The set is tested by earning it: one case asserts an empty snapshot earns nothing and a
 maximal one earns everything, which is what catches a record that can never be earned at all.
 
+## Reminders
+
+One optional local notification, off until the player turns it on in Settings › Daily. There is
+no push server: the OS is asked for permission, the reminders are scheduled on the device, and
+the game never learns whether one was opened.
+
+**The permission is requested from the switch and nowhere else.** iOS grants exactly one system
+prompt for the life of an install, so asking at launch - before the player has asked for
+anything - is how the feature ends up denied forever. `remindersEnabled` is stored only after
+the OS actually grants it, so the switch can never read on while the phone stays silent, and a
+permission revoked in the OS turns it back off on the next foreground.
+
+The schedule is a **rolling window of one-shot triggers**, not a repeating daily one. A
+repeating trigger cannot be conditional, so it would fire on a day the player had already
+solved. Rescheduling the whole window instead makes it idempotent, so it can safely re-run on
+every foreground, after every daily solve, and whenever the time changes.
+
 ## Sound and feel
 
 Sound effects and music are synthesised by `scripts/generate-sounds.mjs` rather than sourced:

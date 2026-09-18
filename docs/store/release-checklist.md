@@ -12,6 +12,10 @@ accepts by hand. Work top to bottom.
 
 ## Before submitting
 
+- [ ] **The published privacy page carries the Reminders paragraph** added in 1.1.0. The page at
+      <https://www.biszaaltech.com/games/cascade/privacy> is what players and App Review see, and
+      `docs/store/privacy-policy.md` only mirrors it - deploying the site is a separate step from
+      shipping the app.
 - [x] **Privacy and support pages are live** at
       <https://www.biszaaltech.com/games/cascade/privacy> and
       <https://www.biszaaltech.com/games/cascade>. App Review opens both. Deployed 13 Sep 2026.
@@ -22,6 +26,12 @@ accepts by hand. Work top to bottom.
       Settings shows the Cloud section.
 - [ ] **Anonymous sign-ins are enabled** in Supabase (Authentication → Sign In / Providers).
       Without it every online feature silently does nothing.
+- [ ] **The reminder asks only from its switch.** Launch a fresh install and open every screen:
+      no notification prompt should appear until Settings › Daily › Reminder is turned on. iOS
+      grants one prompt per install, and spending it unasked kills the feature permanently.
+- [ ] **Screenshots are current.** They show the level and star totals, which changed from 100
+      and 300 to 200 and 600 in 1.1.0. Re-run `testG_storeTour` on the 6.9" phone and the 13"
+      iPad simulators.
 
 ## App Store Connect — by hand
 
@@ -38,6 +48,11 @@ EAS Metadata does not cover these.
 - **User Content → Gameplay Content** — best moves, stars and times per level, and daily moves
   and time. Purpose: *App Functionality*. Linked to the user: **Yes**. Used for tracking: **No**.
 - Nothing else: no name, email, location, contacts, purchases, diagnostics or advertising data.
+
+**1.1.0 does not change these answers.** The daily reminder is a local notification: the app asks
+the OS for permission and schedules on the device, and nothing is sent to or from a server, so no
+new data type is collected and the questionnaire does not need reopening. The streak and the
+records are derived on the device and never leave it.
 
 The privacy page at <https://www.biszaaltech.com/games/cascade/privacy> describes exactly this.
 If what the app sends changes, update the page and these answers before that build ships.

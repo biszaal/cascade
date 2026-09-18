@@ -1,5 +1,15 @@
 import { useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Switch, Text, View, useWindowDimensions } from 'react-native';
+import {
+  Alert,
+  Linking,
+  Pressable,
+  ScrollView,
+  StyleSheet,
+  Switch,
+  Text,
+  View,
+  useWindowDimensions,
+} from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { radius, space, surface, type } from '@/design/tokens';
@@ -9,6 +19,20 @@ import { isSupabaseConfigured } from '@/supabase/client';
 import { deleteAccount } from '@/supabase/auth';
 import { flushPending, pullRemote } from '@/data/sync';
 import { metricsFor } from '@/game/responsive';
+import * as reminders from '@/game/reminders';
+import { streakOn } from '@/game/streak';
+import { utcDay } from '@/game/day';
+
+/**
+ * The times the reminder can be set to.
+ *
+ * A fixed handful rather than a picker: @react-native-community/datetimepicker is a native
+ * dependency, and this is a setting almost nobody will change twice.
+ */
+const REMINDER_HOURS = [8, 12, 18, 20];
+
+const clock = (hour: number, minute: number) =>
+  `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
 
 export default function Settings() {
   const router = useRouter();
@@ -24,6 +48,43 @@ export default function Settings() {
   const dirty = useProgress((s) => s.dirty);
   const [syncing, setSyncing] = useState(false);
   const [deleting, setDeleting] = useState(false);
+
+  const remindersEnabled = useProgress((s) => s.remindersEnabled);
+  const reminderHour = useProgress((s) => s.reminderHour);
+  const reminderMinute = useProgress((s) => s.reminderMinute);
+  const setReminder = useProgress((s) => s.setReminder);
+  const dailyLastDay = useProgress((s) => s.dailyLastDay);
+  const dailyStreak = useProgress((s) => s.dailyStreak);
+  const dailyBest = useProgress((s) => s.dailyBest);
+  // Set when the OS says it will not ask again, which is the one case a switch cannot fix.
+  const [reminderBlocked, setReminderBlocked] = useState(false);
+
+  const liveStreak = () =>
+    streakOn({ current: dailyStreak, best: dailyBest, lastDay: dailyLastDay }, utcDay());
+
+  async function toggleReminder(value: boolean) {
+    if (!value) {
+      setReminder(false);
+      setReminderBlocked(false);
+      await reminders.disable();
+      return;
+    }
+    // The permission is requested here and nowhere else. iOS grants exactly one prompt for the
+    // life of an install, so asking at launch - before the player has asked for anything - is
+    // how the feature ends up denied forever.
+    const state = await reminders.enable(reminderHour, reminderMinute, dailyLastDay, liveStreak());
+    setReminderBlocked(state === 'blocked');
+    // Stored only once the OS has actually granted it, so the switch can never read on while
+    // the phone stays silent.
+    setReminder(state === 'on');
+  }
+
+  async function cycleReminderTime() {
+    const i = REMINDER_HOURS.indexOf(reminderHour);
+    const next = REMINDER_HOURS[(i + 1) % REMINDER_HOURS.length]!;
+    setReminder(true, next, 0);
+    await reminders.reschedule(next, 0, dailyLastDay, liveStreak());
+  }
 
   return (
     <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
@@ -63,6 +124,49 @@ export default function Settings() {
               trackColor={{ true: surface.accent, false: surface.inactive }}
             />
           </Row>
+        </Section>
+
+        {/* Its own section rather than another switch under Feel: Feel is about what the game
+            does while you are playing, and this is about what it does when it is closed. */}
+        <Section title="Daily">
+          <Row
+            label="Reminder"
+            description={
+              reminderBlocked
+                ? 'Notifications are turned off for Cascade in your phone settings'
+                : 'A nudge when a new daily board is up'
+            }
+          >
+            {reminderBlocked ? (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Open Settings"
+                onPress={() => Linking.openSettings().catch(() => {})}
+                style={styles.smallButton}
+              >
+                <Text style={styles.smallButtonLabel}>Open Settings</Text>
+              </Pressable>
+            ) : (
+              <Switch
+                value={remindersEnabled}
+                onValueChange={toggleReminder}
+                trackColor={{ true: surface.accent, false: surface.inactive }}
+              />
+            )}
+          </Row>
+
+          {remindersEnabled ? (
+            <Row label="Time" description="When the reminder arrives">
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`Reminder time, ${clock(reminderHour, reminderMinute)}`}
+                onPress={cycleReminderTime}
+                style={styles.smallButton}
+              >
+                <Text style={styles.smallButtonLabel}>{clock(reminderHour, reminderMinute)}</Text>
+              </Pressable>
+            </Row>
+          ) : null}
         </Section>
 
         {/* Sync only exists when a backend is configured. An offline build leaves the section out

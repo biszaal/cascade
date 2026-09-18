@@ -58,6 +58,14 @@
           "recordAudioAndroid": false,
           "enableBackgroundPlayback": false
         }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#E0952B",
+          "defaultChannel": "daily"
+        }
       ]
     ],
     "experiments": {

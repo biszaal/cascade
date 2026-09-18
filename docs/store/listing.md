@@ -56,6 +56,9 @@ FOR EVERYONE
 
 • A hundred new levels. Two new worlds, Forge and Light, take Cascade to 200 and end on the hardest board in the game.
 • In the new chapters every tenth level is a gate: a deliberate spike, with a gentler level just before it.
+• A daily streak, for solving the daily board day after day.
+• Records: seventeen things worth doing, from your first solve to matching the solver on every level.
+• An optional reminder for the daily board. Off until you turn it on in Settings.
 • Hints now refill at your own midnight rather than UTC's.
 • You can delete everything the game has stored, from Settings.
 • One Undertow level had its par corrected from 16 to 15.
@@ -78,7 +81,7 @@ No login, credentials, sample files or setup are needed.
 - Tap Start playing. Tap a lane to lift its top token, then tap another lane to place it on a matching colour or in an empty lane. Undo, Restart and Hint sit below the board. Solving a level awards up to three stars.
 - Chapters and levels unlock in order. Chapters 4-5 add face-down tokens, and chapters 6-10 (the Stone world) add anchored tokens that never move. Chapters 11-20 (Forge and Light) add no new rule: they rearrange the existing ones into harder boards, and every tenth level is a deliberate difficulty spike.
 - Daily challenge: every player gets the same board each day. Once it is solved, that day's leaderboard (fewest moves) appears.
-- Settings: switches for haptics, sound and music, plus Sync now and Delete my data.
+- Settings: switches for haptics, sound and music; an off-by-default daily reminder with a time; plus Sync now and Delete my data. The reminder permission is requested only when that switch is turned on, never at launch.
 Everything except the leaderboard and sync works offline.
 
 Accounts, user content and payments:
@@ -89,6 +92,7 @@ Accounts, user content and payments:
 
 4. EXTERNAL SERVICES
 - Supabase (supabase.com): anonymous authentication and a Postgres database hosted in Ireland (AWS eu-west-1). It is used only to back up level results and serve the daily leaderboard.
+- No push notification service: the daily reminder is a local notification, created and delivered by the player's own device. Nothing is sent to or from a server for it.
 - No other runtime services: no analytics, advertising, tracking, crash reporting, payment or AI services.
 
 5. REGIONAL DIFFERENCES

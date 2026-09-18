@@ -14,6 +14,7 @@ import { isSupabaseConfigured } from '@/supabase/client';
 import { metricsFor } from '@/game/responsive';
 import { useProgress } from '@/state/progress';
 import { describeStreak, streakOn } from '@/game/streak';
+import * as reminders from '@/game/reminders';
 
 /** As many leaderboard rows as fit under the result on the smallest phone, without scrolling. */
 const LEADERBOARD_ROWS = 5;
@@ -62,6 +63,21 @@ export default function Daily() {
     // Local and unconditional: the streak counts boards solved, and it must hold up with no
     // network and no account.
     useProgress.getState().recordDailySolve(date);
+
+    // Today is done, so take today out of the reminder window rather than nudging someone
+    // about a board they have just solved.
+    const after = useProgress.getState();
+    if (after.remindersEnabled) {
+      void reminders.reschedule(
+        after.reminderHour,
+        after.reminderMinute,
+        after.dailyLastDay,
+        streakOn(
+          { current: after.dailyStreak, best: after.dailyBest, lastDay: after.dailyLastDay },
+          date,
+        ),
+      );
+    }
     // The leaderboard is shown the moment the board is solved, so it reads as loading until
     // it includes this result, rather than briefly claiming nobody has finished.
     if (isSupabaseConfigured) setLoadingBoard(true);

@@ -195,6 +195,10 @@ const sheets = [
   { file: 'android-icon-background.png', size: 1024, fraction: 0, ground: BOARD },
   { file: 'android-icon-foreground.png', size: 1024, fraction: 0.68, ground: null },
   { file: 'android-icon-monochrome.png', size: 1024, fraction: 0.68, ground: null, mono: true },
+  // Android tints a notification icon by its alpha channel alone, and asks for 96x96.
+  // Lane edges fall below a pixel at this size, which is the behaviour DESIGN.md already
+  // describes: the discs carry the mark on their own once it is small.
+  { file: 'notification-icon.png', size: 96, fraction: 0.9, ground: null, mono: true },
 ];
 
 for (const s of sheets) {

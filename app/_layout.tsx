@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { AppState, Pressable, Text, View } from 'react-native';
-import { Stack, type ErrorBoundaryProps } from 'expo-router';
+import { Stack, type ErrorBoundaryProps, router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import * as SplashScreen from 'expo-splash-screen';
@@ -14,7 +14,9 @@ import {
 import { surface } from '@/design/tokens';
 import { useProgress } from '@/state/progress';
 import { setHapticsEnabled } from '@/game/haptics';
-import { msUntilNextDay } from '@/game/day';
+import { msUntilNextDay, utcDay } from '@/game/day';
+import * as reminders from '@/game/reminders';
+import { streakOn } from '@/game/streak';
 import { preloadSounds, setSoundEnabled, release as releaseSound } from '@/game/sound';
 import { pauseMusic, resumeMusic, setMusicEnabled } from '@/game/music';
 import { ensureSession } from '@/supabase/auth';
@@ -69,6 +71,9 @@ export function ErrorBoundary({ retry }: ErrorBoundaryProps) {
     </View>
   );
 }
+
+// A reminder that lands while someone is mid-board must not cover it.
+reminders.configure();
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
@@ -130,6 +135,7 @@ export default function RootLayout() {
         // iOS can keep the app alive in the background for days, so launch alone would
         // leave yesterday's empty hint count showing after midnight.
         useProgress.getState().refreshHints();
+        void refreshReminders();
       } else pauseMusic();
     });
     return () => subscription.remove();
@@ -152,6 +158,20 @@ export default function RootLayout() {
   }, [loaded]);
 
   useEffect(() => {
+    // Tapping a reminder should land on the board it is about.
+    return reminders.addResponseListener((url) => {
+      if (url.endsWith('/daily')) router.push('/daily');
+    });
+  }, []);
+
+  useEffect(() => {
+    // Top the rolling window back up on launch, and notice a permission revoked in the OS
+    // while the app was away - otherwise the switch keeps claiming to be on.
+    if (!loaded) return;
+    void refreshReminders();
+  }, [loaded]);
+
+  useEffect(() => {
     if (fontsLoaded && loaded) SplashScreen.hideAsync().catch(() => {});
   }, [fontsLoaded, loaded]);
 
@@ -169,4 +189,24 @@ export default function RootLayout() {
       />
     </GestureHandlerRootView>
   );
+}
+
+/**
+ * Re-fill the reminder window, and drop the switch if the OS has stopped allowing it.
+ *
+ * Reads the store directly rather than through hooks, because it is called from an AppState
+ * listener that must not re-subscribe every time progress changes.
+ */
+async function refreshReminders(): Promise<void> {
+  const state = useProgress.getState();
+  if (!state.remindersEnabled) return;
+  if (!(await reminders.isStillPermitted())) {
+    state.setReminder(false);
+    return;
+  }
+  const streak = streakOn(
+    { current: state.dailyStreak, best: state.dailyBest, lastDay: state.dailyLastDay },
+    utcDay(),
+  );
+  await reminders.reschedule(state.reminderHour, state.reminderMinute, state.dailyLastDay, streak);
 }
