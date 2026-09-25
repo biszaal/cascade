@@ -1,4 +1,4 @@
-import type { TextStyle } from 'react-native';
+import type { TextStyle, ViewStyle } from 'react-native';
 
 /**
  * Code mirror of DESIGN.md. That document is the source of truth; if you change a
@@ -22,6 +22,12 @@ export const surface = {
   /** Single accent, lifted slightly in luminance so it carries on a dark ground. */
   accent: '#E0952B',
   accentSoft: 'rgba(224,149,43,0.16)',
+  /**
+   * The rim of a lane the held token may legally enter. Brighter than a hairline so the
+   * board answers "where can this go?" on its own, but never the accent - accent means
+   * the player chose this lane, or a hint did.
+   */
+  open: 'rgba(240,237,230,0.34)',
   /** Unearned stars, empty progress tracks and skeleton blocks. */
   inactive: 'rgba(240,237,230,0.16)',
   track: 'rgba(240,237,230,0.09)',
@@ -102,6 +108,21 @@ export const chapterColors = [
   '#DDEBFA', // pale sky
 ] as const;
 
+/**
+ * The accent for a chapter's colour index, wrapping rather than failing - the behaviour
+ * every consumer already hand-rolled as `chapterColors[(color ?? 0) % length]!`.
+ */
+export function chapterAccent(color: number | undefined): string {
+  return chapterColors[(color ?? 0) % chapterColors.length]!;
+}
+
+/**
+ * How far a chapter's board moves toward that accent. Enough that Spring reads warm and
+ * Deep reads cold; far too little for any chrome to read as coloured, which would break
+ * the rule that pieces are the only saturated objects on screen.
+ */
+export const CHAPTER_TINT = 0.06;
+
 /** 4pt base scale. */
 export const space = {
   xs: 4,
@@ -143,6 +164,12 @@ export const type = {
   heading: { fontFamily: font.display, fontSize: 20, lineHeight: 26, letterSpacing: 0 },
   body: { fontFamily: font.body, fontSize: 16, lineHeight: 24 },
   label: { fontFamily: font.bodyMedium, fontSize: 13, lineHeight: 18, letterSpacing: 0.4 },
+  /**
+   * Tracked capitals: data labels and section headings alike - MOVES, PAR, TODAY'S BOARD.
+   * 11pt rather than 10, because a tracked rounded capital stops being readable at a
+   * glance below that, and reading at a glance is the only thing this role is for.
+   */
+  micro: { fontFamily: font.bodyMedium, fontSize: 11, lineHeight: 15, letterSpacing: 1.2 },
   numeral: { fontFamily: font.mono, fontSize: 16, lineHeight: 20, fontVariant: tabular },
   numeralLarge: { fontFamily: font.monoBold, fontSize: 32, lineHeight: 36, fontVariant: tabular },
 } as const;
@@ -164,12 +191,18 @@ export const duration = {
   pour: 170,
   /** The same travel with the lob removed, for reduced motion. */
   pourCalm: 100,
+  /** The two hops a token makes after that pour lands. */
+  bounce: 190,
   /** A token's hop across the solved board. */
   hop: 90,
   /** Between tokens in a celebration, and between rows of a list. */
   stagger: 28,
   /** One leg of a lane's refusal shake. */
   shake: 45,
+  /** How long the board takes to answer a lift by opening and closing its lanes. */
+  offer: 130,
+  /** One breath of the chevron marking where a hint says to pour. */
+  hintPulse: 620,
   /** The win sheet, and a star that is not being awarded. */
   sheet: 140,
   /** A screen's first paint. */
@@ -202,5 +235,69 @@ export const elevation = {
     elevation: 10,
   },
 } as const;
+
+/**
+ * One light, from above.
+ *
+ * A surface standing proud of the felt catches the light along its top edge and shades
+ * along its bottom; a well cut into the felt does exactly the reverse. On a dark ground
+ * that rim is what carries depth - a black shadow on charcoal is nearly invisible, and a
+ * pale one would be the glow this design bans. Keeping the direction honest across every
+ * card, control and sheet is most of what separates a dark interface that reads as
+ * expensive from one that reads as flat.
+ */
+export const light = {
+  raisedTop: 'rgba(240,237,230,0.20)',
+  raisedBottom: 'rgba(0,0,0,0.22)',
+  sunkTop: 'rgba(0,0,0,0.30)',
+  sunkBottom: 'rgba(240,237,230,0.14)',
+} as const;
+
+/**
+ * How far a surface sits from the felt.
+ *
+ * `sunk` is a well cut into the board - lanes, progress tracks, skeleton blocks. `felt` is
+ * the board itself. `raised` is anything resting on it: cards, controls, settings rows.
+ * `lifted` is what floats above it: the win and out-of-moves sheets.
+ */
+export type Plane = 'sunk' | 'felt' | 'raised' | 'lifted';
+
+/**
+ * The full surface treatment for a plane, so no component assembles its own. Before this
+ * existed, four screens each hand-rolled the same chalk fill and hairline border, and
+ * nothing in the app declared whether it sat above the felt or below it.
+ */
+export function plane(level: Plane): ViewStyle {
+  switch (level) {
+    case 'sunk':
+      return {
+        backgroundColor: surface.recess,
+        borderWidth: 1,
+        borderColor: surface.hairline,
+        borderTopColor: light.sunkTop,
+        borderBottomColor: light.sunkBottom,
+      };
+    case 'felt':
+      return { backgroundColor: surface.board };
+    case 'raised':
+      return {
+        backgroundColor: surface.chalk,
+        borderWidth: 1,
+        borderColor: surface.hairline,
+        borderTopColor: light.raisedTop,
+        borderBottomColor: light.raisedBottom,
+        ...elevation.resting,
+      };
+    case 'lifted':
+      return {
+        backgroundColor: surface.chalk,
+        borderWidth: 1,
+        borderColor: surface.hairline,
+        borderTopColor: light.raisedTop,
+        borderBottomColor: 'transparent',
+        ...elevation.lifted,
+      };
+  }
+}
 
 export const hitSlop = { top: 10, bottom: 10, left: 10, right: 10 } as const;
