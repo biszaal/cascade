@@ -28,3 +28,6 @@ e2e/shots/
 
 # Generated review page
 level-browser.html
+
+# Editor local history
+.history/
