@@ -9,10 +9,11 @@ import {
   isLaneComplete,
   isSolved,
   keepRevealed,
+  legalMoves,
   moveFor,
   topRun,
 } from '@/engine/rules';
-import { hintMove, isDeadEnd } from '@/engine/solver';
+import { hintMove } from '@/engine/solver';
 import { starsFor } from '@/game/scoring';
 import * as haptics from '@/game/haptics';
 
@@ -54,7 +55,15 @@ export interface SessionState {
   elapsedFrom: number;
   /** Takebacks left in this attempt. */
   undosLeft: number;
-  /** No sequence of moves from here can solve the board - including one that only shuttles. */
+  /**
+   * The board has no legal move at all.
+   *
+   * Deliberately NOT "this board can no longer be won". The engine can prove a board
+   * unwinnable long before it runs out of moves, but a player who has taken a wrong turn
+   * is still playing, and covering a board they are enjoying with a sheet that tells them
+   * it is over is worse than letting them find out. So the game only interrupts when
+   * there is genuinely nothing left to tap.
+   */
   stuck: boolean;
 
   load: (level: Level) => void;
@@ -183,9 +192,9 @@ export const useSession = create<SessionState>((set, get) => ({
       expected.count === move.count;
 
     const won = isSolved(next);
-    // Decided once per move rather than on every render: finding a dead end walks every
-    // position the board can still reach, and the answer only changes when the board does.
-    const stuck = !won && isDeadEnd(next);
+    // Decided once per move rather than on every render: the answer only changes when the
+    // board does.
+    const stuck = !won && legalMoves(next).length === 0;
 
     if (justCompleted.length > 0) haptics.tapComplete();
     else haptics.tapPlace();
@@ -221,9 +230,9 @@ export const useSession = create<SessionState>((set, get) => ({
       hint: null,
       status: 'playing',
       undosLeft: undosLeft - 1,
-      // A dead end can run several moves deep - the other half of a shuttle is just as
-      // stuck - so one takeback does not necessarily clear it.
-      stuck: isDeadEnd(previous.state),
+      // The move being taken back was legal in the position being restored, and nothing
+      // about a takeback can remove it, so the earlier board always has a move in it.
+      stuck: false,
       // Once a move has been taken back the precomputed line no longer describes play.
       onOptimalPath: false,
     });

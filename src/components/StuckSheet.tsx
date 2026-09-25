@@ -11,7 +11,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 import Svg, { Circle, Path } from 'react-native-svg';
-import { duration, radius, space, surface, tokenColors, type } from '@/design/tokens';
+import { duration, plane, radius, space, surface, tokenColors, type } from '@/design/tokens';
 import { Button } from './Button';
 import { RestartIcon, UndoIcon } from './Icons';
 import { metricsFor } from '@/game/responsive';
@@ -29,11 +29,11 @@ interface StuckSheetProps {
 }
 
 /**
- * The board has dead-ended: say so plainly, and offer the two ways out.
+ * The board has no legal move left: say so plainly, and offer the two ways out.
  *
- * Undo that clears the dead end closes the sheet itself, and one that does not leaves it
- * up with an undo fewer - there is no dismiss button, because a board with no way forward
- * has nothing left to play.
+ * There is no dismiss button, because a board with nothing tappable on it has nothing
+ * left to play. Taking a move back always clears it - the move being undone was legal in
+ * the position it returns to - so the sheet closes itself and play carries on.
  */
 export function StuckSheet({ visible, undosLeft, canUndo, onUndo, onRestart, onExit }: StuckSheetProps) {
   const [shown, setShown] = useState(false);
@@ -96,7 +96,7 @@ function Card({ undosLeft, canUndo, onUndo, onRestart }: Omit<StuckSheetProps, '
       </Animated.View>
 
       <Text style={styles.title}>Out of moves!</Text>
-      <Text style={styles.body}>No move left can finish this board. Take a move back, or start the level over.</Text>
+      <Text style={styles.body}>There is no move left to play. Take a move back, or start the level over.</Text>
 
       {/* Both actions play their own sound (undo's whoop, restart's swoosh), so the buttons
           stay silent rather than tapping over them. */}
@@ -148,10 +148,8 @@ const styles = StyleSheet.create({
   },
   card: {
     width: '100%',
-    backgroundColor: surface.chalk,
+    ...plane('lifted'),
     borderRadius: radius.sheet,
-    borderWidth: 1,
-    borderColor: surface.hairline,
     padding: space.lg,
     paddingTop: space.xl,
     gap: space.md,
