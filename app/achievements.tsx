@@ -3,7 +3,7 @@ import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } fr
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { duration, radius, space, surface, type } from '@/design/tokens';
+import { duration, plane, radius, space, surface, type } from '@/design/tokens';
 import { chapters, totalLevels } from '@/data/levels';
 import { useProgress } from '@/state/progress';
 import { BackIcon } from '@/components/Icons';
@@ -153,10 +153,8 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     gap: space.md,
     padding: space.md,
-    backgroundColor: surface.chalk,
+    ...plane('raised'),
     borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: surface.hairline,
   },
   cardUnearned: { opacity: 0.66 },
   star: { width: 26, alignItems: 'center', justifyContent: 'center', paddingTop: 2 },

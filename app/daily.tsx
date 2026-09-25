@@ -6,7 +6,7 @@ import { Board } from '@/components/Board';
 import { StarRow } from '@/components/StarRow';
 import { StuckSheet } from '@/components/StuckSheet';
 import { BackIcon, UndoIcon } from '@/components/Icons';
-import { font, radius, space, surface, type } from '@/design/tokens';
+import { font, plane, radius, space, surface, type } from '@/design/tokens';
 import { canUndo, useSession } from '@/state/session';
 import { starsFor } from '@/game/scoring';
 import { buildDailyLevel, fetchLeaderboard, submitDailyResult, todayKey, type LeaderboardRow } from '@/data/daily';
@@ -274,7 +274,7 @@ const styles = StyleSheet.create({
   counters: { flexDirection: 'row', alignItems: 'center', gap: space.lg, marginTop: space.sm },
   counter: { minWidth: 58 },
   counterDivider: { width: 1, height: 28, backgroundColor: surface.hairline },
-  counterLabel: { ...type.label, fontSize: 10, letterSpacing: 1.2, color: surface.graphite },
+  counterLabel: { ...type.micro, color: surface.graphite },
   counterValue: { ...type.numeralLarge, fontSize: 26, color: surface.ink },
 
   // Takes every point the summary and the controls leave; the board is sized to it.
@@ -287,9 +287,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: space.base,
     minHeight: 44,
     borderRadius: radius.pill,
-    backgroundColor: surface.chalk,
-    borderWidth: 1,
-    borderColor: surface.hairline,
+    ...plane('raised'),
   },
   controlOff: { opacity: 0.45 },
   controlLabel: { ...type.label, color: surface.ink },
@@ -299,16 +297,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: space.sm,
     padding: space.lg,
-    backgroundColor: surface.chalk,
+    ...plane('raised'),
     borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: surface.hairline,
   },
   wonText: { ...type.body, color: surface.ink },
   wonStreak: { ...type.body, color: surface.graphite },
 
   leaderboard: { gap: space.sm },
-  sectionTitle: { ...type.label, fontSize: 10, letterSpacing: 1.4, color: surface.graphite },
+  sectionTitle: { ...type.micro, color: surface.graphite },
   row: {
     flexDirection: 'row',
     alignItems: 'center',

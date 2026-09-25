@@ -6,15 +6,14 @@ import { Board } from '@/components/Board';
 import { HUD } from '@/components/HUD';
 import { StuckSheet } from '@/components/StuckSheet';
 import { WinSheet } from '@/components/WinSheet';
-import { space, surface, type } from '@/design/tokens';
-import { getLevel, totalLevels } from '@/data/levels';
+import { CHAPTER_TINT, chapterAccent, space, surface, type } from '@/design/tokens';
+import { tintedSurface } from '@/design/tint';
+import { getChapter, getLevel, totalLevels } from '@/data/levels';
 import { canUndo, useSession } from '@/state/session';
 import { useProgress } from '@/state/progress';
 import { starsFor } from '@/game/scoring';
 import { metricsFor } from '@/game/responsive';
 import { queueResultSync } from '@/data/sync';
-
-const HUD_HEIGHT = 210;
 
 export default function Play() {
   const { levelId } = useLocalSearchParams<{ levelId: string }>();
@@ -33,6 +32,10 @@ export default function Play() {
 
   const [isBest, setIsBest] = useState(false);
   const recorded = useRef<number | null>(null);
+  // The board takes whatever the HUD and footer leave, measured rather than assumed. The
+  // HUD's text scales with Dynamic Type, so any fixed reservation is wrong at some text
+  // size - at the largest it overran its 210pt and pushed into the board.
+  const [boardBox, setBoardBox] = useState<{ width: number; height: number } | null>(null);
 
   useEffect(() => {
     if (level) session.load(level);
@@ -69,12 +72,10 @@ export default function Play() {
   }
 
   const metrics = metricsFor(width, height);
-  const boardWidth = metrics.boardWidth;
-  const boardHeight = Math.max(
-    240,
-    height - HUD_HEIGHT - (metrics.isTablet ? space.huge * 2 : space.xxl),
-  );
   const undoable = canUndo(session);
+  // The board wears its chapter. Twenty chapters shared one charcoal, so the only thing
+  // telling Brook from Bedrock was the number in the HUD.
+  const felt = tintedSurface(surface.board, chapterAccent(getChapter(level.chapter)?.color), CHAPTER_TINT);
   // Only on the very first level, only before the first move, and only for someone who
   // has never finished anything. After that the levels teach by constraint.
   const showFirstRunHint = level.id === 1 && session.moves === 0 && !hasPlayedBefore;
@@ -82,7 +83,7 @@ export default function Play() {
   const hasNext = nextId <= totalLevels;
 
   return (
-    <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
+    <SafeAreaView style={[styles.screen, { backgroundColor: felt }]} edges={['top', 'bottom']}>
       <View style={[styles.hud, { width: metrics.contentWidth }]}>
         <HUD
           levelLabel={`Level ${level.id}`}
@@ -103,19 +104,27 @@ export default function Play() {
         />
       </View>
 
-      <View style={styles.boardArea}>
-        <Board
-          maxToken={metrics.maxToken}
-          state={session.state}
-          ids={session.ids}
-          selected={session.selected}
-          rejected={session.rejected}
-          justCompleted={session.justCompleted}
-          hintLane={session.hint ? session.hint.to : null}
-          width={boardWidth}
-          height={boardHeight}
-          onLanePress={session.tapLane}
-        />
+      <View
+        style={styles.boardArea}
+        onLayout={(event) => {
+          const { width: w, height: h } = event.nativeEvent.layout;
+          setBoardBox((box) => (box && box.width === w && box.height === h ? box : { width: w, height: h }));
+        }}
+      >
+        {boardBox ? (
+          <Board
+            maxToken={metrics.maxToken}
+            state={session.state}
+            ids={session.ids}
+            selected={session.selected}
+            rejected={session.rejected}
+            justCompleted={session.justCompleted}
+            hintLane={session.hint ? session.hint.to : null}
+            width={Math.min(metrics.boardWidth, boardBox.width)}
+            height={boardBox.height}
+            onLanePress={session.tapLane}
+          />
+        ) : null}
       </View>
 
       {/* One shared slot for the footer line, so showing or hiding it never shifts the

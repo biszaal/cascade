@@ -4,12 +4,14 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import Animated, { FadeIn } from 'react-native-reanimated';
-import { chapterColors, duration, space, surface, type } from '@/design/tokens';
+import { CHAPTER_TINT, chapterAccent, duration, space, surface, type } from '@/design/tokens';
+import { tintedSurface } from '@/design/tint';
 import { getChapter, getChapterLevels } from '@/data/levels';
 import { useProgress } from '@/state/progress';
 import { BackIcon, LockIcon } from '@/components/Icons';
 import { StarRow } from '@/components/StarRow';
 import { metricsFor } from '@/game/responsive';
+import { UNLOCK_ALL } from '@/game/dev';
 
 const NODE_COMPACT = 46;
 const NODE_REGULAR = 64;
@@ -37,7 +39,8 @@ export default function ChapterTrail() {
   const results = useProgress((s) => s.results);
   const isUnlocked = useProgress((s) => s.isUnlocked);
 
-  const accent = chapterColors[(chapter?.color ?? 0) % chapterColors.length]!;
+  const accent = chapterAccent(chapter?.color);
+  const felt = tintedSurface(surface.board, accent, CHAPTER_TINT);
   const trackWidth = Math.min(width - space.lg * 2, metrics.isTablet ? 720 : 420);
 
   // Three nodes per row, alternating direction, so the eye follows a single continuous
@@ -98,7 +101,7 @@ export default function ChapterTrail() {
   }, [currentIndex, nodes, ROW_HEIGHT]);
 
   return (
-    <SafeAreaView style={styles.screen} edges={['top', 'bottom']}>
+    <SafeAreaView style={[styles.screen, { backgroundColor: felt }]} edges={['top', 'bottom']}>
       <View style={styles.header}>
         <Pressable
           onPress={() => router.back()}
@@ -134,7 +137,7 @@ export default function ChapterTrail() {
 
           {nodes.map(({ level, x, y }, i) => {
             const result = results[level.id];
-            const unlocked = isUnlocked(level.id, chapter?.firstLevelId ?? level.id);
+            const unlocked = UNLOCK_ALL || isUnlocked(level.id, chapter?.firstLevelId ?? level.id);
             const solved = (result?.stars ?? 0) > 0;
 
             return (

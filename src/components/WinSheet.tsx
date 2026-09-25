@@ -1,8 +1,9 @@
 import { Modal, StyleSheet, Text, View, useWindowDimensions } from 'react-native';
-import { radius, space, surface, type } from '@/design/tokens';
+import { plane, radius, space, surface, type } from '@/design/tokens';
 import { Button } from './Button';
 import { StampedStar } from './StampedStar';
 import { metricsFor } from '@/game/responsive';
+import { verdictFor } from '@/game/scoring';
 
 interface WinSheetProps {
   visible: boolean;
@@ -29,8 +30,7 @@ export function WinSheet({
 }: WinSheetProps) {
   const { width, height } = useWindowDimensions();
   const metrics = metricsFor(width, height);
-  const verdict =
-    stars === 3 ? 'Par or better' : stars === 2 ? `${moves - par} over par` : `${moves - par} over par`;
+  const verdict = verdictFor(moves, par);
 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onExit}>
@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
   scrim: { flex: 1, backgroundColor: surface.scrim, justifyContent: 'flex-end', alignItems: 'center' },
   sheet: {
     width: '100%',
-    backgroundColor: surface.chalk,
+    ...plane('lifted'),
     borderTopLeftRadius: radius.sheet,
     borderTopRightRadius: radius.sheet,
     padding: space.lg,
@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
 
   numbers: { flexDirection: 'row', alignItems: 'center', gap: space.lg, marginVertical: space.xs },
   number: { alignItems: 'center', minWidth: 62 },
-  numberLabel: { ...type.label, fontSize: 10, letterSpacing: 1.2, color: surface.graphite },
+  numberLabel: { ...type.micro, color: surface.graphite },
   numberValue: { ...type.numeralLarge, color: surface.ink },
   numberDivider: { width: 1, height: 30, backgroundColor: surface.hairline },
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { radius, space, surface, type } from '@/design/tokens';
+import { plane, radius, space, surface, type } from '@/design/tokens';
 import { movesUntilStarLost } from '@/game/scoring';
 import { describeProgress } from '@/game/describe';
 import { BackIcon, HintIcon, RestartIcon, UndoIcon } from './Icons';
@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
 
   scoreRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: space.lg },
   scoreBlock: { alignItems: 'center', minWidth: 64 },
-  scoreLabel: { ...type.label, fontSize: 10, color: surface.graphite, letterSpacing: 1.2 },
+  scoreLabel: { ...type.micro, color: surface.graphite },
   scoreValue: { ...type.numeralLarge, color: surface.ink },
   scoreValueOver: { color: surface.accent },
   divider: { width: 1, height: 30, backgroundColor: surface.hairline },
@@ -152,9 +152,7 @@ const styles = StyleSheet.create({
     paddingVertical: space.sm + 2,
     minHeight: 44,
     borderRadius: radius.pill,
-    backgroundColor: surface.chalk,
-    borderWidth: 1,
-    borderColor: surface.hairline,
+    ...plane('raised'),
   },
   controlDisabled: { opacity: 0.45 },
   controlLabel: { ...type.label, color: surface.ink },

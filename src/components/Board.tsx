@@ -5,6 +5,7 @@ import { Token } from './Token';
 import { computeGeometry, lanePosition, slotPosition } from '@/game/layout';
 import { isLaneComplete } from '@/engine/rules';
 import { describeLane, describeLaneAction } from '@/game/describe';
+import { destinationStates } from '@/game/destinations';
 import { useReducedMotion } from '@/game/useReducedMotion';
 import type { GameState } from '@/engine/types';
 
@@ -42,6 +43,10 @@ export function Board({
     () => computeGeometry(laneCount, state.capacity, width, height, maxToken),
     [laneCount, state.capacity, width, height, maxToken],
   );
+
+  // Which lanes the held token may legally enter, from the same predicate the tap handler
+  // uses - so the board cannot offer a pour that a tap would then refuse.
+  const destinations = useMemo(() => destinationStates(state, selected), [state, selected]);
 
   // Exactly one token moves per move, so exactly one token lifts. Raising the whole
   // same-coloured run promised a pour the rules no longer deliver.
@@ -96,7 +101,9 @@ export function Board({
             height={geometry.laneHeight}
             complete={complete}
             completeColor={complete ? lane.tokens[0]! : null}
-            selected={selected === index || hintLane === index}
+            selected={selected === index}
+            hintTarget={hintLane === index}
+            destination={destinations[index] ?? null}
             rejectNonce={rejected?.lane === index ? rejected.nonce : null}
             calm={calm}
             // The whole mechanic is colour, which a screen reader cannot show - so the
@@ -125,6 +132,7 @@ export function Board({
           />
         ))}
       </View>
+
     </View>
   );
 }

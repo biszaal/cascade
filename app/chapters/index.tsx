@@ -2,11 +2,12 @@ import { Pressable, ScrollView, StyleSheet, Text, View, useWindowDimensions } fr
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeInDown } from 'react-native-reanimated';
-import { chapterColors, duration, radius, space, surface, type } from '@/design/tokens';
+import { chapterColors, duration, plane, radius, space, surface, type } from '@/design/tokens';
 import { chapters } from '@/data/levels';
 import { useProgress } from '@/state/progress';
 import { BackIcon, ChevronIcon, LockIcon } from '@/components/Icons';
 import { metricsFor } from '@/game/responsive';
+import { UNLOCK_ALL } from '@/game/dev';
 
 export default function Chapters() {
   const router = useRouter();
@@ -42,7 +43,9 @@ export default function Chapters() {
           // walled off by a single puzzle they cannot crack.
           const requirement = previous ? previous.levelCount : 0;
           const unlocked =
-            i === 0 || chapterStars(previous!.firstLevelId, previous!.levelCount) >= requirement;
+            UNLOCK_ALL ||
+            i === 0 ||
+            chapterStars(previous!.firstLevelId, previous!.levelCount) >= requirement;
           const accent = chapterColors[chapter.color % chapterColors.length]!;
           const played = Object.keys(results).filter(
             (id) => Number(id) >= chapter.firstLevelId && Number(id) < chapter.firstLevelId + chapter.levelCount,
@@ -101,10 +104,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: space.base,
     padding: space.base,
-    backgroundColor: surface.chalk,
+    ...plane('raised'),
     borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: surface.hairline,
     minHeight: 88,
   },
   cardLocked: { opacity: 0.55 },

@@ -4,10 +4,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { FadeInDown } from 'react-native-reanimated';
 import { Logo } from '@/components/Logo';
 import { Button } from '@/components/Button';
-import { duration, radius, space, surface, type } from '@/design/tokens';
+import { duration, plane, radius, space, surface, type } from '@/design/tokens';
 import { useProgress } from '@/state/progress';
 import { chapters, getLevel, totalLevels } from '@/data/levels';
-import { chapterColors } from '@/design/tokens';
+import { chapterAccent } from '@/design/tokens';
 import { StarRow } from '@/components/StarRow';
 import { ChevronIcon } from '@/components/Icons';
 import { metricsFor } from '@/game/responsive';
@@ -30,7 +30,7 @@ export default function Home() {
   const nextLevelId = Math.min(completed + 1, totalLevels);
   const nextLevel = getLevel(nextLevelId);
   const nextChapter = chapters.find((c) => c.chapter === nextLevel?.chapter);
-  const accent = chapterColors[(nextChapter?.color ?? 0) % chapterColors.length]!;
+  const accent = chapterAccent(nextChapter?.color);
   const lastResult = completed > 0 ? results[completed] : undefined;
 
   // A live streak is worth mentioning only while today's board is still unplayed; once it is
@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     backgroundColor: surface.accent,
   },
-  statLabel: { ...type.label, fontSize: 10, letterSpacing: 1.2, color: surface.graphite },
+  statLabel: { ...type.micro, color: surface.graphite },
   statValueRow: { flexDirection: 'row', alignItems: 'baseline', gap: 2 },
   statValue: { ...type.numeralLarge, color: surface.ink },
   statSuffix: { ...type.numeral, color: surface.graphite },
@@ -187,14 +187,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: space.base,
     padding: space.base,
-    backgroundColor: surface.chalk,
+    ...plane('raised'),
     borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: surface.hairline,
   },
   upNextRule: { width: 4, height: 44, borderRadius: 2 },
   upNextBody: { flex: 1, gap: 2 },
-  upNextLabel: { ...type.label, fontSize: 10, letterSpacing: 1.2, color: surface.graphite },
+  upNextLabel: { ...type.micro, color: surface.graphite },
   upNextTitle: { ...type.heading, fontSize: 18, color: surface.ink },
   upNextMeta: { ...type.label, color: surface.graphite },
   upNextStars: { alignItems: 'flex-end', gap: space.xs },
