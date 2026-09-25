@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { starsFor, movesUntilStarLost } from './scoring';
+import { starsFor, movesUntilStarLost, verdictFor } from './scoring';
 
 describe('stars', () => {
   it('awards three for matching par', () => {
@@ -34,5 +34,23 @@ describe('star warning', () => {
 
   it('goes quiet when only one star remains', () => {
     expect(movesUntilStarLost(40, 20)).toBeNull();
+  });
+});
+
+describe('verdict', () => {
+  it('names a round under par', () => {
+    expect(verdictFor(17, 20)).toBe('3 under par');
+  });
+
+  it('names par plainly', () => {
+    expect(verdictFor(20, 20)).toBe('Par');
+  });
+
+  it('names a round over par', () => {
+    expect(verdictFor(25, 20)).toBe('5 over par');
+  });
+
+  it('distinguishes two stars from one, which the old copy did not', () => {
+    expect(verdictFor(25, 20)).not.toBe(verdictFor(26, 20));
   });
 });

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { describeLane, describeLaneAction, describeProgress, colorName } from './describe';
-import { createState } from '@/engine/rules';
+import { canMove, createState } from '@/engine/rules';
 import type { GameState } from '@/engine/types';
 
 function board(capacity: number, lanes: number[][], hidden?: number[]): GameState {
@@ -139,5 +139,20 @@ describe('describing progress', () => {
 
   it('reports being over par', () => {
     expect(describeProgress(25, 20)).toBe('25 moves, 5 over par.');
+  });
+});
+
+describe('spoken actions agree with the rules', () => {
+  it('does not offer to pour a lane\'s last token into an empty lane', () => {
+    // canMove refuses this: it swaps two interchangeable lanes and proves nothing.
+    const state = board(4, [[0], []]);
+    expect(canMove(state, 0, 1)).toBe(false);
+    expect(describeLaneAction(state, 1, 0)).not.toMatch(/^Pour/);
+  });
+
+  it('still offers a genuine pour into an empty lane', () => {
+    const state = board(4, [[0, 1], []]);
+    expect(canMove(state, 0, 1)).toBe(true);
+    expect(describeLaneAction(state, 1, 0)).toBe('Pour Sky into the empty lane');
   });
 });

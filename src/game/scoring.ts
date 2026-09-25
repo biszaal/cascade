@@ -13,3 +13,16 @@ export function movesUntilStarLost(moves: number, par: number): number | null {
   if (moves < twoStarLimit) return twoStarLimit - moves;
   return null;
 }
+
+/**
+ * The one line under "Board cleared", stating the result as a golfer would.
+ *
+ * Par carries a small allowance on boards with face-down tokens, so beating it is
+ * reachable and worth naming - the old copy spent a three-way branch to say "over par"
+ * twice and never acknowledged a round under.
+ */
+export function verdictFor(moves: number, par: number): string {
+  if (moves < par) return `${par - moves} under par`;
+  if (moves === par) return 'Par';
+  return `${moves - par} over par`;
+}

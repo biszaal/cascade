@@ -1,5 +1,5 @@
 import type { GameState, LaneState } from '@/engine/types';
-import { canLift, isLaneComplete, topColor, topRun } from '@/engine/rules';
+import { canLift, canMove, isLaneComplete, topColor, topRun } from '@/engine/rules';
 
 /**
  * Spoken descriptions of the board.
@@ -87,11 +87,18 @@ export function describeLaneAction(
   if (!source || source.tokens.length === 0) return '';
 
   const holding = colorName(topColor(source)!);
-  if (lane.tokens.length >= state.capacity) return `Full, cannot take ${holding}`;
-  if (lane.tokens.length === 0) return `Pour ${holding} into the empty lane`;
 
-  const destination = colorName(topColor(lane)!);
-  return destination === holding ? `Pour ${holding} here` : `Cannot pour ${holding} onto ${destination}`;
+  // Asking the engine rather than restating its rules: this used to offer "Pour X into
+  // the empty lane" for a lane holding its last token, which `canMove` refuses outright,
+  // so the one player relying entirely on these strings was told to make a move the board
+  // would then shake off.
+  if (canMove(state, selected, index)) {
+    return lane.tokens.length === 0 ? `Pour ${holding} into the empty lane` : `Pour ${holding} here`;
+  }
+
+  if (lane.tokens.length >= state.capacity) return `Full, cannot take ${holding}`;
+  if (lane.tokens.length === 0) return `Empty, but moving the last ${holding} there changes nothing`;
+  return `Cannot pour ${holding} onto ${colorName(topColor(lane)!)}`;
 }
 
 /** Progress read out for the HUD. */
