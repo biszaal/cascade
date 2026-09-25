@@ -17,8 +17,8 @@ import { setHapticsEnabled } from '@/game/haptics';
 import { msUntilNextDay, utcDay } from '@/game/day';
 import * as reminders from '@/game/reminders';
 import { streakOn } from '@/game/streak';
-import { preloadSounds, setSoundEnabled, release as releaseSound } from '@/game/sound';
-import { pauseMusic, resumeMusic, setMusicEnabled } from '@/game/music';
+import { preloadSounds, setSoundEnabled, release as releaseSound, setSoundVolume } from '@/game/sound';
+import { pauseMusic, resumeMusic, setMusicEnabled, setMusicVolume } from '@/game/music';
 import { ensureSession } from '@/supabase/auth';
 import { flushPending, pullRemote } from '@/data/sync';
 
@@ -88,6 +88,8 @@ export default function RootLayout() {
   const hapticsEnabled = useProgress((s) => s.hapticsEnabled);
   const soundEnabled = useProgress((s) => s.soundEnabled);
   const musicEnabled = useProgress((s) => s.musicEnabled);
+  const soundVolume = useProgress((s) => s.soundVolume);
+  const musicVolume = useProgress((s) => s.musicVolume);
 
   useEffect(() => {
     // Sign in anonymously, then reconcile with the cloud - all in the background. None of
@@ -125,6 +127,16 @@ export default function RootLayout() {
     if (!loaded) return;
     setMusicEnabled(musicEnabled);
   }, [loaded, musicEnabled]);
+
+  // Volume rides alongside the switches rather than inside them, so a level set while a
+  // thing is off is still waiting when it comes back on.
+  useEffect(() => {
+    setSoundVolume(soundVolume);
+  }, [soundVolume]);
+
+  useEffect(() => {
+    setMusicVolume(musicVolume);
+  }, [musicVolume]);
 
   useEffect(() => {
     // Background playback is off, so pause explicitly rather than letting the OS cut the tune

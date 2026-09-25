@@ -8,8 +8,13 @@ import { configureAudio } from './sound';
  * costs the player the tune and nothing else.
  */
 
-/** Well under the effects, so a pour is always heard over the music. */
-const VOLUME = 0.3;
+/**
+ * Music sits well under the effects so a pour is always heard over the tune. The setting
+ * scales within that ceiling rather than replacing it: full on the slider means "as mixed",
+ * not "as loud as the game can go", so no setting can bury the feedback the board depends on.
+ */
+const CEILING = 0.3;
+let level = 1;
 
 let player: AudioPlayer | null = null;
 // Off until the saved preference arrives, so someone who turned music off never hears a bar
@@ -22,11 +27,21 @@ function ensurePlayer(): AudioPlayer | null {
     configureAudio();
     const created = createAudioPlayer(require('../../assets/sound/music.wav'));
     created.loop = true;
-    created.volume = VOLUME;
+    created.volume = CEILING * level;
     player = created;
     return player;
   } catch {
     return null;
+  }
+}
+
+/** 0 to 1, as a fraction of the mixed level. */
+export function setMusicVolume(value: number): void {
+  level = Math.min(1, Math.max(0, Number.isFinite(value) ? value : 1));
+  try {
+    if (player) player.volume = CEILING * level;
+  } catch {
+    // The tune keeps playing at whatever it was.
   }
 }
 

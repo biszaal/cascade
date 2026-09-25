@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Alert,
   Linking,
@@ -12,15 +12,20 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { radius, space, surface, type } from '@/design/tokens';
+import { plane, radius, space, surface, type } from '@/design/tokens';
 import { useProgress } from '@/state/progress';
 import { BackIcon } from '@/components/Icons';
+import { Slider } from '@/components/Slider';
 import { isSupabaseConfigured } from '@/supabase/client';
 import { deleteAccount } from '@/supabase/auth';
 import { flushPending, pullRemote } from '@/data/sync';
 import { metricsFor } from '@/game/responsive';
 import * as reminders from '@/game/reminders';
 import { streakOn } from '@/game/streak';
+// Applied straight to the players while a finger is moving, so the level can be heard as
+// it is chosen; the store is only written when the finger lifts.
+import { play as playSound, setSoundVolume as applySoundVolume } from '@/game/sound';
+import { setMusicVolume as applyMusicVolume } from '@/game/music';
 import { utcDay } from '@/game/day';
 
 /**
@@ -44,6 +49,17 @@ export default function Settings() {
   const setHaptics = useProgress((s) => s.setHaptics);
   const setSound = useProgress((s) => s.setSound);
   const setMusic = useProgress((s) => s.setMusic);
+  const soundVolume = useProgress((s) => s.soundVolume);
+  const musicVolume = useProgress((s) => s.musicVolume);
+  const setSoundVolume = useProgress((s) => s.setSoundVolume);
+  const setMusicVolume = useProgress((s) => s.setMusicVolume);
+
+  // A drag is previewed locally so the percentage keeps up with the finger without writing
+  // to storage on every frame.
+  const [soundDraft, setSoundDraft] = useState(soundVolume);
+  const [musicDraft, setMusicDraft] = useState(musicVolume);
+  useEffect(() => setSoundDraft(soundVolume), [soundVolume]);
+  useEffect(() => setMusicDraft(musicVolume), [musicVolume]);
   const reset = useProgress((s) => s.reset);
   const dirty = useProgress((s) => s.dirty);
   const [syncing, setSyncing] = useState(false);
@@ -117,6 +133,21 @@ export default function Settings() {
               trackColor={{ true: surface.accent, false: surface.inactive }}
             />
           </Row>
+          <SliderRow
+            label="Volume"
+            accessibilityLabel="Sound volume"
+            value={soundDraft}
+            disabled={!sound}
+            onChange={(next) => {
+              setSoundDraft(next);
+              applySoundVolume(next);
+            }}
+            onCommit={(next) => {
+              setSoundVolume(next);
+              // A volume you cannot hear is not a setting. The tap is the sample.
+              if (sound) playSound('tap');
+            }}
+          />
           <Row label="Music" description="A calm tune in the background">
             <Switch
               value={music}
@@ -124,6 +155,17 @@ export default function Settings() {
               trackColor={{ true: surface.accent, false: surface.inactive }}
             />
           </Row>
+          <SliderRow
+            label="Volume"
+            accessibilityLabel="Music volume"
+            value={musicDraft}
+            disabled={!music}
+            onChange={(next) => {
+              setMusicDraft(next);
+              applyMusicVolume(next);
+            }}
+            onCommit={setMusicVolume}
+          />
         </Section>
 
         {/* Its own section rather than another switch under Feel: Feel is about what the game
@@ -303,6 +345,42 @@ function Row({
   );
 }
 
+/**
+ * A full-width control under the switch it belongs to. `Row` puts its control to the right
+ * of the label, which leaves a slider about a thumb wide.
+ */
+function SliderRow({
+  label,
+  accessibilityLabel,
+  value,
+  disabled,
+  onChange,
+  onCommit,
+}: {
+  label: string;
+  accessibilityLabel: string;
+  value: number;
+  disabled?: boolean;
+  onChange: (value: number) => void;
+  onCommit: (value: number) => void;
+}) {
+  return (
+    <View style={styles.sliderRow}>
+      <View style={styles.sliderHead}>
+        <Text style={[styles.rowLabel, disabled && styles.sliderLabelOff]}>{label}</Text>
+        <Text style={styles.sliderValue}>{Math.round(value * 100)}%</Text>
+      </View>
+      <Slider
+        value={value}
+        onChange={onChange}
+        onCommit={onCommit}
+        label={accessibilityLabel}
+        disabled={disabled}
+      />
+    </View>
+  );
+}
+
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: surface.board },
   header: { flexDirection: 'row', alignItems: 'center', gap: space.sm, paddingHorizontal: space.base, paddingVertical: space.md },
@@ -311,12 +389,10 @@ const styles = StyleSheet.create({
 
   list: { padding: space.base, gap: space.lg, paddingBottom: space.xxl, width: '100%', alignSelf: 'center' },
   section: { gap: space.sm },
-  sectionTitle: { ...type.label, fontSize: 10, letterSpacing: 1.4, color: surface.graphite, marginLeft: space.xs },
+  sectionTitle: { ...type.micro, color: surface.graphite, marginLeft: space.xs },
   card: {
-    backgroundColor: surface.chalk,
+    ...plane('raised'),
     borderRadius: radius.lg,
-    borderWidth: 1,
-    borderColor: surface.hairline,
     paddingHorizontal: space.base,
   },
   row: {
@@ -328,6 +404,10 @@ const styles = StyleSheet.create({
     minHeight: 64,
   },
   rowText: { flex: 1, gap: 2 },
+  sliderRow: { paddingBottom: space.md, gap: space.xs, marginTop: -space.sm },
+  sliderHead: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
+  sliderLabelOff: { color: surface.graphite },
+  sliderValue: { ...type.micro, color: surface.graphite },
   rowLabel: { ...type.body, color: surface.ink },
   rowDescription: { ...type.label, color: surface.graphite },
 

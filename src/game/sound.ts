@@ -51,9 +51,26 @@ let pools: Record<SoundName, AudioPlayer[]> | null = null;
 const next: Partial<Record<SoundName, number>> = {};
 let enabled = true;
 let configured = false;
+/** Kept here rather than only on the players, so a pool rebuilt later opens at the same level. */
+let volume = 1;
 
 export function setSoundEnabled(value: boolean): void {
   enabled = value;
+}
+
+/** 0 to 1. Applied to every voice already built, and to every voice built after this. */
+export function setSoundVolume(value: number): void {
+  volume = Math.min(1, Math.max(0, Number.isFinite(value) ? value : 1));
+  if (!pools) return;
+  for (const voices of Object.values(pools)) {
+    for (const player of voices) {
+      try {
+        player.volume = volume;
+      } catch {
+        // A player that will not take a volume still plays; it just plays loud.
+      }
+    }
+  }
 }
 
 /** One audio-session setup, shared with the music player. */
@@ -72,7 +89,15 @@ function pool(): Record<SoundName, AudioPlayer[]> | null {
     configureAudio();
     const built = {} as Record<SoundName, AudioPlayer[]>;
     for (const name of Object.keys(sources) as SoundName[]) {
-      built[name] = Array.from({ length: voicesFor(name) }, () => createAudioPlayer(sources[name]));
+      built[name] = Array.from({ length: voicesFor(name) }, () => {
+        const player = createAudioPlayer(sources[name]);
+        try {
+          player.volume = volume;
+        } catch {
+          // As above: loud is survivable, crashing is not.
+        }
+        return player;
+      });
     }
     pools = built;
     return pools;

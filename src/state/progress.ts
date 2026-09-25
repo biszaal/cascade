@@ -41,6 +41,9 @@ export interface ProgressState {
   hapticsEnabled: boolean;
   soundEnabled: boolean;
   musicEnabled: boolean;
+  /** 0 to 1, independent of the switches: turning a thing off must not forget its level. */
+  soundVolume: number;
+  musicVolume: number;
   loaded: boolean;
   /** Rows changed since the last successful sync. */
   dirty: number[];
@@ -58,6 +61,8 @@ export interface ProgressState {
   setHaptics: (value: boolean) => void;
   setSound: (value: boolean) => void;
   setMusic: (value: boolean) => void;
+  setSoundVolume: (value: number) => void;
+  setMusicVolume: (value: number) => void;
   clearDirty: (ids: number[]) => void;
   reset: () => Promise<void>;
 
@@ -93,7 +98,14 @@ interface Persisted {
   hapticsEnabled: boolean;
   soundEnabled: boolean;
   musicEnabled: boolean;
+  soundVolume: number;
+  musicVolume: number;
   dirty: number[];
+}
+
+/** A stored volume is a number from anywhere, so it is pinned before it reaches a player. */
+function clampVolume(value: number): number {
+  return Math.min(1, Math.max(0, Number.isFinite(value) ? value : 1));
 }
 
 export const useProgress = create<ProgressState>((set, get) => {
@@ -101,7 +113,7 @@ export const useProgress = create<ProgressState>((set, get) => {
     const {
       results, hintsRemaining, hintsResetOn, dailyLastDay, dailyStreak, dailyBest, seenRecords,
       remindersEnabled, reminderHour, reminderMinute,
-      hapticsEnabled, soundEnabled, musicEnabled, dirty,
+      hapticsEnabled, soundEnabled, musicEnabled, soundVolume, musicVolume, dirty,
     } = get();
     const payload: Persisted = {
       results,
@@ -117,6 +129,8 @@ export const useProgress = create<ProgressState>((set, get) => {
       hapticsEnabled,
       soundEnabled,
       musicEnabled,
+      soundVolume,
+      musicVolume,
       dirty,
     };
     AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(payload)).catch(() => {});
@@ -136,6 +150,8 @@ export const useProgress = create<ProgressState>((set, get) => {
     hapticsEnabled: true,
     soundEnabled: true,
     musicEnabled: true,
+    soundVolume: 1,
+    musicVolume: 1,
     loaded: false,
     dirty: [],
 
@@ -159,6 +175,8 @@ export const useProgress = create<ProgressState>((set, get) => {
             hapticsEnabled: saved.hapticsEnabled ?? true,
             soundEnabled: saved.soundEnabled ?? true,
             musicEnabled: saved.musicEnabled ?? true,
+            soundVolume: saved.soundVolume ?? 1,
+            musicVolume: saved.musicVolume ?? 1,
             dirty: saved.dirty ?? [],
           });
         }
@@ -241,6 +259,16 @@ export const useProgress = create<ProgressState>((set, get) => {
 
     setMusic: (value) => {
       set({ musicEnabled: value });
+      persist();
+    },
+
+    setSoundVolume: (value) => {
+      set({ soundVolume: clampVolume(value) });
+      persist();
+    },
+
+    setMusicVolume: (value) => {
+      set({ musicVolume: clampVolume(value) });
       persist();
     },
 
