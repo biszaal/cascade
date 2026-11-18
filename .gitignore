@@ -11,8 +11,9 @@ web-build/
 .DS_Store
 npm-debug.*
 expo-env.d.ts
-.env
-.env.local
+# Every env file and any stray copy of one (".env (1)", ".env.production"...) holds secrets.
+.env*
+!.env.example
 ios/
 android/
 
