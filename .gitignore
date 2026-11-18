@@ -14,6 +14,8 @@ expo-env.d.ts
 # Every env file and any stray copy of one (".env (1)", ".env.production"...) holds secrets.
 .env*
 !.env.example
+# Google Play upload key for EAS Submit. Never commit it: this repo is public.
+google-service-account.json
 ios/
 android/
 
