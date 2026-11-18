@@ -113,12 +113,12 @@ The screenshots are the six iPhone App Store designs from the Claude Design proj
 game App Store screenshots", each re-rendered 1434 wide instead of 1320: Play rejects anything
 taller than 2:1, and the frames are fluid, so the phone re-centres rather than stretching.
 
-**Fix their captions before the production release.** They date from 1.0 and Play's metadata
-policy treats inaccurate claims as misleading: "100 hand-built levels" (200), "300 stars total"
-and "300 stars to collect" (600), "Ten chapters" and "Spring to Mantle" (twenty, Spring to
-Zenith), "Unlimited undo" (five per level — the same shot shows "Undo 5"), and "no ads
-mid-level" (there are no ads at all). The App Store set carries the same captions. The phone
-screens inside them are 1.0.1 captures, so the home screen reads `/100` and `/300`.
+Their captions were corrected for 1.1.0 on 18 Nov 2026: 200 levels, 600 stars, twenty chapters
+from Spring to Zenith, "Undo and restart" instead of "Unlimited undo" (it is five per level),
+and "no ads" instead of "no ads mid-level". The App Store exports of the same designs are in
+`docs/store/app-store/`. The phone screens inside them are still 1.0.1 captures, so the home
+screen reads `/100` and `/300`; swap those images in the design once 1.1.0 runs on a simulator
+or device.
 
 **Category:** Game → Puzzle. **Contact email:** biszaalgames@gmail.com. **Website:**
 <https://www.biszaaltech.com/games/cascade>.

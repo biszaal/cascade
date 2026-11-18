@@ -59,15 +59,19 @@ If what the app sends changes, update the page and these answers before that bui
 
 ### Screenshots
 
-Upload from `e2e/shots` (exported by `testG_storeTour`):
+Upload from `docs/store/app-store/`, in file order (01 home … 06 chapters). They are JPEG with
+no alpha, exported from the Claude Design project "Cascade game App Store screenshots", whose
+captions were corrected for 1.1.0 on 18 Nov 2026:
 
-| Display | Required size | Source simulator |
+| Display | Required size | Folder |
 |---|---|---|
-| iPhone 6.9" | 1320 × 2868 | `AppStore-6.9` (iOS 18.5) |
-| iPad 13" | 2064 × 2752 | `AppStore-iPad13` (iOS 18.5) |
+| iPhone 6.9" | 1320 × 2868 | `docs/store/app-store/iphone/` |
+| iPad 13" | 2064 × 2752 | `docs/store/app-store/ipad/` |
 
-Order: home, sorting, face-down tokens, anchors, anchors and fog, chapters. The
-`verify-*` images are test evidence, not store screenshots — do not upload them.
+The phone screens inside the designs are still 1.0.1 captures from `testG_storeTour`
+(`e2e/shots`), so the home screen reads `/100` and `/300`. Replace those images in the design
+once 1.1.0 runs on a simulator, then re-export. EAS Metadata does not upload screenshots; they
+go in App Store Connect by hand, on the version being submitted.
 
 ### Pricing and availability
 
