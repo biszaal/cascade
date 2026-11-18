@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import {
   Alert,
   Linking,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -35,6 +36,15 @@ import { utcDay } from '@/game/day';
  * dependency, and this is a setting almost nobody will change twice.
  */
 const REMINDER_HOURS = [8, 12, 18, 20];
+
+/**
+ * Android tints a switch's thumb with the system accent - a teal that clashes with the orange
+ * track - unless told otherwise. iOS already draws it white, so it is left alone there.
+ */
+const switchColors = {
+  trackColor: { true: surface.accent, false: surface.inactive },
+  thumbColor: Platform.OS === 'android' ? surface.ink : undefined,
+};
 
 const clock = (hour: number, minute: number) =>
   `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
@@ -123,14 +133,14 @@ export default function Settings() {
             <Switch
               value={haptics}
               onValueChange={setHaptics}
-              trackColor={{ true: surface.accent, false: surface.inactive }}
+              {...switchColors}
             />
           </Row>
           <Row label="Sound" description="Playful pops and boops as tokens move">
             <Switch
               value={sound}
               onValueChange={setSound}
-              trackColor={{ true: surface.accent, false: surface.inactive }}
+              {...switchColors}
             />
           </Row>
           <SliderRow
@@ -152,7 +162,7 @@ export default function Settings() {
             <Switch
               value={music}
               onValueChange={setMusic}
-              trackColor={{ true: surface.accent, false: surface.inactive }}
+              {...switchColors}
             />
           </Row>
           <SliderRow
@@ -192,7 +202,7 @@ export default function Settings() {
               <Switch
                 value={remindersEnabled}
                 onValueChange={toggleReminder}
-                trackColor={{ true: surface.accent, false: surface.inactive }}
+                {...switchColors}
               />
             )}
           </Row>

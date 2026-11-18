@@ -70,7 +70,8 @@
           "color": "#E0952B",
           "defaultChannel": "daily"
         }
-      ]
+      ],
+      "./plugins/withAndroidPortrait"
     ],
     "experiments": {
       "typedRoutes": true
