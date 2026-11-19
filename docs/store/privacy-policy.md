@@ -37,7 +37,9 @@ reminder it has scheduled.
 
 ## Who processes it
 
-Supabase hosts the accounts, results, and leaderboard. The database is in Ireland. Nothing else
+Supabase hosts the accounts, results, and leaderboard. The database is in the United States
+(Supabase's US East region), so results from players in the UK or the EU are transferred there,
+under the standard contractual clauses in Supabase's data processing agreement. Nothing else
 leaves the game: no advertising, analytics, or tracking services, and no in-app purchases.
 
 ## Who can see it

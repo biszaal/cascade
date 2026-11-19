@@ -6,10 +6,11 @@ review before pasting.
 
 Sign-In required: **No**. Leave the demo account fields empty.
 
-**Before submitting:** the Supabase backend must be reachable. Without it, Settings › Delete my
+**Before submitting:** the Supabase backend must be reachable, and the build must be 11 or later
+(builds 9 and 10 point at Cascade's old, deleted project). Without a backend, Settings › Delete my
 data answers "Couldn't delete your data", the daily leaderboard never appears, and App Review
-will test both. Check with
-`curl -s -o /dev/null -w '%{http_code}' https://wmoqxlksbunenvlyflbw.supabase.co/auth/v1/health`
+will test both. Since 1.1.0 Cascade lives in the cave-helicopter project; check it with
+`curl -s -o /dev/null -w '%{http_code}' https://dqiwnvfqmexpuzbwjhha.supabase.co/auth/v1/health`
 (anything but `000` means the host answers).
 
 ---

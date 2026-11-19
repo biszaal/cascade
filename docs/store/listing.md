@@ -91,7 +91,7 @@ Accounts, user content and payments:
 - Account deletion is in the app: Settings > Delete my data > Delete. It deletes the anonymous account and all of its results from our server, then clears progress on the device. The recording shows it.
 
 4. EXTERNAL SERVICES
-- Supabase (supabase.com): anonymous authentication and a Postgres database hosted in Ireland (AWS eu-west-1). It is used only to back up level results and serve the daily leaderboard.
+- Supabase (supabase.com): anonymous authentication and a Postgres database hosted in the United States (AWS us-east-1, in the project shared with Cave Helicopter). It is used only to back up level results and serve the daily leaderboard.
 - No push notification service: the daily reminder is a local notification, created and delivered by the player's own device. Nothing is sent to or from a server for it.
 - No other runtime services: no analytics, advertising, tracking, crash reporting, payment or AI services.
 
