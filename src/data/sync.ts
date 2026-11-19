@@ -22,7 +22,7 @@ export async function queueResultSync(result: ResultPayload): Promise<void> {
   const userId = await ensureSession();
   if (!userId) return;
 
-  const { error } = await supabase.from('level_results').upsert(
+  const { error } = await supabase.from('cascade_level_results').upsert(
     {
       user_id: userId,
       level_id: result.levelId,
@@ -61,7 +61,7 @@ export async function flushPending(): Promise<void> {
 
   if (rows.length === 0) return;
 
-  const { error } = await supabase.from('level_results').upsert(rows, { onConflict: 'user_id,level_id' });
+  const { error } = await supabase.from('cascade_level_results').upsert(rows, { onConflict: 'user_id,level_id' });
   if (!error) useProgress.getState().clearDirty(dirty);
 }
 
@@ -78,7 +78,7 @@ export async function pullRemote(): Promise<void> {
   if (!userId) return;
 
   const { data, error } = await supabase
-    .from('level_results')
+    .from('cascade_level_results')
     .select('level_id, best_moves, stars, best_time_ms')
     .eq('user_id', userId);
 

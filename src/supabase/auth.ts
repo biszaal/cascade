@@ -45,7 +45,7 @@ export async function deleteAccount(): Promise<boolean> {
   // Never signed in means nothing was ever stored on the server.
   if (!(await currentUserId())) return true;
 
-  const { error } = await supabase.rpc('delete_my_account');
+  const { error } = await supabase.rpc('cascade_delete_my_account');
   if (error) return false;
 
   await supabase.auth.signOut({ scope: 'local' }).catch(() => {});

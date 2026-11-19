@@ -77,7 +77,7 @@ export async function submitDailyResult(moves: number, timeMs: number, date = to
   if (!userId) return;
 
   await supabase
-    .from('daily_results')
+    .from('cascade_daily_results')
     .upsert(
       { date, user_id: userId, moves, time_ms: timeMs },
       { onConflict: 'date,user_id' },
@@ -93,7 +93,7 @@ export async function fetchLeaderboard(date = todayKey()): Promise<LeaderboardRo
   if (!supabase) return [];
   const userId = await ensureSession();
 
-  const { data, error } = await supabase.rpc('daily_leaderboard', { for_date: date });
+  const { data, error } = await supabase.rpc('cascade_daily_leaderboard', { for_date: date });
   if (error || !data) return [];
 
   return (data as Array<{ rank: number; display_name: string; moves: number; time_ms: number; user_id: string }>).map(
