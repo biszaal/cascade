@@ -17,7 +17,11 @@ export async function ensureSession(): Promise<string | null> {
     const { data } = await supabase.auth.getSession();
     if (data.session?.user.id) return data.session.user.id;
 
-    const { data: created, error } = await supabase.auth.signInAnonymously();
+    // The backend project is shared with Cave Helicopter. The tag tells the database's
+    // new-user trigger to give this player a Cascade leaderboard profile (migration 0006).
+    const { data: created, error } = await supabase.auth.signInAnonymously({
+      options: { data: { game: 'cascade' } },
+    });
     if (error) return null;
     return created.user?.id ?? null;
   })();
