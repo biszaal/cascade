@@ -12,10 +12,11 @@ accepts by hand. Work top to bottom.
 
 ## Before submitting
 
-- [ ] **The published privacy page carries the Reminders paragraph** added in 1.1.0. The page at
-      <https://www.biszaaltech.com/games/cascade/privacy> is what players and App Review see, and
-      `docs/store/privacy-policy.md` only mirrors it - deploying the site is a separate step from
-      shipping the app.
+- [x] **The published privacy page carries the Reminders paragraph** added in 1.1.0. Deployed
+      19 Nov 2026 (biszaal-tech-website 95b4450, `hasLocalReminders` on Cascade's route). The page
+      at <https://www.biszaaltech.com/games/cascade/privacy> is what players and App Review see,
+      and `docs/store/privacy-policy.md` only mirrors it - deploying the site is a separate step
+      from shipping the app.
 - [x] **Privacy and support pages are live** at
       <https://www.biszaaltech.com/games/cascade/privacy> and
       <https://www.biszaaltech.com/games/cascade>. App Review opens both. Deployed 13 Sep 2026.
