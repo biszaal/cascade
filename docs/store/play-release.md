@@ -35,11 +35,15 @@ Play Console once.
      it will roll out is listed on that review page.
 3. **Add testers.** Internal testing → Testers → create an email list with your own Google
    account and anyone else testing. Share the opt-in link; testers install from the Play Store.
-4. **Give EAS Submit access.** Users and permissions → invite the service account that expenzez
-   and iTrackHabit already use (its email is `client_email` in their key file) → App
-   permissions → add Cascade with *Release to testing tracks*, *Manage testing tracks* and
-   *Release apps to production*. Copy that key file into this repo as
-   `google-service-account.json`. From here on, uploads can use EAS Submit.
+4. **Give EAS Submit access.** Cascade has its own service account, so its key can touch no
+   other app: `cascade-eas-submit@cascade-play-5chet.iam.gserviceaccount.com`, in Google Cloud
+   project `cascade-play-5chet` (owned by the biszaaltech Google account, with the Google Play
+   Android Developer API enabled). In Play Console: Users and permissions → Invite new users →
+   that email → App permissions → add Cascade only, with *Release to testing tracks*, *Manage
+   testing tracks* and *Release apps to production*. Its JSON key lives in this repo's root as
+   `google-service-account.json` (gitignored). A lost key is replaced with
+   `gcloud iam service-accounts keys create google-service-account.json --iam-account=<that email>`.
+   New Play permissions can take a few hours to apply.
 
 ## Before promoting to production
 
